@@ -1,0 +1,49 @@
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: dev
+    volumes:
+      - ..:/workspace
+      - build-cache:/workspace/build
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+
+  test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: test
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: regimeflow
+      POSTGRES_PASSWORD: regimeflow
+      POSTGRES_DB: market_data
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  jupyter:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: dev
+    volumes:
+      - ..:/workspace
+    ports:
+      - "8888:8888"
+    command: jupyter notebook --ip=0.0.0.0 --allow-root --no-browser
+
+volumes:
+  build-cache:
+  postgres-data:

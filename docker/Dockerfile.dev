@@ -1,0 +1,80 @@
+FROM ubuntu:24.04 AS base
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN sed -i 's|http://|https://|g' /etc/apt/sources.list && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
+    apt-get update -o Acquire::Retries=5 -o Acquire::https::No-Cache=true \
+        -o Acquire::https::Pipeline-Depth=0 && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --fix-missing \
+        build-essential \
+        cmake \
+        ninja-build \
+        git \
+        wget \
+        curl \
+        ca-certificates \
+        gnupg \
+        libeigen3-dev \
+        libboost-all-dev \
+        libprotobuf-dev \
+        protobuf-compiler \
+        libssl-dev \
+        python3-pybind11 \
+        python3-dev \
+        python3-pip \
+        python3-numpy \
+        python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install pytest numpy pandas matplotlib jupyter black mypy
+
+RUN git clone https://github.com/google/googletest.git /tmp/gtest && \
+    cd /tmp/gtest && \
+    cmake -B build -DCMAKE_INSTALL_PREFIX=/usr/local && \
+    cmake --build build --target install && \
+    rm -rf /tmp/gtest
+
+RUN git clone https://github.com/google/benchmark.git /tmp/benchmark && \
+    cd /tmp/benchmark && \
+    cmake -B build -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON \
+          -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local && \
+    cmake --build build --target install && \
+    rm -rf /tmp/benchmark
+
+WORKDIR /workspace
+
+FROM base AS dev
+
+FROM base AS build
+
+COPY . /workspace
+
+RUN cp /workspace/third_party/libbid/libbid.a /usr/local/lib/
+
+RUN rm -rf /workspace/build && cmake -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_TESTS=ON \
+    -DBUILD_PYTHON_BINDINGS=ON \
+    && cmake --build build
+
+FROM build AS test
+RUN cd build && ctest --output-on-failure
+
+FROM ubuntu:24.04 AS prod
+
+RUN apt-get update && apt-get install -y \
+    libboost-filesystem1.83.0 \
+    python3 \
+    python3-numpy \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /workspace/build/lib /usr/local/lib
+COPY --from=build /workspace/build/bin /usr/local/bin
+COPY --from=build /workspace/python/regimeflow /usr/local/lib/python3/dist-packages/regimeflow
+
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+ENTRYPOINT ["/usr/local/bin/regimeflow"]
