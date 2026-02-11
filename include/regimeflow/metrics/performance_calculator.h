@@ -1,0 +1,125 @@
+#pragma once
+
+#include "regimeflow/common/time.h"
+#include "regimeflow/engine/order.h"
+#include "regimeflow/engine/portfolio.h"
+#include "regimeflow/regime/types.h"
+
+#include <map>
+#include <string>
+#include <vector>
+
+namespace regimeflow::metrics {
+
+struct PerformanceSummary {
+    double total_return = 0.0;
+    double cagr = 0.0;
+    double avg_daily_return = 0.0;
+    double avg_monthly_return = 0.0;
+    double best_day = 0.0;
+    double worst_day = 0.0;
+    double best_month = 0.0;
+    double worst_month = 0.0;
+
+    double volatility = 0.0;
+    double downside_deviation = 0.0;
+    double max_drawdown = 0.0;
+    Timestamp max_drawdown_start;
+    Timestamp max_drawdown_end;
+    Duration max_drawdown_duration = Duration::seconds(0);
+    double var_95 = 0.0;
+    double var_99 = 0.0;
+    double cvar_95 = 0.0;
+
+    double sharpe_ratio = 0.0;
+    double sortino_ratio = 0.0;
+    double calmar_ratio = 0.0;
+    double omega_ratio = 0.0;
+    double ulcer_index = 0.0;
+    double information_ratio = 0.0;
+    double treynor_ratio = 0.0;
+    double tail_ratio = 0.0;
+
+    int total_trades = 0;
+    int winning_trades = 0;
+    int losing_trades = 0;
+    double win_rate = 0.0;
+    double profit_factor = 0.0;
+    double avg_win = 0.0;
+    double avg_loss = 0.0;
+    double win_loss_ratio = 0.0;
+    double expectancy = 0.0;
+    double avg_trade_duration_days = 0.0;
+    double annual_turnover = 0.0;
+};
+
+struct RegimeMetrics {
+    regime::RegimeType regime = regime::RegimeType::Neutral;
+    double time_percentage = 0.0;
+    PerformanceSummary summary;
+    int trade_count = 0;
+};
+
+struct TransitionMetricsSummary {
+    regime::RegimeType from = regime::RegimeType::Neutral;
+    regime::RegimeType to = regime::RegimeType::Neutral;
+    int occurrences = 0;
+    double avg_return = 0.0;
+    double volatility = 0.0;
+    Duration avg_duration = Duration::seconds(0);
+};
+
+struct AttributionResult {
+    std::map<regime::RegimeType, double> regime_contribution;
+    std::map<std::string, double> factor_contribution;
+    double alpha = 0.0;
+    double residual = 0.0;
+};
+
+class PerformanceCalculator {
+public:
+    PerformanceSummary calculate(const std::vector<engine::PortfolioSnapshot>& equity_curve,
+                                 const std::vector<engine::Fill>& fills,
+                                 double risk_free_rate = 0.0,
+                                 const std::vector<double>* benchmark_returns = nullptr);
+
+    std::map<regime::RegimeType, RegimeMetrics> calculate_by_regime(
+        const std::vector<engine::PortfolioSnapshot>& equity_curve,
+        const std::vector<engine::Fill>& fills,
+        const std::vector<regime::RegimeState>& regimes,
+        double risk_free_rate = 0.0);
+
+    std::vector<TransitionMetricsSummary> calculate_transitions(
+        const std::vector<engine::PortfolioSnapshot>& equity_curve,
+        const std::vector<regime::RegimeTransition>& transitions);
+
+    AttributionResult calculate_attribution(
+        const std::vector<engine::PortfolioSnapshot>& equity_curve,
+        const std::vector<regime::RegimeState>& regimes,
+        const std::map<std::string, std::vector<double>>& factor_returns);
+
+    double regime_robustness_score(
+        const std::map<regime::RegimeType, RegimeMetrics>& regime_metrics) const;
+
+private:
+    struct TradeSummary {
+        double pnl = 0.0;
+        double notional = 0.0;
+        double duration_days = 0.0;
+    };
+
+    double compute_periods_per_year(const std::vector<engine::PortfolioSnapshot>& curve) const;
+    std::vector<double> compute_returns(const std::vector<engine::PortfolioSnapshot>& curve) const;
+    std::map<std::string, std::vector<double>> bucket_returns(
+        const std::vector<engine::PortfolioSnapshot>& curve,
+        const std::string& format) const;
+    std::vector<TradeSummary> build_trades_from_fills(const std::vector<engine::Fill>& fills) const;
+
+    double mean(const std::vector<double>& values) const;
+    double stddev(const std::vector<double>& values, double mean_value) const;
+    double percentile(std::vector<double> values, double alpha) const;
+    double max_drawdown(const std::vector<engine::PortfolioSnapshot>& curve,
+                        Timestamp& start, Timestamp& end) const;
+};
+
+}  // namespace regimeflow::metrics
