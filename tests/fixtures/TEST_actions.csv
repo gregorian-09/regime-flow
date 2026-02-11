@@ -1,0 +1,4 @@
+action_type,effective_date,factor,amount,new_symbol
+dividend,2020-01-02 00:00:00,,2.0,
+split,2020-01-03 00:00:00,2.0,,
+symbol_change,2020-01-04 00:00:00,,,TEST2

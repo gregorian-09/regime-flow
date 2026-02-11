@@ -1,0 +1,77 @@
+engine:
+  initial_capital: 100000
+  currency: USD
+
+execution:
+  type: basic
+  slippage:
+    type: fixed_bps
+    bps: 2
+  commission:
+    type: fixed
+    amount: 1
+  transaction_cost:
+    type: fixed_bps
+    bps: 1
+  market_impact:
+    type: order_book
+    max_bps: 30
+
+risk:
+  limits:
+    max_notional: 100000
+    max_drawdown: 0.2
+
+regime:
+  type: ensemble
+  ensemble:
+    detectors:
+      - type: hmm
+        weight: 0.7
+        hmm:
+          states: 4
+          window: 20
+          normalize_features: true
+          features: [return, volatility, volume]
+          state0:
+            mean_return: 0.001
+            mean_vol: 0.01
+            var_return: 1e-6
+            var_vol: 1e-4
+          state1:
+            mean_return: 0.0
+            mean_vol: 0.015
+            var_return: 2e-6
+            var_vol: 2e-4
+          state2:
+            mean_return: -0.001
+            mean_vol: 0.02
+            var_return: 3e-6
+            var_vol: 3e-4
+          state3:
+            mean_return: -0.005
+            mean_vol: 0.04
+            var_return: 4e-6
+            var_vol: 4e-4
+      - type: constant
+        weight: 0.3
+        regime: neutral
+
+strategy:
+  type: moving_average_cross
+  fast_period: 10
+  slow_period: 30
+  quantity: 1
+
+data:
+  type: csv
+  data_directory: tests/fixtures
+  file_pattern: "{symbol}.csv"
+  has_header: true
+  validation:
+    require_monotonic_timestamps: true
+    check_price_bounds: true
+    check_gap: true
+    max_gap_seconds: 172800
+    check_price_jump: true
+    max_jump_pct: 0.2
