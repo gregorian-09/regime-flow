@@ -1,0 +1,82 @@
+[build-system]
+requires = ["scikit-build-core>=0.8", "pybind11>=2.11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "regimeflow"
+version = "0.1.0"
+description = "Regime-adaptive backtesting framework"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "RegimeFlow Team", email = "team@regimeflow.io"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: C++",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "mypy>=1.0",
+    "black>=23.0",
+    "ruff>=0.1",
+]
+viz = [
+    "matplotlib>=3.7",
+    "plotly>=5.0",
+    "dash>=2.0",
+]
+full = [
+    "regimeflow[dev,viz]",
+    "jupyter>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/regimeflow/regimeflow"
+Documentation = "https://docs.regimeflow.io"
+Repository = "https://github.com/regimeflow/regimeflow"
+
+[project.scripts]
+regimeflow-backtest = "regimeflow.cli:main"
+
+[tool.scikit-build]
+cmake.args = ["-DBUILD_PYTHON_BINDINGS=ON"]
+wheel.packages = ["regimeflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+markers = [
+    "python_native: tests that require native RegimeFlow bindings",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N", "B", "A"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
