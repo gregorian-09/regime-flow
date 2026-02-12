@@ -1,0 +1,18 @@
+source:
+  type: csv
+  input_dir: examples/data_ingest/input
+  schema:
+    date: date
+    open: double
+    high: double
+    low: double
+    close: double
+    volume: double
+
+transform:
+  bar_type: 1D
+  timezone: America/New_York
+
+output:
+  type: csv
+  output_dir: examples/data_ingest/output

@@ -1,0 +1,19 @@
+live:
+  broker: alpaca
+  paper: true
+  symbols: ["AAPL", "MSFT"]
+  reconnect:
+    enabled: true
+    initial_ms: 500
+    max_ms: 10000
+  heartbeat:
+    enabled: true
+    interval_ms: 10000
+  risk:
+    max_notional: 50000
+    max_position_pct: 0.2
+
+strategy:
+  name: buy_and_hold
+  params:
+    warmup_bars: 1

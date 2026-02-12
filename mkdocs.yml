@@ -1,0 +1,85 @@
+site_name: RegimeFlow Docs
+site_description: RegimeFlow architecture, API design, and user guides
+site_url: https://gregorian-09.github.io/regime-flow/
+repo_url: https://github.com/gregorian-09/regime-flow
+repo_name: RegimeFlow
+docs_dir: docs
+theme:
+  name: material
+  features:
+  - navigation.sections
+  - navigation.top
+  - content.code.copy
+markdown_extensions:
+- admonition
+- attr_list
+- def_list
+- footnotes
+- toc:
+    permalink: true
+plugins:
+- search
+- mermaid2
+nav:
+  - Home: README.md
+  - Examples: examples.md
+  - Overview: overview.md
+- API Design:
+  - Overview: api/index.md
+  - Common: api/common.md
+  - Data: api/data.md
+  - Engine: api/engine.md
+  - Events: api/events.md
+  - Execution: api/execution.md
+  - Live: api/live.md
+  - Metrics: api/metrics.md
+  - Plugins: api/plugins.md
+  - Regime: api/regime.md
+  - Risk: api/risk.md
+  - Strategy: api/strategy.md
+  - Walk-Forward: api/walkforward.md
+  - Python: api/python.md
+  - Metrics Validation: api/python-metrics-validation.md
+  - Full File Index: api/file-index.md
+- Architecture: architecture.md
+- Data Flow: data-flow.md
+- Execution Flow: execution-flow.md
+- Live Trading: live-trading.md
+- Broker Streaming: broker-streaming.md
+- Broker Message Types: broker-message-types.md
+- Event Model: event-model.md
+- Order State Machine: order-state-machine.md
+- Live Resiliency: live-resiliency.md
+- Live Order Reconciliation: live-order-reconciliation.md
+- Regime Detection: regime-detection.md
+- Regime Transitions: regime-transitions.md
+- Regime Features: regime-features.md
+- HMM Math: hmm-math.md
+- Strategy Selection: strategy-selection.md
+- Risk Controls: risk-controls.md
+- Risk Limits: risk-limits-deep.md
+- Config Reference: config-reference.md
+- Execution Models: execution-models.md
+- Execution Costs: execution-costs.md
+- Slippage Math: slippage-math.md
+- Portfolio Model: portfolio-model.md
+- Performance Metrics: performance-metrics.md
+- Backtest Methodology: backtest-methodology.md
+- Walk-Forward: walk-forward.md
+- Data Validation: data-validation.md
+- Mmap Storage: mmap-storage.md
+- Symbol Metadata: symbol-metadata.md
+- Message Bus: message-bus.md
+- Audit Logging: audit-logging.md
+- Python Interfaces: python-interfaces.md
+- Python Usage: python-usage.md
+- Plugin API: plugin-api.md
+- Plugins: plugins.md
+- Dashboard Flow: dashboard-flow.md
+- Database: database.md
+- Diagrams:
+  - Component Diagram: diagrams/component-diagram.md
+  - Structural Flow: diagrams/structural-flow.md
+  - UML Class Diagram: diagrams/uml-class-diagram.md
+  - Backtest Sequence: diagrams/sequence-backtest.md
+  - Live Sequence: diagrams/sequence-live.md

@@ -1,0 +1,62 @@
+# BacktestConfig (Python bindings)
+
+data_source: csv
+data:
+  data_directory: examples/backtest_basic/data
+  file_pattern: "{symbol}.csv"
+  has_header: true
+
+symbols:
+  - AAPL
+  - MSFT
+
+start_date: "2019-01-01"
+end_date: "2020-12-31"
+bar_type: "1d"
+initial_capital: 100000.0
+currency: "USD"
+
+slippage_model: "fixed_bps"
+slippage_params:
+  bps: 1.0
+
+commission_model: "fixed"
+commission_params:
+  amount: 0.005
+
+# Optional risk parameters (used by RiskFactory)
+risk_params:
+  max_notional: 100000
+  max_position_pct: 0.2
+
+strategy_params:
+  # Harmonic pattern parameters
+  symbol: "AAPL"
+  pivot_threshold_pct: 0.03
+  tolerance: 0.1
+  min_bars: 120
+  cooldown_bars: 5
+  use_limit: true
+  limit_offset_bps: 2.0
+  vol_threshold_pct: 0.01
+  min_confidence: 0.45
+  min_qty_scale: 0.5
+  max_qty_scale: 1.5
+  aggressive_confidence_threshold: 0.7
+  venue_switch_confidence: 0.6
+  passive_venue_weight: 0.7
+  aggressive_venue_weight: 0.3
+  allow_short: false
+  order_qty: 10
+
+  # Pairs trading parameters
+  symbol_a: "AAPL"
+  symbol_b: "MSFT"
+  lookback: 90
+  entry_z: 1.5
+  exit_z: 0.5
+  max_z: 4.0
+  base_qty: 10
+  min_qty_scale: 0.5
+  max_qty_scale: 2.0
+  cooldown_bars: 5
