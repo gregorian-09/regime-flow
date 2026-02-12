@@ -5,8 +5,8 @@
 Performance and attribution metrics for strategies, regimes, and portfolios. Includes drawdown analysis, regime attribution, transition metrics, and report writers.
 
 Related diagrams:
-- [Performance Metrics](../explanation/performance-metrics.md)
-- [Regime Transitions](../explanation/regime-transitions.md)
+- [Performance Metrics](../[Performance Metrics](explanation/performance-metrics.md))
+- [Regime Transitions](../[Regime Transitions](explanation/regime-transitions.md))
 
 ## File Index
 
@@ -255,5 +255,5 @@ auto summary = calc.calculate(equity_curve, fills, 0.02);
 
 ## See Also
 
-- [Performance Metrics](../explanation/performance-metrics.md)
-- [Regime Transitions](../explanation/regime-transitions.md)
+- [Performance Metrics](../[Performance Metrics](explanation/performance-metrics.md))
+- [Regime Transitions](../[Regime Transitions](explanation/regime-transitions.md))

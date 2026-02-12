@@ -5,8 +5,8 @@
 Risk controls and position sizing. Provides centralized risk limits, stop-loss models, and policy factories used by both backtest and live engines.
 
 Related diagrams:
-- [Risk Controls](../explanation/risk-controls.md)
-- [Risk Limits](../explanation/risk-limits-deep.md)
+- [Risk Controls](../[Risk Controls](explanation/risk-controls.md))
+- [Risk Limits](../[Risk Limits](explanation/risk-limits-deep.md))
 
 ## File Index
 
@@ -100,7 +100,7 @@ Methods:
 
 ### `Limit Classes`
 
-Concrete limit classes implement `validate()` and `validate_portfolio()` from `RiskLimit`. See [Risk Limits](../explanation/risk-limits-deep.md) for details on each limit type.
+Concrete limit classes implement `validate()` and `validate_portfolio()` from `RiskLimit`. See [Risk Limits](../[Risk Limits](explanation/risk-limits-deep.md)) for details on each limit type.
 
 Classes:
 
@@ -370,5 +370,5 @@ manager.add_limit(std::make_unique<regimeflow::risk::MaxNotionalLimit>(1'000'000
 ```
 ## See Also
 
-- [Risk Controls](../explanation/risk-controls.md)
-- [Risk Limits](../explanation/risk-limits-deep.md)
+- [Risk Controls](../[Risk Controls](explanation/risk-controls.md))
+- [Risk Limits](../[Risk Limits](explanation/risk-limits-deep.md))

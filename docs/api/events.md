@@ -5,8 +5,8 @@
 Event model for the engine and live runtime. Defines event types, queues, and dispatch infrastructure used by the event loop and live adapters.
 
 Related diagrams:
-- [Event Model](../explanation/event-model.md)
-- [Order State Machine](../explanation/order-state-machine.md)
+- [Event Model](../[Event Model](explanation/event-model.md))
+- [Order State Machine](../[Order State Machine](explanation/order-state-machine.md))
 
 ## File Index
 
@@ -257,5 +257,5 @@ auto next = queue.pop();
 
 ## See Also
 
-- [Event Model](../explanation/event-model.md)
-- [Order State Machine](../explanation/order-state-machine.md)
+- [Event Model](../[Event Model](explanation/event-model.md))
+- [Order State Machine](../[Order State Machine](explanation/order-state-machine.md))

@@ -5,7 +5,7 @@
 Backtest and live engine core. Orchestrates event generation, event loop processing, execution pipelines, order management, portfolio state, and regime tracking. This package is the central runtime for both historical and live trading modes.
 
 Related diagrams:
-- [Execution Flow](../explanation/execution-flow.md)
+- [Execution Flow](../[Execution Flow](explanation/execution-flow.md))
 - [Backtest Sequence](../diagrams/sequence-backtest.md)
 - [Live Sequence](../diagrams/sequence-live.md)
 
@@ -1027,6 +1027,6 @@ auto results = engine.results();
 
 ## See Also
 
-- [Execution Flow](../explanation/execution-flow.md)
-- [Order State Machine](../explanation/order-state-machine.md)
-- [Backtest Methodology](../explanation/backtest-methodology.md)
+- [Execution Flow](../[Execution Flow](explanation/execution-flow.md))
+- [Order State Machine](../[Order State Machine](explanation/order-state-machine.md))
+- [Backtest Methodology](../[Backtest Methodology](explanation/backtest-methodology.md))
