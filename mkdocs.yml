@@ -34,13 +34,11 @@ nav:
     - Audit Logging: audit-logging.md
     - Dashboard Flow: dashboard-flow.md
   - Reference:
-    - Overview: overview.md
     - Config Reference: config-reference.md
     - Broker Message Types: broker-message-types.md
     - Python Interfaces: python-interfaces.md
     - Plugin API: plugin-api.md
     - Plugins: plugins.md
-    - Doc Style Guide: style-guide.md
     - API Design:
       - Overview: api/index.md
       - Common: api/common.md
@@ -59,6 +57,7 @@ nav:
       - Metrics Validation: api/python-metrics-validation.md
       - Full File Index: api/file-index.md
   - Explanation:
+    - Overview: overview.md
     - Architecture: architecture.md
     - Data Flow: data-flow.md
     - Execution Flow: execution-flow.md
