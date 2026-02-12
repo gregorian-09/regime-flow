@@ -106,7 +106,10 @@ def create_live_dash_app(
 
 def launch_dashboard(results: Any, host: str = "127.0.0.1", port: int = 8050, debug: bool = False) -> None:
     app = create_dash_app(results)
-    app.run_server(host=host, port=port, debug=debug)
+    if hasattr(app, "run"):
+        app.run(host=host, port=port, debug=debug)
+    else:
+        app.run_server(host=host, port=port, debug=debug)
 
 
 def launch_live_dashboard(snapshot_provider: Callable[[], Mapping[str, Any]],
@@ -115,7 +118,10 @@ def launch_live_dashboard(snapshot_provider: Callable[[], Mapping[str, Any]],
                           debug: bool = False,
                           interval_ms: int = 1000) -> None:
     app = create_live_dash_app(snapshot_provider, interval_ms=interval_ms)
-    app.run_server(host=host, port=port, debug=debug)
+    if hasattr(app, "run"):
+        app.run(host=host, port=port, debug=debug)
+    else:
+        app.run_server(host=host, port=port, debug=debug)
 
 
 def export_dashboard_html(results: Any, path: str) -> str:

@@ -288,36 +288,122 @@ def create_interactive_dashboard(
     transition_matrix = _build_transition_matrix(transitions_df)
     regime_metrics_df = _normalize_regime_metrics(results_or_snapshot)
 
+    theme = {
+        "bg": "#0b0f1a",
+        "panel": "#121827",
+        "panel_alt": "#0f1524",
+        "text": "#e7ecf2",
+        "muted": "#9aa4b2",
+        "accent": "#4cc9f0",
+        "accent2": "#f72585",
+        "grid": "rgba(255,255,255,0.06)",
+    }
+
+    font_stack = "\"Space Grotesk\", \"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+
+    def _card(children: Any, title: Optional[str] = None) -> Any:
+        header = html.Div(
+            title,
+            style={
+                "fontSize": "14px",
+                "textTransform": "uppercase",
+                "letterSpacing": "0.08em",
+                "color": theme["muted"],
+                "marginBottom": "8px",
+            },
+        ) if title else None
+        return html.Div(
+            [header, children] if header else [children],
+            style={
+                "background": theme["panel"],
+                "border": "1px solid rgba(255,255,255,0.06)",
+                "boxShadow": "0 12px 30px rgba(0,0,0,0.35)",
+                "borderRadius": "16px",
+                "padding": "16px",
+                "marginBottom": "16px",
+            },
+        )
+
     def table_component(df: pd.DataFrame, max_rows: int = 500) -> Any:
         if df.empty:
-            return html.Div("No data available.")
+            return html.Div("No data available.", style={"color": theme["muted"]})
         return dash_table.DataTable(
             columns=[{"name": col, "id": col} for col in df.columns],
             data=df.head(max_rows).to_dict("records"),
             page_size=min(20, len(df)),
             style_table={"overflowX": "auto"},
-            style_cell={"fontFamily": "Arial, sans-serif", "fontSize": 12},
+            style_header={
+                "backgroundColor": theme["panel_alt"],
+                "color": theme["text"],
+                "fontWeight": "600",
+                "border": f"1px solid {theme['grid']}",
+            },
+            style_cell={
+                "backgroundColor": theme["panel"],
+                "color": theme["text"],
+                "fontFamily": font_stack,
+                "fontSize": 12,
+                "border": f"1px solid {theme['grid']}",
+                "padding": "8px",
+                "textAlign": "left",
+            },
+            style_data_conditional=[
+                {"if": {"row_index": "odd"}, "backgroundColor": "#0f1424"},
+            ],
         )
 
     equity_fig = go.Figure()
     if not equity_df.empty and "equity" in equity_df.columns:
-        equity_fig.add_trace(go.Scatter(x=equity_df.index, y=equity_df["equity"], name="Equity"))
+        equity_fig.add_trace(go.Scatter(
+            x=equity_df.index,
+            y=equity_df["equity"],
+            name="Equity",
+            line=dict(color=theme["accent"], width=2),
+        ))
     if not drawdown.empty:
-        equity_fig.add_trace(go.Scatter(x=drawdown.index, y=drawdown, name="Drawdown", yaxis="y2"))
+        equity_fig.add_trace(go.Scatter(
+            x=drawdown.index,
+            y=drawdown,
+            name="Drawdown",
+            yaxis="y2",
+            line=dict(color=theme["accent2"], width=1),
+            fill="tozeroy",
+            opacity=0.18,
+        ))
     equity_fig.update_layout(
         title="Equity & Drawdown",
         yaxis=dict(title="Equity"),
-        yaxis2=dict(title="Drawdown", overlaying="y", side="right"),
-        height=500,
-        legend=dict(orientation="h"),
+        yaxis2=dict(title="Drawdown", overlaying="y", side="right", rangemode="tozero"),
+        height=460,
+        legend=dict(orientation="h", y=1.02),
+        paper_bgcolor=theme["panel"],
+        plot_bgcolor=theme["panel"],
+        font=dict(family=font_stack, color=theme["text"]),
+        margin=dict(l=40, r=40, t=50, b=40),
     )
+    equity_fig.update_xaxes(gridcolor=theme["grid"])
+    equity_fig.update_yaxes(gridcolor=theme["grid"])
 
     regime_fig = go.Figure()
     if not regime_perf_df.empty and "regime" in regime_perf_df.columns:
         regime_fig.add_trace(
-            go.Bar(x=regime_perf_df["regime"], y=regime_perf_df.get("return", 0.0), name="Return")
+            go.Bar(
+                x=regime_perf_df["regime"],
+                y=regime_perf_df.get("return", 0.0),
+                name="Return",
+                marker_color=theme["accent"],
+            )
         )
-        regime_fig.update_layout(title="Regime Performance", height=400)
+        regime_fig.update_layout(
+            title="Regime Performance",
+            height=360,
+            paper_bgcolor=theme["panel"],
+            plot_bgcolor=theme["panel"],
+            font=dict(family=font_stack, color=theme["text"]),
+            margin=dict(l=40, r=40, t=50, b=40),
+        )
+        regime_fig.update_xaxes(gridcolor=theme["grid"])
+        regime_fig.update_yaxes(gridcolor=theme["grid"])
 
     transition_fig = go.Figure()
     if not transition_matrix.empty:
@@ -326,61 +412,193 @@ def create_interactive_dashboard(
                 z=transition_matrix.values,
                 x=transition_matrix.columns,
                 y=transition_matrix.index,
-                colorscale="Viridis",
+                colorscale="Turbo",
             )
         )
-        transition_fig.update_layout(title="Regime Transition Avg Return", height=400)
+        transition_fig.update_layout(
+            title="Regime Transition Avg Return",
+            height=360,
+            paper_bgcolor=theme["panel"],
+            plot_bgcolor=theme["panel"],
+            font=dict(family=font_stack, color=theme["text"]),
+            margin=dict(l=40, r=40, t=50, b=40),
+        )
 
-    diagnostics_payload = report if report else {"status": "No report data available"}
+    if report:
+        try:
+            import json
+            diagnostics_payload = json.dumps(report, indent=2, sort_keys=True)
+        except Exception:
+            diagnostics_payload = str(report)
+    else:
+        diagnostics_payload = "No report data available"
+
+    def _metric_card(label: str, value: Any) -> Any:
+        return html.Div(
+            [
+                html.Div(label, style={"color": theme["muted"], "fontSize": "11px"}),
+                html.Div(str(value), style={"fontSize": "18px", "fontWeight": "600"}),
+            ],
+            style={
+                "background": theme["panel_alt"],
+                "border": "1px solid rgba(255,255,255,0.06)",
+                "borderRadius": "12px",
+                "padding": "10px 12px",
+                "minWidth": "140px",
+            },
+        )
+
+    summary_metrics = {}
+    if not summary_df.empty:
+        summary_metrics = summary_df.iloc[0].to_dict()
+
+    def _summary_kv(label: str, value: Any) -> Any:
+        return html.Div(
+            [
+                html.Div(label, style={"color": theme["muted"], "fontSize": "11px"}),
+                html.Div(str(value), style={"fontSize": "13px", "fontWeight": "500"}),
+            ],
+            style={"marginBottom": "6px"},
+        )
+
+    summary_left = html.Div(
+        [
+            _summary_kv("Total Return", summary_metrics.get("total_return", "n/a")),
+            _summary_kv("CAGR", summary_metrics.get("cagr", "n/a")),
+            _summary_kv("Sharpe Ratio", summary_metrics.get("sharpe_ratio", "n/a")),
+            _summary_kv("Max Drawdown", summary_metrics.get("max_drawdown", "n/a")),
+        ],
+        style={"flex": "1"},
+    )
+    summary_right = html.Div(
+        [
+            _summary_kv("Best Day", summary_metrics.get("best_day", "n/a")),
+            _summary_kv("Best Day Date", summary_metrics.get("best_day_date", "n/a")),
+            _summary_kv("Worst Day", summary_metrics.get("worst_day", "n/a")),
+            _summary_kv("Worst Day Date", summary_metrics.get("worst_day_date", "n/a")),
+            _summary_kv("Best Month Date", summary_metrics.get("best_month_date", "n/a")),
+            _summary_kv("Worst Month Date", summary_metrics.get("worst_month_date", "n/a")),
+        ],
+        style={"flex": "1"},
+    )
 
     app = dash.Dash(__name__)
     app.layout = html.Div(
         [
-            html.H2(title),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.H2(title, style={"margin": "0 0 6px 0"}),
+                            html.Div(
+                                "Regime-aware backtest diagnostics",
+                                style={"color": theme["muted"], "fontSize": "13px"},
+                            ),
+                        ]
+                    ),
+                    html.Div(
+                        "RegimeFlow",
+                        style={
+                            "fontWeight": "600",
+                            "color": theme["accent"],
+                            "letterSpacing": "0.12em",
+                            "textTransform": "uppercase",
+                            "fontSize": "12px",
+                        },
+                    ),
+                ],
+                style={
+                    "display": "flex",
+                    "justifyContent": "space-between",
+                    "alignItems": "center",
+                    "marginBottom": "18px",
+                },
+            ),
             dcc.Tabs(
                 [
                     dcc.Tab(
                         label="Equity",
-                        children=[dcc.Graph(figure=equity_fig), table_component(perf_df)],
+                        children=[
+                            html.Div(
+                                [
+                                    _metric_card("Total Return", summary_metrics.get("total_return", "n/a")),
+                                    _metric_card("Sharpe Ratio", summary_metrics.get("sharpe_ratio", "n/a")),
+                                    _metric_card("Max Drawdown", summary_metrics.get("max_drawdown", "n/a")),
+                                    _metric_card("Total Trades", summary_metrics.get("total_trades", "n/a")),
+                                    _metric_card("Closed Trades", summary_metrics.get("closed_trades", "n/a")),
+                                    _metric_card("Open Trades", summary_metrics.get("open_trades", "n/a")),
+                                    _metric_card("Open U-PnL", summary_metrics.get("open_trades_unrealized_pnl", "n/a")),
+                                ],
+                                style={
+                                    "display": "flex",
+                                    "gap": "12px",
+                                    "flexWrap": "wrap",
+                                    "marginBottom": "12px",
+                                },
+                            ),
+                            _card(dcc.Graph(figure=equity_fig, config={"displayModeBar": False})),
+                            _card(table_component(perf_df), title="Performance Metrics"),
+                        ],
                     ),
                     dcc.Tab(
                         label="Regimes",
                         children=[
-                            dcc.Graph(figure=regime_fig),
-                            dcc.Graph(figure=transition_fig),
-                            table_component(regime_perf_df),
+                            _card(dcc.Graph(figure=regime_fig, config={"displayModeBar": False})),
+                            _card(dcc.Graph(figure=transition_fig, config={"displayModeBar": False})),
+                            _card(table_component(regime_perf_df), title="Regime Performance Table"),
                         ],
                     ),
                     dcc.Tab(
                         label="Attribution",
                         children=[
-                            html.H4("Regime Attribution"),
-                            table_component(regime_metrics_df),
-                            html.H4("Performance Summary"),
-                            table_component(summary_df),
+                            _card(table_component(regime_metrics_df), title="Regime Attribution"),
+                            _card(table_component(summary_df), title="Performance Summary"),
                         ],
                     ),
                     dcc.Tab(
                         label="Risk",
                         children=[
-                            html.H4("Performance Summary"),
-                            table_component(summary_df),
-                            html.H4("Risk Metrics"),
-                            table_component(perf_df),
+                            _card(table_component(summary_df), title="Performance Summary"),
+                            _card(table_component(perf_df), title="Risk Metrics"),
+                            _card(
+                                html.Div(
+                                    [summary_left, summary_right],
+                                    style={"display": "flex", "gap": "16px"},
+                                ),
+                                title="Best/Worst Dates",
+                            ),
                         ],
                     ),
                     dcc.Tab(
                         label="Trades",
-                        children=[table_component(trades_df)],
+                        children=[_card(table_component(trades_df), title="Trades")],
                     ),
                     dcc.Tab(
                         label="Diagnostics",
-                        children=[html.Pre(str(diagnostics_payload))],
+                        children=[
+                            _card(
+                                html.Pre(
+                                    diagnostics_payload,
+                                    style={
+                                        "color": theme["text"],
+                                        "whiteSpace": "pre-wrap",
+                                        "fontSize": "12px",
+                                    },
+                                ),
+                                title="Raw Report Payload",
+                            )
+                        ],
                     ),
                 ]
             ),
         ],
-        style={"padding": "20px"},
+        style={
+            "padding": "24px 28px",
+            "background": "radial-gradient(circle at 10% 10%, #1b2340 0%, #0b0f1a 45%, #090d18 100%)",
+            "minHeight": "100vh",
+            "color": theme["text"],
+            "fontFamily": font_stack,
+        },
     )
 
     if run:
