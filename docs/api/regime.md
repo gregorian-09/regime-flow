@@ -5,9 +5,9 @@
 Regime detection and regime state management. Includes HMM, Kalman, constant detectors, feature extraction, and ensemble models. This package is extensible and intended for custom regime models.
 
 Related diagrams:
-- [Regime Detection](../regime-detection.md)
-- [Regime Features](../regime-features.md)
-- [Regime Transitions](../regime-transitions.md)
+- [Regime Detection](../explanation/regime-detection.md)
+- [Regime Features](../explanation/regime-features.md)
+- [Regime Transitions](../explanation/regime-transitions.md)
 
 ## File Index
 
@@ -268,6 +268,6 @@ auto state = detector.on_bar(bar);
 ```
 ## See Also
 
-- [Regime Detection](../regime-detection.md)
-- [Regime Features](../regime-features.md)
-- [Regime Transitions](../regime-transitions.md)
+- [Regime Detection](../explanation/regime-detection.md)
+- [Regime Features](../explanation/regime-features.md)
+- [Regime Transitions](../explanation/regime-transitions.md)

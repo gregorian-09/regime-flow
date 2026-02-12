@@ -5,8 +5,8 @@
 Strategy framework and strategy registry. Provides strategy interfaces, context access, strategy manager, and built-in example strategies.
 
 Related diagrams:
-- [Strategy Selection](../strategy-selection.md)
-- [Execution Flow](../execution-flow.md)
+- [Strategy Selection](../explanation/strategy-selection.md)
+- [Execution Flow](../explanation/execution-flow.md)
 
 ## File Index
 
@@ -273,5 +273,5 @@ auto strat = regimeflow::strategy::StrategyFactory::instance().create(cfg);
 
 ## See Also
 
-- [Strategy Selection](../strategy-selection.md)
-- [Execution Flow](../execution-flow.md)
+- [Strategy Selection](../explanation/strategy-selection.md)
+- [Execution Flow](../explanation/execution-flow.md)

@@ -5,9 +5,9 @@
 Python bindings and analysis utilities. This layer mirrors the C++ engine concepts while exposing a Pythonic API for backtests, analysis, and dashboards.
 
 Related docs:
-- [Python Interfaces](../python-interfaces.md)
-- [Python Usage](../python-usage.md)
-- [Performance Metrics](../performance-metrics.md)
+- [Python Interfaces](../reference/python-interfaces.md)
+- [Python Usage](../tutorials/python-usage.md)
+- [Performance Metrics](../explanation/performance-metrics.md)
 
 ## Structure Overview
 
@@ -47,5 +47,5 @@ Python strategy base classes and built-in strategies for research.
 
 ## See Also
 
-- [Python Interfaces](../python-interfaces.md)
-- [Python Usage](../python-usage.md)
+- [Python Interfaces](../reference/python-interfaces.md)
+- [Python Usage](../tutorials/python-usage.md)

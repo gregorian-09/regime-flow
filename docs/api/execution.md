@@ -5,9 +5,9 @@
 Execution models and cost components. This package encapsulates slippage, commissions, latency, market impact, and order book simulation to turn strategy intent into realistic fills.
 
 Related diagrams:
-- [Execution Models](../execution-models.md)
-- [Execution Costs](../execution-costs.md)
-- [Slippage Math](../slippage-math.md)
+- [Execution Models](../explanation/execution-models.md)
+- [Execution Costs](../explanation/execution-costs.md)
+- [Slippage Math](../explanation/slippage-math.md)
 
 ## File Index
 
@@ -343,6 +343,6 @@ regimeflow::execution::BasicExecutionModel model(slippage);
 
 ## See Also
 
-- [Execution Models](../execution-models.md)
-- [Execution Costs](../execution-costs.md)
-- [Slippage Math](../slippage-math.md)
+- [Execution Models](../explanation/execution-models.md)
+- [Execution Costs](../explanation/execution-costs.md)
+- [Slippage Math](../explanation/slippage-math.md)

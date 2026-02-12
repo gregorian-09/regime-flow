@@ -23,22 +23,22 @@ plugins:
 nav:
   - Home: README.md
   - Tutorials:
-    - Examples: examples.md
-    - Python Usage: python-usage.md
+    - Examples: tutorials/examples.md
+    - Python Usage: tutorials/python-usage.md
   - How-to Guides:
-    - Live Trading: live-trading.md
-    - Data Validation: data-validation.md
-    - Database: database.md
-    - Mmap Storage: mmap-storage.md
-    - Symbol Metadata: symbol-metadata.md
-    - Audit Logging: audit-logging.md
-    - Dashboard Flow: dashboard-flow.md
+    - Live Trading: how-to/live-trading.md
+    - Data Validation: how-to/data-validation.md
+    - Database: how-to/database.md
+    - Mmap Storage: how-to/mmap-storage.md
+    - Symbol Metadata: how-to/symbol-metadata.md
+    - Audit Logging: how-to/audit-logging.md
+    - Dashboard Flow: how-to/dashboard-flow.md
   - Reference:
-    - Config Reference: config-reference.md
-    - Broker Message Types: broker-message-types.md
-    - Python Interfaces: python-interfaces.md
-    - Plugin API: plugin-api.md
-    - Plugins: plugins.md
+    - Config Reference: reference/config-reference.md
+    - Broker Message Types: reference/broker-message-types.md
+    - Python Interfaces: reference/python-interfaces.md
+    - Plugin API: reference/plugin-api.md
+    - Plugins: reference/plugins.md
     - API Design:
       - Overview: api/index.md
       - Common: api/common.md
@@ -57,30 +57,30 @@ nav:
       - Metrics Validation: api/python-metrics-validation.md
       - Full File Index: api/file-index.md
   - Explanation:
-    - Overview: overview.md
-    - Architecture: architecture.md
-    - Data Flow: data-flow.md
-    - Execution Flow: execution-flow.md
-    - Event Model: event-model.md
-    - Order State Machine: order-state-machine.md
-    - Live Resiliency: live-resiliency.md
-    - Live Order Reconciliation: live-order-reconciliation.md
-    - Broker Streaming: broker-streaming.md
-    - Regime Detection: regime-detection.md
-    - Regime Transitions: regime-transitions.md
-    - Regime Features: regime-features.md
-    - HMM Math: hmm-math.md
-    - Strategy Selection: strategy-selection.md
-    - Risk Controls: risk-controls.md
-    - Risk Limits: risk-limits-deep.md
-    - Execution Models: execution-models.md
-    - Execution Costs: execution-costs.md
-    - Slippage Math: slippage-math.md
-    - Portfolio Model: portfolio-model.md
-    - Performance Metrics: performance-metrics.md
-    - Backtest Methodology: backtest-methodology.md
-    - Walk-Forward: walk-forward.md
-    - Message Bus: message-bus.md
+    - Overview: explanation/overview.md
+    - Architecture: explanation/architecture.md
+    - Data Flow: explanation/data-flow.md
+    - Execution Flow: explanation/execution-flow.md
+    - Event Model: explanation/event-model.md
+    - Order State Machine: explanation/order-state-machine.md
+    - Live Resiliency: explanation/live-resiliency.md
+    - Live Order Reconciliation: explanation/live-order-reconciliation.md
+    - Broker Streaming: explanation/broker-streaming.md
+    - Regime Detection: explanation/regime-detection.md
+    - Regime Transitions: explanation/regime-transitions.md
+    - Regime Features: explanation/regime-features.md
+    - HMM Math: explanation/hmm-math.md
+    - Strategy Selection: explanation/strategy-selection.md
+    - Risk Controls: explanation/risk-controls.md
+    - Risk Limits: explanation/risk-limits-deep.md
+    - Execution Models: explanation/execution-models.md
+    - Execution Costs: explanation/execution-costs.md
+    - Slippage Math: explanation/slippage-math.md
+    - Portfolio Model: explanation/portfolio-model.md
+    - Performance Metrics: explanation/performance-metrics.md
+    - Backtest Methodology: explanation/backtest-methodology.md
+    - Walk-Forward: explanation/walk-forward.md
+    - Message Bus: explanation/message-bus.md
   - Diagrams:
     - Component Diagram: diagrams/component-diagram.md
     - Structural Flow: diagrams/structural-flow.md

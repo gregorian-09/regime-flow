@@ -18,7 +18,7 @@ This section is the canonical, JavaDoc-style reference for the RegimeFlow API su
 - [Execution](execution.md)
 - [Live](live.md)
 - [Metrics](metrics.md)
-- [Plugins](plugins.md)
+- [Plugins](../reference/plugins.md)
 - [Regime](regime.md)
 - [Risk](risk.md)
 - [Strategy](strategy.md)

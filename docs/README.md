@@ -3,41 +3,53 @@
 This documentation uses Mermaid diagrams (GitHub renders them natively) and focuses on real component interactions.
 
 ## Contents
-- overview.md
-- architecture.md
-- data-flow.md
-- execution-flow.md
-- live-trading.md
-- python-interfaces.md
-- database.md
-- plugins.md
-- plugin-api.md
-- message-bus.md
-- regime-detection.md
-- regime-transitions.md
-- regime-features.md
-- hmm-math.md
-- risk-controls.md
-- risk-limits-deep.md
-- strategy-selection.md
-- data-validation.md
-- mmap-storage.md
-- symbol-metadata.md
-- audit-logging.md
-- execution-models.md
-- execution-costs.md
-- slippage-math.md
-- performance-metrics.md
-- portfolio-model.md
-- order-state-machine.md
-- broker-streaming.md
-- broker-message-types.md
-- live-order-reconciliation.md
-- event-model.md
-- config-reference.md
-- python-usage.md
-- live-resiliency.md
-- backtest-methodology.md
-- walk-forward.md
-- dashboard-flow.md
+
+### Tutorials
+- tutorials/examples.md
+- tutorials/python-usage.md
+
+### How-to Guides
+- how-to/live-trading.md
+- how-to/data-validation.md
+- how-to/database.md
+- how-to/mmap-storage.md
+- how-to/symbol-metadata.md
+- how-to/audit-logging.md
+- how-to/dashboard-flow.md
+
+### Reference
+- reference/config-reference.md
+- reference/broker-message-types.md
+- reference/python-interfaces.md
+- reference/plugin-api.md
+- reference/plugins.md
+- api/
+
+### Explanation
+- explanation/overview.md
+- explanation/architecture.md
+- explanation/data-flow.md
+- explanation/execution-flow.md
+- explanation/event-model.md
+- explanation/order-state-machine.md
+- explanation/live-resiliency.md
+- explanation/live-order-reconciliation.md
+- explanation/broker-streaming.md
+- explanation/regime-detection.md
+- explanation/regime-transitions.md
+- explanation/regime-features.md
+- explanation/hmm-math.md
+- explanation/strategy-selection.md
+- explanation/risk-controls.md
+- explanation/risk-limits-deep.md
+- explanation/execution-models.md
+- explanation/execution-costs.md
+- explanation/slippage-math.md
+- explanation/portfolio-model.md
+- explanation/performance-metrics.md
+- explanation/backtest-methodology.md
+- explanation/walk-forward.md
+- explanation/message-bus.md
+
+### Diagrams
 - diagrams/
