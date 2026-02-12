@@ -18,6 +18,7 @@
 #include "regimeflow/metrics/report.h"
 #include "regimeflow/metrics/report_writer.h"
 #include "regimeflow/metrics/regime_attribution.h"
+#include "regimeflow/data/alpaca_data_client.h"
 #include "regimeflow/regime/regime_factory.h"
 #include "regimeflow/strategy/strategy_factory.h"
 #include "regimeflow/strategy/strategy.h"
@@ -181,8 +182,20 @@ static py::dict performance_summary_to_dict(const metrics::PerformanceSummary& s
     out["avg_monthly_return"] = summary.avg_monthly_return;
     out["best_day"] = summary.best_day;
     out["worst_day"] = summary.worst_day;
+    out["best_day_date"] = summary.best_day_date.microseconds() == 0
+        ? py::none()
+        : timestamp_to_datetime(summary.best_day_date);
+    out["worst_day_date"] = summary.worst_day_date.microseconds() == 0
+        ? py::none()
+        : timestamp_to_datetime(summary.worst_day_date);
     out["best_month"] = summary.best_month;
     out["worst_month"] = summary.worst_month;
+    out["best_month_date"] = summary.best_month_date.microseconds() == 0
+        ? py::none()
+        : timestamp_to_datetime(summary.best_month_date);
+    out["worst_month_date"] = summary.worst_month_date.microseconds() == 0
+        ? py::none()
+        : timestamp_to_datetime(summary.worst_month_date);
     out["volatility"] = summary.volatility;
     out["downside_deviation"] = summary.downside_deviation;
     out["max_drawdown"] = summary.max_drawdown;
@@ -200,6 +213,12 @@ static py::dict performance_summary_to_dict(const metrics::PerformanceSummary& s
     out["total_trades"] = summary.total_trades;
     out["winning_trades"] = summary.winning_trades;
     out["losing_trades"] = summary.losing_trades;
+    out["open_trades"] = summary.open_trades;
+    out["closed_trades"] = summary.closed_trades;
+    out["open_trades_unrealized_pnl"] = summary.open_trades_unrealized_pnl;
+    out["open_trades_snapshot_date"] = summary.open_trades_snapshot_date.microseconds() == 0
+        ? py::none()
+        : timestamp_to_datetime(summary.open_trades_snapshot_date);
     out["win_rate"] = summary.win_rate;
     out["profit_factor"] = summary.profit_factor;
     out["avg_win"] = summary.avg_win;
@@ -1131,7 +1150,8 @@ PYBIND11_MODULE(_core, m) {
     py::class_<regime::RegimeState>(m, "RegimeState")
         .def_readonly("regime", &regime::RegimeState::regime)
         .def_readonly("confidence", &regime::RegimeState::confidence)
-        .def_readonly("probabilities", &regime::RegimeState::probabilities);
+        .def_readonly("probabilities", &regime::RegimeState::probabilities)
+        .def_readonly("timestamp", &regime::RegimeState::timestamp);
 
     py::enum_<walkforward::WalkForwardConfig::WindowType>(m_walkforward, "WindowType")
         .value("ROLLING", walkforward::WalkForwardConfig::WindowType::Rolling)
@@ -1410,6 +1430,68 @@ PYBIND11_MODULE(_core, m) {
         .value("TICK", data::BarType::Tick)
         .value("DOLLAR", data::BarType::Dollar);
 
+    py::class_<data::AlpacaDataClient>(m_data, "AlpacaDataClient")
+        .def(py::init([](const py::dict& cfg) {
+            data::AlpacaDataClient::Config config;
+            if (cfg.contains("api_key")) config.api_key = cfg["api_key"].cast<std::string>();
+            if (cfg.contains("secret_key")) config.secret_key = cfg["secret_key"].cast<std::string>();
+            if (cfg.contains("trading_base_url")) {
+                config.trading_base_url = cfg["trading_base_url"].cast<std::string>();
+            }
+            if (cfg.contains("data_base_url")) {
+                config.data_base_url = cfg["data_base_url"].cast<std::string>();
+            }
+            if (cfg.contains("timeout_seconds")) {
+                config.timeout_seconds = cfg["timeout_seconds"].cast<int>();
+            }
+            return data::AlpacaDataClient(config);
+        }))
+        .def("list_assets", [](const data::AlpacaDataClient& client,
+                               const std::string& status,
+                               const std::string& asset_class) {
+            auto res = client.list_assets(status, asset_class);
+            if (res.is_err()) {
+                throw std::runtime_error(res.error().to_string());
+            }
+            return res.value();
+        }, py::arg("status") = "active", py::arg("asset_class") = "us_equity")
+        .def("get_bars", [](const data::AlpacaDataClient& client,
+                            const std::vector<std::string>& symbols,
+                            const std::string& timeframe,
+                            const std::string& start,
+                            const std::string& end,
+                            int limit,
+                            const std::string& page_token) {
+            auto res = client.get_bars(symbols, timeframe, start, end, limit, page_token);
+            if (res.is_err()) {
+                throw std::runtime_error(res.error().to_string());
+            }
+            return res.value();
+        }, py::arg("symbols"), py::arg("timeframe"),
+           py::arg("start") = "", py::arg("end") = "", py::arg("limit") = 0,
+           py::arg("page_token") = "")
+        .def("get_trades", [](const data::AlpacaDataClient& client,
+                              const std::vector<std::string>& symbols,
+                              const std::string& start,
+                              const std::string& end,
+                              int limit,
+                              const std::string& page_token) {
+            auto res = client.get_trades(symbols, start, end, limit, page_token);
+            if (res.is_err()) {
+                throw std::runtime_error(res.error().to_string());
+            }
+            return res.value();
+        }, py::arg("symbols"), py::arg("start") = "", py::arg("end") = "",
+           py::arg("limit") = 0, py::arg("page_token") = "")
+        .def("get_snapshot", [](const data::AlpacaDataClient& client,
+                                const std::string& symbol) {
+            auto res = client.get_snapshot(symbol);
+            if (res.is_err()) {
+                throw std::runtime_error(res.error().to_string());
+            }
+            return res.value();
+        }, py::arg("symbol"));
+
     py::class_<engine::Position>(m_engine, "Position")
         .def_property_readonly("symbol", [](const engine::Position& pos) {
             return symbol_to_string(pos.symbol);
@@ -1519,6 +1601,9 @@ PYBIND11_MODULE(_core, m) {
                 out[py::str(regime_type_name(regime_type))] = entry;
             }
             return out;
+        })
+        .def("regime_history", [](const engine::BacktestResults& r) {
+            return r.regime_history;
         });
 
     py::class_<PyBacktestEngine>(m_engine, "BacktestEngine")

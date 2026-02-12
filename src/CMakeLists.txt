@@ -14,6 +14,11 @@ if(EXISTS "${IBAPI_ROOT}")
     file(GLOB IBAPI_PROTO_SOURCES "${IBAPI_PROTO_DIR}/*.pb.cc")
     add_library(ibapi STATIC ${IBAPI_SOURCES} ${IBAPI_PROTO_SOURCES})
     target_include_directories(ibapi PUBLIC ${IBAPI_ROOT} ${IBAPI_PROTO_DIR})
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+        target_compile_options(ibapi PRIVATE -w)
+    elseif(MSVC)
+        target_compile_options(ibapi PRIVATE /w)
+    endif()
     find_package(Protobuf REQUIRED)
     target_include_directories(ibapi PUBLIC ${Protobuf_INCLUDE_DIRS})
     find_package(Threads REQUIRED)
@@ -37,6 +42,8 @@ endfunction()
 regimeflow_target_public_include(regimeflow_common)
 
 add_library(regimeflow_data
+    data/alpaca_data_client.cpp
+    data/alpaca_data_source.cpp
     data/api_data_source.cpp
     data/bar_builder.cpp
     data/corporate_actions.cpp
@@ -111,6 +118,9 @@ endif()
 add_executable(regimeflow_mmap_builder tools/mmap_builder.cpp)
 target_link_libraries(regimeflow_mmap_builder PRIVATE regimeflow_data)
 
+add_executable(regimeflow_alpaca_fetch tools/alpaca_fetch_main.cpp)
+target_link_libraries(regimeflow_alpaca_fetch PRIVATE regimeflow_data)
+
 add_library(regimeflow_engine
     engine/audit_log.cpp
     engine/backtest_engine.cpp
@@ -164,7 +174,9 @@ add_library(regimeflow_strategy
     strategy/strategy_factory.cpp
     strategy/strategy_manager.cpp
     strategy/strategies/buy_and_hold.cpp
+    strategy/strategies/harmonic_pattern.cpp
     strategy/strategies/moving_average_cross.cpp
+    strategy/strategies/pairs_trading.cpp
     strategy/strategies/register_builtin.cpp
 )
 
@@ -341,3 +353,7 @@ if(CURL_FOUND)
     target_include_directories(regimeflow_live PRIVATE ${CURL_INCLUDE_DIRS})
     target_link_libraries(regimeflow_live PRIVATE ${CURL_LIBRARIES})
 endif()
+
+add_executable(regimeflow_live_cli tools/live_main.cpp)
+target_link_libraries(regimeflow_live_cli PRIVATE regimeflow_live)
+set_target_properties(regimeflow_live_cli PROPERTIES OUTPUT_NAME regimeflow_live)

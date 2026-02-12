@@ -1,4 +1,5 @@
 #include "regimeflow/data/data_source_factory.h"
+#include "regimeflow/data/alpaca_data_source.h"
 #include "regimeflow/data/metadata_data_source.h"
 #include "regimeflow/data/symbol_metadata.h"
 #include "regimeflow/plugins/interfaces.h"
@@ -171,6 +172,29 @@ std::unique_ptr<DataSource> DataSourceFactory::create(const Config& config) {
             }
         }
         source = std::make_unique<ApiDataSource>(std::move(api));
+    } else if (type == "alpaca") {
+        AlpacaDataSource::Config alpaca;
+        if (auto v = config.get_as<std::string>("api_key")) alpaca.api_key = *v;
+        if (auto v = config.get_as<std::string>("secret_key")) alpaca.secret_key = *v;
+        if (auto v = config.get_as<std::string>("trading_base_url")) {
+            alpaca.trading_base_url = *v;
+        }
+        if (auto v = config.get_as<std::string>("data_base_url")) {
+            alpaca.data_base_url = *v;
+        }
+        if (auto v = config.get_as<int64_t>("timeout_seconds")) {
+            alpaca.timeout_seconds = static_cast<int>(*v);
+        }
+        if (auto v = config.get_as<std::string>("symbols")) {
+            std::string token;
+            std::istringstream stream(*v);
+            while (std::getline(stream, token, ',')) {
+                if (!token.empty()) {
+                    alpaca.symbols.push_back(token);
+                }
+            }
+        }
+        source = std::make_unique<AlpacaDataSource>(std::move(alpaca));
     } else if (type == "database" || type == "db") {
         DatabaseDataSource::Config db;
         if (auto v = config.get_as<std::string>("connection_string")) db.connection_string = *v;
