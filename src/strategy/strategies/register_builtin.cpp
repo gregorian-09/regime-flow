@@ -1,6 +1,8 @@
 #include "regimeflow/strategy/strategy_factory.h"
 #include "regimeflow/strategy/strategies/buy_and_hold.h"
+#include "regimeflow/strategy/strategies/harmonic_pattern.h"
 #include "regimeflow/strategy/strategies/moving_average_cross.h"
+#include "regimeflow/strategy/strategies/pairs_trading.h"
 
 namespace regimeflow::strategy {
 
@@ -14,6 +16,12 @@ struct BuiltinStrategyRegistrar {
         StrategyFactory::instance().register_creator(
             "moving_average_cross",
             [](const Config&) { return std::make_unique<MovingAverageCrossStrategy>(); });
+        StrategyFactory::instance().register_creator(
+            "harmonic_pattern",
+            [](const Config&) { return std::make_unique<HarmonicPatternStrategy>(); });
+        StrategyFactory::instance().register_creator(
+            "pairs_trading",
+            [](const Config&) { return std::make_unique<PairsTradingStrategy>(); });
     }
 };
 
