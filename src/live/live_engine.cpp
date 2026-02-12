@@ -1226,6 +1226,9 @@ void LiveTradingEngine::sample_system_health() {
     last_health_.memory_mb = memory_mb;
     last_health_.event_loop_latency_ms = loop_latency_ms;
     last_health_.last_sample = now;
+    last_health_.last_market_data = last_market_data_;
+    last_health_.last_reconnect_attempt = last_reconnect_attempt_;
+    last_health_.last_reconnect_success = last_reconnect_success_;
 }
 
 void LiveTradingEngine::check_heartbeat() {
@@ -1261,6 +1264,7 @@ void LiveTradingEngine::attempt_reconnect() {
         return;
     }
     Timestamp now = Timestamp::now();
+    last_reconnect_attempt_ = now;
     if (next_reconnect_attempt_.microseconds() != 0 &&
         now < next_reconnect_attempt_) {
         return;
@@ -1271,6 +1275,7 @@ void LiveTradingEngine::attempt_reconnect() {
     }
     auto res = broker_->connect();
     if (res.is_ok()) {
+        last_reconnect_success_ = Timestamp::now();
         reconnect_attempts_ = 0;
         reconnect_backoff_ms_ = 0;
         next_reconnect_attempt_ = Timestamp();
