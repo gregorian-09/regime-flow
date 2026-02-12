@@ -1,5 +1,6 @@
 # Build artifacts
 /build/
+/build_py/
 /build-*/
 /cmake-build-*/
 /CMakeFiles/
@@ -32,6 +33,7 @@ __pycache__/
 .coverage
 htmlcov/
 .venv/
+/python/build/
 
 # IDE/editor
 .vscode/
@@ -49,6 +51,8 @@ Docker_Output.txt
 
 # Temporary
 /tmp/
+/docs_site/
+/examples/**/output/
 
 # Local env
 .env
