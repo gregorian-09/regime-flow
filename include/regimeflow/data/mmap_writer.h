@@ -1,3 +1,8 @@
+/**
+ * @file mmap_writer.h
+ * @brief RegimeFlow regimeflow mmap writer declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/common/result.h"
@@ -9,8 +14,19 @@
 
 namespace regimeflow::data {
 
+/**
+ * @brief Writer for memory-mapped bar files.
+ */
 class MmapWriter {
 public:
+    /**
+     * @brief Write bars to a memory-mapped file.
+     * @param path Output file path.
+     * @param symbol Symbol string.
+     * @param bar_type Bar type.
+     * @param bars Bars to write.
+     * @return Ok on success, error otherwise.
+     */
     Result<void> write_bars(const std::string& path,
                             const std::string& symbol,
                             BarType bar_type,

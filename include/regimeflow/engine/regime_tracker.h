@@ -1,3 +1,8 @@
+/**
+ * @file regime_tracker.h
+ * @brief RegimeFlow regimeflow regime tracker declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/regime/regime_detector.h"
@@ -10,20 +15,51 @@
 
 namespace regimeflow::engine {
 
+/**
+ * @brief Tracks regime state transitions using a detector.
+ */
 class RegimeTracker {
 public:
+    /**
+     * @brief Construct with a regime detector.
+     * @param detector Detector instance.
+     */
     explicit RegimeTracker(std::unique_ptr<regime::RegimeDetector> detector);
     RegimeTracker(RegimeTracker&&) noexcept = default;
     RegimeTracker& operator=(RegimeTracker&&) noexcept = default;
     RegimeTracker(const RegimeTracker&) = delete;
     RegimeTracker& operator=(const RegimeTracker&) = delete;
 
+    /**
+     * @brief Feed a bar and optionally produce a transition.
+     * @param bar Market bar.
+     * @return Transition if regime changed.
+     */
     std::optional<regime::RegimeTransition> on_bar(const data::Bar& bar);
+    /**
+     * @brief Feed a tick and optionally produce a transition.
+     * @param tick Market tick.
+     * @return Transition if regime changed.
+     */
     std::optional<regime::RegimeTransition> on_tick(const data::Tick& tick);
 
+    /**
+     * @brief Current regime state.
+     */
     const regime::RegimeState& current_state() const { return current_state_; }
+    /**
+     * @brief History of previous regime states.
+     */
     const std::deque<regime::RegimeState>& history() const { return history_; }
+    /**
+     * @brief Set the maximum history size.
+     * @param size Maximum number of stored states.
+     */
     void set_history_size(size_t size) { history_size_ = size; }
+    /**
+     * @brief Register a callback for transitions.
+     * @param callback Callback invoked on regime change.
+     */
     void register_transition_callback(
         std::function<void(const regime::RegimeTransition&)> callback);
 

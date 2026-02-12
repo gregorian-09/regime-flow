@@ -1,3 +1,8 @@
+/**
+ * @file memory.h
+ * @brief RegimeFlow regimeflow memory declarations.
+ */
+
 #pragma once
 
 #include <cstddef>
@@ -9,13 +14,29 @@
 
 namespace regimeflow::common {
 
+/**
+ * @brief Simple monotonic arena allocator.
+ *
+ * @details Allocations are fast and only freed by resetting the arena.
+ * Useful for batch-style workloads like backtests and parsing.
+ */
 class MonotonicArena {
 public:
+    /**
+     * @brief Construct the arena with a block size.
+     * @param block_size Bytes per block.
+     */
     explicit MonotonicArena(size_t block_size = 1 << 20)
         : block_size_(block_size) {
         blocks_.emplace_back(std::make_unique<uint8_t[]>(block_size_));
     }
 
+    /**
+     * @brief Allocate a block of memory from the arena.
+     * @param bytes Number of bytes to allocate.
+     * @param alignment Requested alignment (defaults to max_align_t).
+     * @return Pointer to allocated memory.
+     */
     void* allocate(size_t bytes, size_t alignment = alignof(std::max_align_t)) {
         size_t current = offset_;
         size_t aligned = (current + alignment - 1) & ~(alignment - 1);
@@ -29,6 +50,9 @@ public:
         return ptr;
     }
 
+    /**
+     * @brief Reset the arena, freeing all allocations.
+     */
     void reset() {
         if (!blocks_.empty()) {
             blocks_.resize(1);
@@ -43,12 +67,26 @@ private:
 };
 
 template<typename T>
+/**
+ * @brief Thread-safe object pool allocator.
+ * @tparam T Object type.
+ *
+ * @details Keeps a free list of objects and grows in chunks.
+ */
 class PoolAllocator {
 public:
+    /**
+     * @brief Construct the pool with an initial capacity.
+     * @param capacity Number of objects to pre-allocate.
+     */
     explicit PoolAllocator(size_t capacity = 1024) {
         reserve(capacity);
     }
 
+    /**
+     * @brief Allocate an object from the pool.
+     * @return Pointer to an available object.
+     */
     T* allocate() {
         std::lock_guard<std::mutex> lock(mutex_);
         if (free_.empty()) {
@@ -59,6 +97,10 @@ public:
         return ptr;
     }
 
+    /**
+     * @brief Return an object to the pool.
+     * @param ptr Pointer to the object to recycle.
+     */
     void deallocate(T* ptr) {
         if (!ptr) {
             return;

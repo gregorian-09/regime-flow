@@ -1,3 +1,8 @@
+/**
+ * @file ib_adapter.h
+ * @brief RegimeFlow regimeflow ib adapter declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/live/broker_adapter.h"
@@ -16,39 +21,94 @@
 
 namespace regimeflow::live {
 
+/**
+ * @brief Broker adapter for Interactive Brokers (IB).
+ */
 class IBAdapter final : public BrokerAdapter, public DefaultEWrapper {
 public:
+    /**
+     * @brief IB adapter configuration.
+     */
     struct Config {
+        /**
+         * @brief TWS/Gateway host.
+         */
         std::string host = "127.0.0.1";
+        /**
+         * @brief TWS/Gateway port.
+         */
         int port = 7497;
+        /**
+         * @brief Client ID.
+         */
         int client_id = 1;
     };
 
+    /**
+     * @brief Construct an IB adapter.
+     * @param config Configuration.
+     */
     explicit IBAdapter(Config config);
 
+    /**
+     * @brief Connect to TWS/Gateway.
+     */
     Result<void> connect() override;
+    /**
+     * @brief Disconnect from TWS/Gateway.
+     */
     Result<void> disconnect() override;
+    /**
+     * @brief Check connection status.
+     */
     bool is_connected() const override;
 
     void subscribe_market_data(const std::vector<std::string>& symbols) override;
     void unsubscribe_market_data(const std::vector<std::string>& symbols) override;
 
+    /**
+     * @brief Submit an order.
+     */
     Result<std::string> submit_order(const engine::Order& order) override;
+    /**
+     * @brief Cancel an order.
+     */
     Result<void> cancel_order(const std::string& broker_order_id) override;
+    /**
+     * @brief Modify an order.
+     */
     Result<void> modify_order(const std::string& broker_order_id,
                               const engine::OrderModification& mod) override;
 
+    /**
+     * @brief Fetch account info.
+     */
     AccountInfo get_account_info() override;
+    /**
+     * @brief Fetch current positions.
+     */
     std::vector<Position> get_positions() override;
+    /**
+     * @brief Fetch open orders.
+     */
     std::vector<ExecutionReport> get_open_orders() override;
 
     void on_market_data(std::function<void(const MarketDataUpdate&)> cb) override;
     void on_execution_report(std::function<void(const ExecutionReport&)> cb) override;
     void on_position_update(std::function<void(const Position&)> cb) override;
 
+    /**
+     * @brief Broker order rate limit.
+     */
     int max_orders_per_second() const override;
+    /**
+     * @brief Broker message rate limit.
+     */
     int max_messages_per_second() const override;
 
+    /**
+     * @brief Poll the adapter (for IB message pump).
+     */
     void poll() override;
 
 private:

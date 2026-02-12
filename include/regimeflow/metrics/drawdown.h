@@ -1,9 +1,17 @@
+/**
+ * @file drawdown.h
+ * @brief RegimeFlow regimeflow drawdown declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/common/time.h"
 
 namespace regimeflow::metrics {
 
+/**
+ * @brief Drawdown snapshot at a specific time.
+ */
 struct DrawdownSnapshot {
     Timestamp timestamp;
     double equity = 0;
@@ -11,14 +19,34 @@ struct DrawdownSnapshot {
     double drawdown = 0;
 };
 
+/**
+ * @brief Tracks peak-to-trough drawdowns.
+ */
 class DrawdownTracker {
 public:
+    /**
+     * @brief Update drawdown tracker with new equity.
+     * @param timestamp Update time.
+     * @param equity Current equity.
+     */
     void update(Timestamp timestamp, double equity);
 
+    /**
+     * @brief Maximum drawdown observed.
+     */
     double max_drawdown() const { return max_drawdown_; }
+    /**
+     * @brief Timestamp where max drawdown started.
+     */
     Timestamp max_drawdown_start() const { return max_start_; }
+    /**
+     * @brief Timestamp where max drawdown ended.
+     */
     Timestamp max_drawdown_end() const { return max_end_; }
 
+    /**
+     * @brief Last drawdown snapshot.
+     */
     DrawdownSnapshot last_snapshot() const { return last_; }
 
 private:

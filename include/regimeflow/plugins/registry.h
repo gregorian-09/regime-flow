@@ -1,3 +1,8 @@
+/**
+ * @file registry.h
+ * @brief RegimeFlow regimeflow registry declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/plugins/plugin.h"
@@ -12,13 +17,29 @@
 
 namespace regimeflow::plugins {
 
+/**
+ * @brief Registry for static and dynamic plugins.
+ */
 class PluginRegistry {
 public:
+    /**
+     * @brief Access the singleton registry.
+     */
     static PluginRegistry& instance();
 
+    /**
+     * @brief Plugin pointer with custom deleter.
+     */
     using PluginPtr = std::unique_ptr<Plugin, std::function<void(Plugin*)>>;
 
     template<typename PluginT>
+    /**
+     * @brief Register a plugin class for a type/name.
+     * @tparam PluginT Plugin concrete type.
+     * @param type Plugin category.
+     * @param name Plugin name.
+     * @return True if registration succeeds.
+     */
     bool register_plugin(const std::string& type, const std::string& name) {
         auto factory = []() {
             return PluginPtr(new PluginT(), [](Plugin* p) { delete p; });
@@ -26,11 +47,26 @@ public:
         return register_factory(type, name, std::move(factory));
     }
 
+    /**
+     * @brief Register a factory for a plugin.
+     * @param type Plugin category.
+     * @param name Plugin name.
+     * @param factory Factory function.
+     * @return True if registration succeeds.
+     */
     bool register_factory(const std::string& type,
                           const std::string& name,
                           std::function<PluginPtr()> factory);
 
     template<typename PluginT>
+    /**
+     * @brief Create and initialize a plugin by type/name.
+     * @tparam PluginT Expected plugin type.
+     * @param type Plugin category.
+     * @param name Plugin name.
+     * @param config Plugin configuration.
+     * @return Initialized plugin or nullptr.
+     */
     std::unique_ptr<PluginT, std::function<void(PluginT*)>> create(
         const std::string& type, const std::string& name, const Config& config = {}) {
         auto plugin = create_plugin(type, name);
@@ -66,16 +102,40 @@ public:
         return result;
     }
 
+    /**
+     * @brief List registered plugin types.
+     */
     std::vector<std::string> list_types() const;
+    /**
+     * @brief List plugins for a type.
+     */
     std::vector<std::string> list_plugins(const std::string& type) const;
+    /**
+     * @brief Get plugin metadata.
+     */
     std::optional<PluginInfo> get_info(const std::string& type,
                                        const std::string& name) const;
 
+    /**
+     * @brief Load a dynamic plugin library.
+     */
     Result<void> load_dynamic_plugin(const std::string& path);
+    /**
+     * @brief Unload a dynamic plugin by name.
+     */
     Result<void> unload_dynamic_plugin(const std::string& name);
+    /**
+     * @brief Scan a directory for plugins.
+     */
     void scan_plugin_directory(const std::string& path);
 
+    /**
+     * @brief Start a plugin (invoke on_start).
+     */
     Result<void> start_plugin(Plugin& plugin);
+    /**
+     * @brief Stop a plugin (invoke on_stop).
+     */
     Result<void> stop_plugin(Plugin& plugin);
 
 private:
@@ -86,6 +146,9 @@ private:
     PluginPtr create_plugin(const std::string& type,
                             const std::string& name) const;
 
+    /**
+     * @brief Metadata for a dynamically loaded plugin.
+     */
     struct DynamicPlugin {
         void* handle = nullptr;
         std::function<Plugin*()> create;

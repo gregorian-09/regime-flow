@@ -1,3 +1,8 @@
+/**
+ * @file types.h
+ * @brief RegimeFlow regimeflow types declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/common/time.h"
@@ -8,6 +13,9 @@
 
 namespace regimeflow::regime {
 
+/**
+ * @brief Enumerated regime types.
+ */
 enum class RegimeType : uint8_t {
     Bull = 0,
     Neutral = 1,
@@ -16,6 +24,9 @@ enum class RegimeType : uint8_t {
     Custom = 255
 };
 
+/**
+ * @brief Snapshot of regime state and probabilities.
+ */
 struct RegimeState {
     RegimeType regime = RegimeType::Neutral;
     double confidence = 0.0;
@@ -25,6 +36,9 @@ struct RegimeState {
     Timestamp timestamp;
 };
 
+/**
+ * @brief Regime transition descriptor.
+ */
 struct RegimeTransition {
     RegimeType from = RegimeType::Neutral;
     RegimeType to = RegimeType::Neutral;

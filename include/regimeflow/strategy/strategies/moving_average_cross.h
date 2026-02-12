@@ -1,3 +1,8 @@
+/**
+ * @file moving_average_cross.h
+ * @brief RegimeFlow regimeflow moving average cross declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/strategy/strategy.h"
@@ -7,9 +12,18 @@
 
 namespace regimeflow::strategy {
 
+/**
+ * @brief Moving average crossover strategy.
+ */
 class MovingAverageCrossStrategy final : public Strategy {
 public:
+    /**
+     * @brief Initialize the strategy with context.
+     */
     void initialize(StrategyContext& ctx) override;
+    /**
+     * @brief Generate signals on each bar.
+     */
     void on_bar(const data::Bar& bar) override;
 
 private:

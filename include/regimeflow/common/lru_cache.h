@@ -1,3 +1,8 @@
+/**
+ * @file lru_cache.h
+ * @brief RegimeFlow regimeflow lru cache declarations.
+ */
+
 #pragma once
 
 #include <cstddef>
@@ -8,19 +13,45 @@
 
 namespace regimeflow {
 
+/**
+ * @brief Least-recently-used cache with fixed capacity.
+ * @tparam Key Key type (must be hashable).
+ * @tparam Value Value type.
+ */
 template <typename Key, typename Value>
 class LRUCache {
 public:
+    /**
+     * @brief Construct an LRU cache with a capacity.
+     * @param capacity Max number of items to retain.
+     */
     explicit LRUCache(size_t capacity) : capacity_(capacity) {}
 
+    /**
+     * @brief Update the cache capacity.
+     * @param capacity New capacity.
+     */
     void set_capacity(size_t capacity) {
         capacity_ = capacity;
         evict_if_needed();
     }
 
+    /**
+     * @brief Current capacity.
+     * @return Maximum number of items.
+     */
     size_t capacity() const { return capacity_; }
+    /**
+     * @brief Current number of items.
+     * @return Size.
+     */
     size_t size() const { return items_.size(); }
 
+    /**
+     * @brief Fetch a value and mark it as most-recently-used.
+     * @param key Key to lookup.
+     * @return Optional value, empty if missing.
+     */
     std::optional<Value> get(const Key& key) {
         auto it = map_.find(key);
         if (it == map_.end()) {
@@ -30,6 +61,11 @@ public:
         return it->second->second;
     }
 
+    /**
+     * @brief Insert or update a value, evicting if needed.
+     * @param key Key to insert.
+     * @param value Value to store.
+     */
     void put(const Key& key, Value value) {
         auto it = map_.find(key);
         if (it != map_.end()) {
@@ -42,6 +78,9 @@ public:
         evict_if_needed();
     }
 
+    /**
+     * @brief Clear all entries from the cache.
+     */
     void clear() {
         items_.clear();
         map_.clear();

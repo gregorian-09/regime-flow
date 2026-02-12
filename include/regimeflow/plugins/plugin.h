@@ -1,3 +1,8 @@
+/**
+ * @file plugin.h
+ * @brief RegimeFlow regimeflow plugin declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/common/config.h"
@@ -9,6 +14,9 @@
 
 namespace regimeflow::plugins {
 
+/**
+ * @brief Metadata describing a plugin.
+ */
 struct PluginInfo {
     std::string name;
     std::string version;
@@ -17,6 +25,9 @@ struct PluginInfo {
     std::vector<std::string> dependencies;
 };
 
+/**
+ * @brief Plugin lifecycle state.
+ */
 enum class PluginState {
     Unloaded,
     Loaded,
@@ -26,21 +37,52 @@ enum class PluginState {
     Error
 };
 
+/**
+ * @brief Base class for all plugins.
+ */
 class Plugin {
 public:
     virtual ~Plugin() = default;
 
+    /**
+     * @brief Return plugin metadata.
+     */
     virtual PluginInfo info() const = 0;
 
+    /**
+     * @brief Called when the plugin is loaded.
+     */
     virtual Result<void> on_load() { return Ok(); }
+    /**
+     * @brief Called when the plugin is unloaded.
+     */
     virtual Result<void> on_unload() { return Ok(); }
+    /**
+     * @brief Called when plugin is initialized with config.
+     * @param config Plugin configuration.
+     */
     virtual Result<void> on_initialize([[maybe_unused]] const Config& config) { return Ok(); }
+    /**
+     * @brief Called when plugin is started.
+     */
     virtual Result<void> on_start() { return Ok(); }
+    /**
+     * @brief Called when plugin is stopped.
+     */
     virtual Result<void> on_stop() { return Ok(); }
 
+    /**
+     * @brief Optional config schema for validation.
+     */
     virtual std::optional<ConfigSchema> config_schema() const { return std::nullopt; }
 
+    /**
+     * @brief Current plugin state.
+     */
     PluginState state() const { return state_; }
+    /**
+     * @brief Set plugin state.
+     */
     void set_state(PluginState state) { state_ = state; }
 
 protected:

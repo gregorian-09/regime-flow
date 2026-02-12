@@ -1,3 +1,8 @@
+/**
+ * @file hmm.h
+ * @brief RegimeFlow regimeflow hmm declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/regime/features.h"
@@ -8,33 +13,102 @@
 
 namespace regimeflow::regime {
 
+/**
+ * @brief Gaussian emission parameters for HMM states.
+ */
 struct GaussianParams {
     FeatureVector mean;
     FeatureVector variance;
 };
 
+/**
+ * @brief Hidden Markov Model regime detector.
+ */
 class HMMRegimeDetector final : public RegimeDetector {
 public:
+    /**
+     * @brief Construct HMM detector.
+     * @param states Number of hidden states.
+     * @param window Feature window size.
+     */
     explicit HMMRegimeDetector(int states = 4, int window = 20);
 
+    /**
+     * @brief Update detector with bar data.
+     */
     RegimeState on_bar(const data::Bar& bar) override;
+    /**
+     * @brief Update detector with tick data.
+     */
     RegimeState on_tick(const data::Tick& tick) override;
+    /**
+     * @brief Update detector with order book data.
+     */
     RegimeState on_book(const data::OrderBook& book) override;
+    /**
+     * @brief Train the HMM using feature vectors.
+     */
     void train(const std::vector<FeatureVector>& data) override;
 
+    /**
+     * @brief Train HMM parameters with Baum-Welch.
+     * @param data Feature vectors.
+     * @param max_iter Maximum iterations.
+     * @param tol Convergence tolerance.
+     */
     void baum_welch(const std::vector<FeatureVector>& data, int max_iter = 50,
                     double tol = 1e-4);
+    /**
+     * @brief Compute log-likelihood for a dataset.
+     * @param data Feature vectors.
+     * @return Log-likelihood.
+     */
     double log_likelihood(const std::vector<FeatureVector>& data) const;
 
+    /**
+     * @brief Set transition probabilities.
+     * @param matrix Transition matrix.
+     */
     void set_transition_matrix(const std::vector<std::vector<double>>& matrix);
+    /**
+     * @brief Set emission parameters.
+     * @param params Emission Gaussian params.
+     */
     void set_emission_params(std::vector<GaussianParams> params);
+    /**
+     * @brief Set feature list.
+     * @param features Feature types.
+     */
     void set_features(std::vector<FeatureType> features);
+    /**
+     * @brief Enable/disable feature normalization.
+     * @param normalize True to normalize.
+     */
     void set_normalize_features(bool normalize);
+    /**
+     * @brief Set normalization mode.
+     * @param mode Normalization mode.
+     */
     void set_normalization_mode(NormalizationMode mode);
+    /**
+     * @brief Save model to disk.
+     */
     void save(const std::string& path) const override;
+    /**
+     * @brief Load model from disk.
+     */
     void load(const std::string& path) override;
+    /**
+     * @brief Configure model parameters.
+     */
     void configure(const Config& config) override;
+    /**
+     * @brief Number of hidden states.
+     */
     int num_states() const override { return states_; }
+    /**
+     * @brief State names for display.
+     */
     std::vector<std::string> state_names() const override;
 
 private:

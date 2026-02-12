@@ -1,3 +1,8 @@
+/**
+ * @file data_source_factory.h
+ * @brief RegimeFlow regimeflow data source factory declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/common/config.h"
@@ -15,8 +20,16 @@
 
 namespace regimeflow::data {
 
+/**
+ * @brief Factory for creating data sources from configuration.
+ */
 class DataSourceFactory {
 public:
+    /**
+     * @brief Create a data source based on config.
+     * @param config Data source configuration.
+     * @return Data source instance.
+     */
     static std::unique_ptr<DataSource> create(const Config& config);
 
 private:

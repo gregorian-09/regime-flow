@@ -1,3 +1,8 @@
+/**
+ * @file live_engine.h
+ * @brief RegimeFlow regimeflow live engine declarations.
+ */
+
 #pragma once
 
 #include "regimeflow/common/config.h"
@@ -28,55 +33,170 @@
 
 namespace regimeflow::live {
 
+/**
+ * @brief Configuration for live trading engine.
+ */
 struct LiveConfig {
+    /**
+     * @brief Broker adapter type name.
+     */
     std::string broker_type;
+    /**
+     * @brief Broker-specific configuration key/value pairs.
+     */
     std::map<std::string, std::string> broker_config;
 
+    /**
+     * @brief Symbols to trade.
+     */
     std::vector<std::string> symbols;
 
+    /**
+     * @brief Strategy name or registry key.
+     */
     std::string strategy_name;
+    /**
+     * @brief Strategy configuration.
+     */
     Config strategy_config;
 
+    /**
+     * @brief Risk manager configuration.
+     */
     Config risk_config;
 
+    /**
+     * @brief Path to persisted regime model.
+     */
     std::string regime_model_path;
+    /**
+     * @brief Enable live regime updates.
+     */
     bool enable_regime_updates = true;
 
+    /**
+     * @brief Paper trading mode toggle.
+     */
     bool paper_trading = true;
+    /**
+     * @brief Max orders per minute.
+     */
     int max_orders_per_minute = 60;
+    /**
+     * @brief Maximum notional value per order.
+     */
     double max_order_value = 100000;
+    /**
+     * @brief Max orders per second (0 = broker limit).
+     */
     int max_orders_per_second = 0;  // 0 = use broker limit
+    /**
+     * @brief Interval for order reconciliation.
+     */
     Duration order_reconcile_interval = Duration::seconds(30);
+    /**
+     * @brief Interval for position reconciliation.
+     */
     Duration position_reconcile_interval = Duration::seconds(60);
+    /**
+     * @brief Interval for account refresh.
+     */
     Duration account_refresh_interval = Duration::seconds(30);
+    /**
+     * @brief Absolute daily loss limit.
+     */
     double daily_loss_limit = 0.0;
+    /**
+     * @brief Daily loss limit as a fraction of equity.
+     */
     double daily_loss_limit_pct = 0.0;
+    /**
+     * @brief Heartbeat timeout for live feed.
+     */
     Duration heartbeat_timeout = Duration::seconds(30);
+    /**
+     * @brief Enable automatic broker reconnects.
+     */
     bool enable_auto_reconnect = true;
+    /**
+     * @brief Initial reconnect backoff.
+     */
     Duration reconnect_initial = Duration::seconds(1);
+    /**
+     * @brief Maximum reconnect backoff.
+     */
     Duration reconnect_max = Duration::seconds(30);
+    /**
+     * @brief Maximum reconnect attempts (0 = unlimited).
+     */
     int reconnect_max_attempts = 0;
 
+    /**
+     * @brief Enable message queue integration.
+     */
     bool enable_message_queue = false;
+    /**
+     * @brief Message queue configuration.
+     */
     MessageQueueConfig message_queue;
 
+    /**
+     * @brief Interval for regime model retraining.
+     */
     Duration regime_retrain_interval = Duration::hours(24);
+    /**
+     * @brief Minimum samples before retraining.
+     */
     size_t regime_retrain_min_samples = 200;
+    /**
+     * @brief Feature window size for regime features.
+     */
     int regime_feature_window = 50;
 
+    /**
+     * @brief Log output directory.
+     */
     std::string log_dir = "./logs";
 };
 
+/**
+ * @brief Live trading engine orchestrating broker, strategy, and risk.
+ */
 class LiveTradingEngine {
 public:
+    /**
+     * @brief Construct with live configuration.
+     * @param config Live configuration.
+     */
     explicit LiveTradingEngine(const LiveConfig& config);
+    /**
+     * @brief Construct with live configuration and injected broker.
+     * @param config Live configuration.
+     * @param broker Broker adapter instance.
+     */
     LiveTradingEngine(const LiveConfig& config, std::unique_ptr<BrokerAdapter> broker);
+    /**
+     * @brief Stop engine and join threads.
+     */
     ~LiveTradingEngine();
 
+    /**
+     * @brief Start the engine.
+     * @return Ok on success, error otherwise.
+     */
     Result<void> start();
+    /**
+     * @brief Stop the engine.
+     */
     void stop();
+    /**
+     * @brief Check if engine is running.
+     */
     bool is_running() const;
 
+    /**
+     * @brief Live engine status snapshot.
+     */
     struct EngineStatus {
         bool connected = false;
         bool trading_enabled = false;
@@ -87,6 +207,9 @@ public:
         Timestamp last_update;
     };
 
+    /**
+     * @brief Summary of an open live order for dashboards.
+     */
     struct LiveOrderSummary {
         engine::OrderId id = 0;
         std::string symbol;
@@ -101,6 +224,9 @@ public:
         Timestamp updated_at;
     };
 
+    /**
+     * @brief Dashboard snapshot for UI/monitoring.
+     */
     struct DashboardSnapshot {
         Timestamp timestamp;
         double equity = 0.0;
@@ -116,24 +242,60 @@ public:
         double event_loop_latency_ms = 0.0;
     };
 
+    /**
+     * @brief System health telemetry snapshot.
+     */
     struct SystemHealth {
         double cpu_usage_pct = 0.0;
         double memory_mb = 0.0;
         double event_loop_latency_ms = 0.0;
         Timestamp last_sample;
+        Timestamp last_market_data;
+        Timestamp last_reconnect_attempt;
+        Timestamp last_reconnect_success;
     };
 
+    /**
+     * @brief Get the current engine status.
+     */
     EngineStatus get_status() const;
+    /**
+     * @brief Get the latest dashboard snapshot.
+     */
     DashboardSnapshot get_dashboard_snapshot() const;
+    /**
+     * @brief Get the latest system health snapshot.
+     */
     SystemHealth get_system_health() const;
 
+    /**
+     * @brief Enable live trading.
+     */
     void enable_trading();
+    /**
+     * @brief Disable live trading.
+     */
     void disable_trading();
+    /**
+     * @brief Close all open positions.
+     */
     void close_all_positions();
 
+    /**
+     * @brief Register trade callback.
+     */
     void on_trade(std::function<void(const Trade&)> cb);
+    /**
+     * @brief Register regime change callback.
+     */
     void on_regime_change(std::function<void(const regime::RegimeTransition&)> cb);
+    /**
+     * @brief Register error callback.
+     */
     void on_error(std::function<void(const std::string&)> cb);
+    /**
+     * @brief Register dashboard update callback.
+     */
     void on_dashboard_update(std::function<void(const DashboardSnapshot&)> cb);
 
 private:
@@ -217,6 +379,8 @@ private:
     int reconnect_attempts_ = 0;
     Timestamp next_reconnect_attempt_;
     int64_t reconnect_backoff_ms_ = 0;
+    Timestamp last_reconnect_attempt_;
+    Timestamp last_reconnect_success_;
 
     mutable std::mutex alert_mutex_;
     std::vector<std::string> alerts_;

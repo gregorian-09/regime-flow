@@ -1,3 +1,8 @@
+/**
+ * @file spsc_queue.h
+ * @brief RegimeFlow regimeflow spsc queue declarations.
+ */
+
 #pragma once
 
 #include <array>
@@ -6,9 +11,19 @@
 
 namespace regimeflow::common {
 
+/**
+ * @brief Lock-free single-producer single-consumer ring buffer.
+ * @tparam T Item type.
+ * @tparam Capacity Fixed ring capacity.
+ */
 template<typename T, size_t Capacity>
 class SpscQueue {
 public:
+    /**
+     * @brief Enqueue an item.
+     * @param value Item to enqueue.
+     * @return True if enqueued, false if queue is full.
+     */
     bool push(const T& value) {
         const size_t head = head_.load(std::memory_order_relaxed);
         const size_t next = increment(head);
@@ -20,6 +35,11 @@ public:
         return true;
     }
 
+    /**
+     * @brief Dequeue an item.
+     * @param out Output value.
+     * @return True if an item was popped, false if queue is empty.
+     */
     bool pop(T& out) {
         const size_t tail = tail_.load(std::memory_order_relaxed);
         if (tail == head_.load(std::memory_order_acquire)) {
@@ -30,6 +50,10 @@ public:
         return true;
     }
 
+    /**
+     * @brief Check if the queue is empty.
+     * @return True if empty.
+     */
     bool empty() const {
         return head_.load(std::memory_order_acquire) == tail_.load(std::memory_order_acquire);
     }
