@@ -174,6 +174,18 @@ PortfolioSnapshot Portfolio::snapshot() const {
     return snap;
 }
 
+PortfolioSnapshot Portfolio::snapshot(Timestamp timestamp) const {
+    PortfolioSnapshot snap;
+    snap.timestamp = timestamp;
+    snap.cash = cash_;
+    snap.equity = equity();
+    snap.gross_exposure = gross_exposure();
+    snap.net_exposure = net_exposure();
+    snap.leverage = snap.equity != 0 ? snap.gross_exposure / snap.equity : 0;
+    snap.positions = positions_;
+    return snap;
+}
+
 void Portfolio::record_snapshot(Timestamp timestamp) {
     PortfolioSnapshot snap;
     snap.timestamp = timestamp;

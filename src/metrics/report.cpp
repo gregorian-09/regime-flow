@@ -25,8 +25,12 @@ Report build_report(const MetricsTracker& tracker, double periods_per_year) {
     Report report;
     report.performance = compute_stats(tracker.equity_curve(), periods_per_year);
     PerformanceCalculator calculator;
-    auto snapshots = to_snapshots(tracker.equity_curve());
-    report.performance_summary = calculator.calculate(snapshots, {});
+    if (!tracker.portfolio_snapshots().empty()) {
+        report.performance_summary = calculator.calculate(tracker.portfolio_snapshots(), {});
+    } else {
+        auto snapshots = to_snapshots(tracker.equity_curve());
+        report.performance_summary = calculator.calculate(snapshots, {});
+    }
     report.max_drawdown = tracker.drawdown().max_drawdown();
     report.max_drawdown_start = tracker.drawdown().max_drawdown_start();
     report.max_drawdown_end = tracker.drawdown().max_drawdown_end();
@@ -41,9 +45,14 @@ Report build_report(const MetricsTracker& tracker,
                     const std::vector<double>* benchmark_returns) {
     Report report = build_report(tracker, 252.0);
     PerformanceCalculator calculator;
-    auto snapshots = to_snapshots(tracker.equity_curve());
-    report.performance_summary = calculator.calculate(snapshots, fills, risk_free_rate,
-                                                      benchmark_returns);
+    if (!tracker.portfolio_snapshots().empty()) {
+        report.performance_summary = calculator.calculate(tracker.portfolio_snapshots(), fills,
+                                                          risk_free_rate, benchmark_returns);
+    } else {
+        auto snapshots = to_snapshots(tracker.equity_curve());
+        report.performance_summary = calculator.calculate(snapshots, fills, risk_free_rate,
+                                                          benchmark_returns);
+    }
     return report;
 }
 

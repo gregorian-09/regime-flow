@@ -41,6 +41,9 @@ def __getattr__(name):
     if name == "strategy_module":
         from . import strategy as _strategy
         return _strategy
+    if name == "metrics":
+        from . import metrics as _metrics
+        return _metrics
     if name == "config":
         from . import config as _config
         return _config
@@ -105,6 +108,7 @@ __all__ = [
     "visualization",
     "analysis",
     "config",
+    "metrics",
 ]
 
 __version__ = "0.1.0"

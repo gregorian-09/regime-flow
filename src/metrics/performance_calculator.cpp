@@ -195,32 +195,59 @@ PerformanceSummary PerformanceCalculator::calculate(
 
     auto daily = bucket_returns(equity_curve, "%Y-%m-%d");
     std::vector<double> daily_returns;
+    double best_day = 0.0;
+    double worst_day = 0.0;
+    bool has_day = false;
     for (const auto& [_, vals] : daily) {
         double compounded = 1.0;
         for (double r : vals) {
             compounded *= (1.0 + r);
         }
-        daily_returns.push_back(compounded - 1.0);
+        double daily_return = compounded - 1.0;
+        daily_returns.push_back(daily_return);
+        if (!has_day || daily_return > best_day) {
+            best_day = daily_return;
+            summary.best_day_date = Timestamp::from_string(_, "%Y-%m-%d");
+        }
+        if (!has_day || daily_return < worst_day) {
+            worst_day = daily_return;
+            summary.worst_day_date = Timestamp::from_string(_, "%Y-%m-%d");
+        }
+        has_day = true;
     }
     summary.avg_daily_return = mean(daily_returns);
     if (!daily_returns.empty()) {
-        summary.best_day = *std::max_element(daily_returns.begin(), daily_returns.end());
-        summary.worst_day = *std::min_element(daily_returns.begin(), daily_returns.end());
+        summary.best_day = best_day;
+        summary.worst_day = worst_day;
     }
 
     auto monthly = bucket_returns(equity_curve, "%Y-%m");
     std::vector<double> monthly_returns;
+    double best_month = 0.0;
+    double worst_month = 0.0;
+    bool has_month = false;
     for (const auto& [_, vals] : monthly) {
         double compounded = 1.0;
         for (double r : vals) {
             compounded *= (1.0 + r);
         }
-        monthly_returns.push_back(compounded - 1.0);
+        double monthly_return = compounded - 1.0;
+        monthly_returns.push_back(monthly_return);
+        std::string month_key = _ + "-01";
+        if (!has_month || monthly_return > best_month) {
+            best_month = monthly_return;
+            summary.best_month_date = Timestamp::from_string(month_key, "%Y-%m-%d");
+        }
+        if (!has_month || monthly_return < worst_month) {
+            worst_month = monthly_return;
+            summary.worst_month_date = Timestamp::from_string(month_key, "%Y-%m-%d");
+        }
+        has_month = true;
     }
     summary.avg_monthly_return = mean(monthly_returns);
     if (!monthly_returns.empty()) {
-        summary.best_month = *std::max_element(monthly_returns.begin(), monthly_returns.end());
-        summary.worst_month = *std::min_element(monthly_returns.begin(), monthly_returns.end());
+        summary.best_month = best_month;
+        summary.worst_month = worst_month;
     }
 
     summary.volatility = vol * std::sqrt(periods_per_year);
@@ -325,6 +352,27 @@ PerformanceSummary PerformanceCalculator::calculate(
 
     auto trades = build_trades_from_fills(fills);
     summary.total_trades = static_cast<int>(trades.size());
+    summary.closed_trades = summary.total_trades;
+    if (!equity_curve.empty()) {
+        int open_positions = 0;
+        double unrealized = 0.0;
+        for (auto it = equity_curve.rbegin(); it != equity_curve.rend(); ++it) {
+            open_positions = 0;
+            unrealized = 0.0;
+            for (const auto& [_, pos] : it->positions) {
+                if (pos.quantity != 0.0) {
+                    open_positions += 1;
+                    unrealized += pos.unrealized_pnl();
+                }
+            }
+            if (open_positions > 0) {
+                summary.open_trades_snapshot_date = it->timestamp;
+                break;
+            }
+        }
+        summary.open_trades = open_positions;
+        summary.open_trades_unrealized_pnl = unrealized;
+    }
     double win_sum = 0.0;
     double loss_sum = 0.0;
     double duration_sum = 0.0;

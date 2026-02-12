@@ -20,7 +20,13 @@ void RegimeAttribution::update(regime::RegimeType regime, double equity_return) 
 
 void RegimeAttribution::rebuild_results() {
     results_.clear();
+    if (total_obs_ == 0) {
+        return;
+    }
     for (const auto& [regime, stats] : stats_) {
+        if (stats.observations == 0) {
+            continue;
+        }
         RegimePerformance perf;
         perf.total_return = stats.total_return;
         perf.observations = stats.observations;
@@ -34,9 +40,8 @@ void RegimeAttribution::rebuild_results() {
         double stddev = variance > 0.0 ? std::sqrt(variance) : 0.0;
         perf.sharpe = stddev > 0.0 ? (perf.avg_return / stddev) : 0.0;
         perf.max_drawdown = stats.max_dd;
-        perf.time_pct = total_obs_ > 0
-            ? static_cast<double>(stats.observations) / static_cast<double>(total_obs_)
-            : 0.0;
+        perf.time_pct =
+            static_cast<double>(stats.observations) / static_cast<double>(total_obs_);
         results_[regime] = perf;
     }
 }

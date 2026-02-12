@@ -16,6 +16,13 @@ const char* regime_name(regime::RegimeType regime) {
     }
 }
 
+std::string format_date(const Timestamp& ts, const char* fmt) {
+    if (ts.microseconds() == 0) {
+        return "";
+    }
+    return ts.to_string(fmt);
+}
+
 }  // namespace
 
 std::string ReportWriter::to_csv(const Report& report) {
@@ -37,8 +44,16 @@ std::string ReportWriter::to_csv(const Report& report) {
     out << "summary_avg_monthly_return," << report.performance_summary.avg_monthly_return << "\n";
     out << "summary_best_day," << report.performance_summary.best_day << "\n";
     out << "summary_worst_day," << report.performance_summary.worst_day << "\n";
+    out << "summary_best_day_date," << format_date(report.performance_summary.best_day_date, "%Y-%m-%d")
+        << "\n";
+    out << "summary_worst_day_date," << format_date(report.performance_summary.worst_day_date, "%Y-%m-%d")
+        << "\n";
     out << "summary_best_month," << report.performance_summary.best_month << "\n";
     out << "summary_worst_month," << report.performance_summary.worst_month << "\n";
+    out << "summary_best_month_date," << format_date(report.performance_summary.best_month_date, "%Y-%m-%d")
+        << "\n";
+    out << "summary_worst_month_date," << format_date(report.performance_summary.worst_month_date, "%Y-%m-%d")
+        << "\n";
     out << "summary_volatility," << report.performance_summary.volatility << "\n";
     out << "summary_downside_deviation," << report.performance_summary.downside_deviation << "\n";
     out << "summary_max_drawdown," << report.performance_summary.max_drawdown << "\n";
@@ -56,6 +71,13 @@ std::string ReportWriter::to_csv(const Report& report) {
     out << "summary_total_trades," << report.performance_summary.total_trades << "\n";
     out << "summary_winning_trades," << report.performance_summary.winning_trades << "\n";
     out << "summary_losing_trades," << report.performance_summary.losing_trades << "\n";
+    out << "summary_open_trades," << report.performance_summary.open_trades << "\n";
+    out << "summary_closed_trades," << report.performance_summary.closed_trades << "\n";
+    out << "summary_open_trades_unrealized_pnl,"
+        << report.performance_summary.open_trades_unrealized_pnl << "\n";
+    out << "summary_open_trades_snapshot_date,"
+        << format_date(report.performance_summary.open_trades_snapshot_date, "%Y-%m-%d")
+        << "\n";
     out << "summary_win_rate," << report.performance_summary.win_rate << "\n";
     out << "summary_profit_factor," << report.performance_summary.profit_factor << "\n";
     out << "summary_avg_win," << report.performance_summary.avg_win << "\n";
@@ -102,8 +124,16 @@ std::string ReportWriter::to_json(const Report& report) {
     out << "    \"avg_monthly_return\": " << report.performance_summary.avg_monthly_return << ",\n";
     out << "    \"best_day\": " << report.performance_summary.best_day << ",\n";
     out << "    \"worst_day\": " << report.performance_summary.worst_day << ",\n";
+    out << "    \"best_day_date\": \""
+        << format_date(report.performance_summary.best_day_date, "%Y-%m-%d") << "\",\n";
+    out << "    \"worst_day_date\": \""
+        << format_date(report.performance_summary.worst_day_date, "%Y-%m-%d") << "\",\n";
     out << "    \"best_month\": " << report.performance_summary.best_month << ",\n";
     out << "    \"worst_month\": " << report.performance_summary.worst_month << ",\n";
+    out << "    \"best_month_date\": \""
+        << format_date(report.performance_summary.best_month_date, "%Y-%m-%d") << "\",\n";
+    out << "    \"worst_month_date\": \""
+        << format_date(report.performance_summary.worst_month_date, "%Y-%m-%d") << "\",\n";
     out << "    \"volatility\": " << report.performance_summary.volatility << ",\n";
     out << "    \"downside_deviation\": " << report.performance_summary.downside_deviation << ",\n";
     out << "    \"max_drawdown\": " << report.performance_summary.max_drawdown << ",\n";
@@ -121,6 +151,12 @@ std::string ReportWriter::to_json(const Report& report) {
     out << "    \"total_trades\": " << report.performance_summary.total_trades << ",\n";
     out << "    \"winning_trades\": " << report.performance_summary.winning_trades << ",\n";
     out << "    \"losing_trades\": " << report.performance_summary.losing_trades << ",\n";
+    out << "    \"open_trades\": " << report.performance_summary.open_trades << ",\n";
+    out << "    \"closed_trades\": " << report.performance_summary.closed_trades << ",\n";
+    out << "    \"open_trades_unrealized_pnl\": "
+        << report.performance_summary.open_trades_unrealized_pnl << ",\n";
+    out << "    \"open_trades_snapshot_date\": \""
+        << format_date(report.performance_summary.open_trades_snapshot_date, "%Y-%m-%d") << "\",\n";
     out << "    \"win_rate\": " << report.performance_summary.win_rate << ",\n";
     out << "    \"profit_factor\": " << report.performance_summary.profit_factor << ",\n";
     out << "    \"avg_win\": " << report.performance_summary.avg_win << ",\n";

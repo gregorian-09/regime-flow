@@ -433,6 +433,7 @@ BacktestResults BacktestEngine::results() const {
         result.metrics = metrics_;
     }
     result.fills = portfolio_.get_fills();
+    result.regime_history = metrics_.regime_history();
     return result;
 }
 
@@ -522,7 +523,7 @@ void BacktestEngine::install_default_handlers() {
                 market_data_.update(bar);
                 portfolio_.mark_to_market(bar.symbol, bar.close, bar.timestamp);
                 stop_loss_manager_.on_bar(bar, order_manager_);
-                metrics_.update(bar.timestamp, portfolio_, regime_tracker_.current_state().regime);
+                metrics_.update(bar.timestamp, portfolio_, regime_tracker_.current_state());
                 if (auto transition = regime_tracker_.on_bar(bar)) {
                     events::Event evt = events::make_system_event(
                         events::SystemEventKind::RegimeChange, transition->timestamp);
@@ -564,7 +565,7 @@ void BacktestEngine::install_default_handlers() {
                 market_data_.update(tick);
                 portfolio_.mark_to_market(tick.symbol, tick.price, tick.timestamp);
                 stop_loss_manager_.on_tick(tick, order_manager_);
-                metrics_.update(tick.timestamp, portfolio_, regime_tracker_.current_state().regime);
+                metrics_.update(tick.timestamp, portfolio_, regime_tracker_.current_state());
                 if (auto transition = regime_tracker_.on_tick(tick)) {
                     events::Event evt = events::make_system_event(
                         events::SystemEventKind::RegimeChange, transition->timestamp);
