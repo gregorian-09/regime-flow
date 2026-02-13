@@ -52,6 +52,7 @@ Docker_Output.txt
 # Temporary
 /tmp/
 /docs_site/
+/site/
 /examples/**/output/
 
 # Local env

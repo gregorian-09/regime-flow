@@ -10,6 +10,7 @@ Safety rules:
 ## Contents
 
 - `backtest_basic/` - deterministic backtest on local CSV data
+- `custom_regime_ensemble/` - custom regime detector + strategy (plugin example)
 - `data_ingest/` - CSV ingestion and normalization pipeline
 - `live_paper_alpaca/` - paper trading example (env-gated)
 - `live_paper_ib/` - paper trading example (env-gated)

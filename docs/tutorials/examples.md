@@ -11,6 +11,7 @@ This section documents runnable examples intended for local testing and validati
 ## Example Index
 
 - **Backtest Basic**: deterministic backtest on local CSV data.
+- **Custom Regime Ensemble**: custom regime detector + strategy (plugin example).
 - **Data Ingest**: CSV normalization and validation pipeline.
 - **Live Paper Alpaca**: paper-trading example for Alpaca (env-gated).
 - **Live Paper IB**: paper-trading example for Interactive Brokers (env-gated).
@@ -21,6 +22,25 @@ Path: `examples/backtest_basic/`
 
 ```bash
 ./build/bin/regimeflow_backtest --config examples/backtest_basic/config.yaml
+```
+
+## Custom Regime Ensemble
+
+Path: `examples/custom_regime_ensemble/`
+
+This example builds a custom regime detector and a regime‑aware strategy via plugins.
+
+```bash
+cmake -S examples/plugins/custom_regime -B examples/plugins/custom_regime/build \
+  -DREGIMEFLOW_ROOT=$(pwd) -DREGIMEFLOW_BUILD=$(pwd)/build
+cmake --build examples/plugins/custom_regime/build
+
+cmake -S examples/custom_regime_ensemble -B examples/custom_regime_ensemble/build \
+  -DREGIMEFLOW_ROOT=$(pwd) -DREGIMEFLOW_BUILD=$(pwd)/build
+cmake --build examples/custom_regime_ensemble/build
+
+./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
+  --config examples/custom_regime_ensemble/config.yaml
 ```
 
 ## Data Ingest

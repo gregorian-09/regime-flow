@@ -1,0 +1,53 @@
+# Custom regime detector + complex strategy backtest (C++)
+
+engine:
+  initial_capital: 100000
+  currency: USD
+
+plugins:
+  search_paths:
+    - examples/plugins/custom_regime/build
+  load:
+    - libcustom_regime_detector.so
+    - libcustom_regime_strategy.so
+
+data:
+  type: csv
+  data_directory: examples/backtest_basic/data
+  file_pattern: "{symbol}.csv"
+  has_header: true
+
+symbols:
+  - AAPL
+  - MSFT
+
+start_date: "2019-01-01"
+end_date: "2020-12-31"
+bar_type: "1d"
+
+regime:
+  detector: custom_regime
+  params:
+    window: 60
+    trend_threshold: 0.02
+    vol_threshold: 0.015
+
+strategy:
+  name: custom_regime_strategy
+  params:
+    symbol: AAPL
+    base_qty: 10
+    trend_qty: 20
+    stress_qty: 5
+
+execution:
+  slippage:
+    type: fixed_bps
+    bps: 1.0
+  commission:
+    type: fixed
+    amount: 0.005
+
+risk:
+  max_notional: 100000
+  max_position_pct: 0.2

@@ -14,6 +14,8 @@ Example feature plan (daily bars):
 - `vol_20`: 20-day realized volatility
 - `drawdown_60`: 60-day drawdown
 
+If a feature is not available in RegimeFlow, compute it inside your custom detector. The detector can own a feature builder with its own rolling windows (example in `examples/plugins/custom_regime/`).
+
 Related:
 - [Regime Features](../explanation/regime-features.md)
 - [HMM Math](../explanation/hmm-math.md)
@@ -31,12 +33,22 @@ public:
 };
 ```
 
-Register your detector in the plugin system:
+Example feature builder inside the detector (custom `skew` feature):
+```
+class CustomFeatureBuilder {
+public:
+  explicit CustomFeatureBuilder(int window = 60);
+  FeatureVector on_bar(const Bar& bar); // [trend, vol, drawdown, skew]
+};
+```
+
+Register your detector in the plugin system (engine config):
 ```
 plugins:
-  - name: my_custom_regime
-    type: regime_detector
-    shared_library: build/plugins/libmy_custom_regime.so
+  search_paths:
+    - examples/plugins/custom_regime/build
+  load:
+    - libcustom_regime_detector.so
 ```
 
 Related:
@@ -48,15 +60,19 @@ Related:
 Configure the detector and pass feature params:
 ```
 regime:
-  detector: my_custom_regime
+  detector: custom_regime
   params:
-    feature_set: trend_vol_drawdown
     window: 60
+    trend_threshold: 0.02
+    vol_threshold: 0.015
 
-features:
-  trend_20: true
-  vol_20: true
-  drawdown_60: true
+strategy:
+  name: custom_regime_strategy
+  params:
+    symbol: AAPL
+    base_qty: 10
+    trend_qty: 20
+    stress_qty: 5
 ```
 
 ## 4. Build a Complex Strategy
@@ -99,17 +115,14 @@ data:
   symbols: AAPL,MSFT
 
 regime:
-  detector: my_custom_regime
+  detector: custom_regime
   params:
-    feature_set: trend_vol_drawdown
     window: 60
 
-strategy: my_regime_ensemble
-strategy_params:
-  regime_map:
-    Trend: momentum
-    Range: mean_reversion
-    Stress: defensive
+strategy:
+  name: custom_regime_strategy
+  params:
+    symbol: AAPL
 
 execution_model: basic
 risk:
@@ -117,11 +130,20 @@ risk:
   max_drawdown: 0.15
 ```
 
+Full example config:
+- `examples/custom_regime_ensemble/config.yaml`
+
 ## 6. Run and Validate
 
 Run the backtest:
 ```
 ./build/bin/regimeflow_backtest --config configs/regime_ensemble.yaml
+```
+
+Or run the C++ example driver:
+```
+./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
+  --config examples/custom_regime_ensemble/config.yaml
 ```
 
 Validate regime attribution:
