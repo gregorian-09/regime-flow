@@ -48,13 +48,15 @@ jobs:
         export CMAKE_PREFIX_PATH="${{ github.workspace }}/.venv"
         PYTHON_BIN="${{ github.workspace }}/.venv/bin/python"
         NUMPY_INC="$($PYTHON_BIN -c 'import numpy; print(numpy.get_include())')"
+        PYBIND11_DIR="$($PYTHON_BIN -c 'import pybind11; print(pybind11.get_cmake_dir())')"
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DBUILD_TESTS=ON \
           -DBUILD_PYTHON_BINDINGS=ON \
           -DREGIMEFLOW_FETCH_DEPS=ON \
           -DPython3_EXECUTABLE="$PYTHON_BIN" \
-          -DPython3_NumPy_INCLUDE_DIRS="$NUMPY_INC"
+          -DPython3_NumPy_INCLUDE_DIRS="$NUMPY_INC" \
+          -Dpybind11_DIR="$PYBIND11_DIR"
 
     - name: Build
       run: cmake --build build
@@ -92,6 +94,7 @@ jobs:
       run: |
         PYTHON_BIN="${{ github.workspace }}/.venv/bin/python"
         NUMPY_INC="$($PYTHON_BIN -c 'import numpy; print(numpy.get_include())')"
+        PYBIND11_DIR="$($PYTHON_BIN -c 'import pybind11; print(pybind11.get_cmake_dir())')"
         cmake -B build -G Ninja \
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/.venv" \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -99,7 +102,8 @@ jobs:
           -DBUILD_PYTHON_BINDINGS=ON \
           -DREGIMEFLOW_FETCH_DEPS=ON \
           -DPython3_EXECUTABLE="$PYTHON_BIN" \
-          -DPython3_NumPy_INCLUDE_DIRS="$NUMPY_INC"
+          -DPython3_NumPy_INCLUDE_DIRS="$NUMPY_INC" \
+          -Dpybind11_DIR="$PYBIND11_DIR"
 
     - name: Build
       run: cmake --build build
@@ -132,6 +136,7 @@ jobs:
       run: |
         $python = "${{ github.workspace }}\.venv\Scripts\python.exe"
         $numpyInc = & $python -c "import numpy; print(numpy.get_include())"
+        $pybind11Dir = & $python -c "import pybind11; print(pybind11.get_cmake_dir())"
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv `
@@ -140,7 +145,8 @@ jobs:
           -DBUILD_PYTHON_BINDINGS=ON `
           -DREGIMEFLOW_FETCH_DEPS=ON `
           -DPython3_EXECUTABLE=$python `
-          -DPython3_NumPy_INCLUDE_DIRS=$numpyInc
+          -DPython3_NumPy_INCLUDE_DIRS=$numpyInc `
+          -Dpybind11_DIR=$pybind11Dir
 
     - name: Build
       run: cmake --build build
