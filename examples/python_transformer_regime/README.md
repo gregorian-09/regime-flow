@@ -23,3 +23,7 @@ PYTHONPATH=python:build/lib .venv/bin/python \
   --config examples/python_transformer_regime/config.yaml \
   --output examples/python_transformer_regime/regime_signals.csv
 ```
+
+## TorchScript Plugin Design
+
+See `docs/reference/transformer_regime_plugin.md` for the TorchScript-backed detector design.

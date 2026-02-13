@@ -34,6 +34,12 @@ This is a practical map of the most important configuration knobs used across th
 - `BacktestConfig.plugins_search_paths` (list of directories)
 - `BacktestConfig.plugins_load` (list of plugin filenames or absolute paths)
 
+## Transformer Regime (TorchScript)
+- `regime.detector: transformer_torchscript`
+- `regime.params.model_path`
+- `regime.params.feature_window`
+- `regime.params.feature_dim`
+
 
 ## Interpretation
 

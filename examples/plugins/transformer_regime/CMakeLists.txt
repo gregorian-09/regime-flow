@@ -28,3 +28,25 @@ target_link_libraries(transformer_regime_detector PRIVATE
 )
 
 set_target_properties(transformer_regime_detector PROPERTIES OUTPUT_NAME transformer_regime_detector)
+
+find_package(Torch QUIET)
+if(Torch_FOUND)
+  add_library(transformer_torchscript_detector SHARED
+    transformer_torchscript_detector.cpp
+  )
+
+  target_include_directories(transformer_torchscript_detector PRIVATE ${REGIMEFLOW_ROOT}/include)
+  target_link_directories(transformer_torchscript_detector PRIVATE ${REGIMEFLOW_BUILD}/lib)
+  target_link_libraries(transformer_torchscript_detector PRIVATE
+    -Wl,--start-group
+    regimeflow_common
+    regimeflow_regime
+    regimeflow_plugins
+    -Wl,--end-group
+    ${TORCH_LIBRARIES}
+  )
+  target_compile_definitions(transformer_torchscript_detector PRIVATE TORCHSCRIPT_ENABLED)
+  set_target_properties(transformer_torchscript_detector PROPERTIES OUTPUT_NAME transformer_torchscript_detector)
+else()
+  message(STATUS "Torch not found; transformer_torchscript_detector will not be built.")
+endif()

@@ -67,6 +67,7 @@ PYTHONPATH=python:build/lib .venv/bin/python \
 Latest intraday report:
 - `docs/reports/multi_intraday_report.md`
 - `docs/reports/intraday_strategy_tradecheck.md`
+- `docs/reports/transformer_regime_report.md`
 
 ## Python Engine Regime
 
@@ -108,6 +109,13 @@ cmake --build examples/plugins/transformer_regime/build
 
 ./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
   --config examples/transformer_regime_ensemble/config.yaml
+```
+
+TorchScript backtest (requires libtorch):
+
+```bash
+./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
+  --config examples/transformer_regime_ensemble/config_torchscript.yaml
 ```
 
 ## Data Ingest

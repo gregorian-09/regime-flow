@@ -1,0 +1,50 @@
+# C++ backtest using TorchScript transformer detector
+
+engine:
+  initial_capital: 100000
+  currency: USD
+
+plugins:
+  search_paths:
+    - examples/plugins/transformer_regime/build
+  load:
+    - libtransformer_torchscript_detector.so
+
+regime:
+  detector: transformer_torchscript
+  params:
+    model_path: /path/to/regime_transformer.pt
+    feature_window: 120
+    feature_dim: 8
+
+data:
+  type: csv
+  data_directory: examples/python_custom_regime_ensemble/data_intraday
+  file_pattern: "{symbol}.csv"
+  has_header: true
+  datetime_format: "%Y-%m-%d %H:%M:%S"
+
+symbols:
+  - BTCUSDT
+
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+bar_type: "1m"
+
+strategy:
+  name: moving_average_cross
+  params:
+    short_window: 20
+    long_window: 80
+
+execution:
+  slippage:
+    type: fixed_bps
+    bps: 1.0
+  commission:
+    type: fixed
+    amount: 0.005
+
+risk:
+  max_notional: 100000
+  max_position_pct: 0.2

@@ -36,6 +36,12 @@ plugins:
     - libcustom_regime_detector.so
 ```
 
+## Transformer Regime Notes
+
+- `examples/python_transformer_regime/` provides a transformer-style Python regime model.
+- `examples/plugins/transformer_regime/` shows a CSV-backed regime detector plugin.
+- `docs/reference/transformer_regime_plugin.md` outlines a TorchScript-backed detector design.
+
 ## Typical Workflow
 
 ```mermaid

@@ -30,6 +30,7 @@ Related docs:
 - The analysis utilities consume outputs from backtests and live runs through standardized report objects.
 - Native plugins can be loaded in Python via `BacktestConfig.plugins_search_paths` and `BacktestConfig.plugins_load`
   or the equivalent `plugins.search_paths`/`plugins.load` YAML entries.
+- Transformer regime examples live under `examples/python_transformer_regime/` with CSV export for plugins.
 
 ## Type Details
 

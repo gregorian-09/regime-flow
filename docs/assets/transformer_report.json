@@ -1,0 +1,87 @@
+{
+  "performance": {
+    "total_return": -0.280066,
+    "cagr": -0.979177,
+    "volatility": 0.00375031,
+    "sharpe": -0.492753,
+    "sortino": -0.392416,
+    "calmar": -3.45383,
+    "var_95": 0.000290639,
+    "cvar_95": 0.00055569,
+    "best_return": 0.00694414,
+    "worst_return": -0.0124341
+  },
+  "performance_summary": {
+    "total_return": -0.280066,
+    "cagr": -0.979177,
+    "avg_daily_return": -0.0105125,
+    "avg_monthly_return": -0.280066,
+    "best_day": 0.0140579,
+    "worst_day": -0.0260505,
+    "best_day_date": "2024-01-11",
+    "worst_day_date": "2024-01-09",
+    "best_month": -0.280066,
+    "worst_month": -0.280066,
+    "best_month_date": "2024-01-01",
+    "worst_month_date": "2024-01-01",
+    "volatility": 0.171334,
+    "downside_deviation": 0.125795,
+    "max_drawdown": 0.283505,
+    "var_95": 0.000290639,
+    "var_99": 0.000660109,
+    "cvar_95": 0.00055569,
+    "sharpe_ratio": -22.5116,
+    "sortino_ratio": -30.6609,
+    "calmar_ratio": -3.45383,
+    "omega_ratio": 0.843239,
+    "ulcer_index": 0.1695,
+    "information_ratio": 0,
+    "treynor_ratio": 0,
+    "tail_ratio": 0.902387,
+    "total_trades": 3155,
+    "winning_trades": 1023,
+    "losing_trades": 2132,
+    "open_trades": 1,
+    "closed_trades": 3155,
+    "open_trades_unrealized_pnl": -64.2883,
+    "open_trades_snapshot_date": "2024-01-31",
+    "win_rate": 0.324247,
+    "profit_factor": 0.631297,
+    "avg_win": 46.8751,
+    "avg_loss": -35.6285,
+    "win_loss_ratio": 1.31567,
+    "expectancy": -8.8769,
+    "avg_trade_duration_days": 0.00348235,
+    "annual_turnover": 37427.6
+  },
+  "max_drawdown": 0.283505,
+  "regime_performance": [
+    {
+      "regime": "bull",
+      "return": -0.327348,
+      "avg_return": -7.33324e-06,
+      "sharpe": -0.0310405,
+      "max_drawdown": 0.283505,
+      "time_pct": 0.999978,
+      "observations": 44639
+    },
+    {
+      "regime": "neutral",
+      "return": 0,
+      "avg_return": 0,
+      "sharpe": 0,
+      "max_drawdown": 0,
+      "time_pct": 2.24014e-05,
+      "observations": 1
+    }
+  ],
+  "transitions": [
+    {
+      "from": "neutral",
+      "to": "bull",
+      "avg_return": 0,
+      "volatility": 0,
+      "observations": 1
+    }
+  ]
+}

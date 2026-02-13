@@ -62,6 +62,8 @@ Docker_Output.txt
 /examples/backtest_intraday_*_drawdown.png
 /examples/backtest_intraday_*_report.json
 /examples/python_transformer_regime/regime_signals.csv
+/examples/python_transformer_regime/transformer_*.png
+/examples/python_transformer_regime/transformer_*.json
 
 # Local env
 .env

@@ -26,3 +26,10 @@ PYTHONPATH=python:build/lib .venv/bin/python \
 ./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
   --config examples/transformer_regime_ensemble/config.yaml
 ```
+
+## TorchScript Backtest (C++)
+
+```bash
+./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
+  --config examples/transformer_regime_ensemble/config_torchscript.yaml
+```
