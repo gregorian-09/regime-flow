@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 OLD)
+endif()
 project(RegimeFlow VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
