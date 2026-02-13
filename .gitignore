@@ -53,6 +53,7 @@ Docker_Output.txt
 /tmp/
 /docs_site/
 /site/
+/.internal/
 /examples/**/output/
 /examples/**/build/
 /examples/python_custom_regime_ensemble/data_intraday/

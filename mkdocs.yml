@@ -30,7 +30,6 @@ nav:
     - Custom Regime Workflow: tutorials/quant-custom-regime-workflow.md
   - How-to Guides:
     - Live Trading: how-to/live-trading.md
-    - Distribution: how-to/distribution.md
     - Data Validation: how-to/data-validation.md
     - Database: how-to/database.md
     - Mmap Storage: how-to/mmap-storage.md
