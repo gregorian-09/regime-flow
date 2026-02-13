@@ -72,7 +72,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake ninja eigen boost protobuf python@3.11
+        brew install cmake ninja eigen boost protobuf python@3.12
         python3 -m venv .venv
         . .venv/bin/activate
         pip install --upgrade pip
