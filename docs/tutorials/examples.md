@@ -14,6 +14,8 @@ This section documents runnable examples intended for local testing and validati
 - **Custom Regime Ensemble**: custom regime detector + strategy (plugin example).
 - **Python Custom Regime Ensemble**: Python strategy with custom regime logic and signal ensemble.
 - **Python Engine Regime**: Python strategy that uses `ctx.current_regime()` from engine detectors.
+- **Python Transformer Regime**: Python transformer-style model for regimes + CSV export.
+- **Transformer Regime Plugin**: C++ plugin reading transformer regime CSV output.
 - **Data Ingest**: CSV normalization and validation pipeline.
 - **Live Paper Alpaca**: paper-trading example for Alpaca (env-gated).
 - **Live Paper IB**: paper-trading example for Interactive Brokers (env-gated).
@@ -74,6 +76,38 @@ Path: `examples/python_engine_regime/`
 PYTHONPATH=python:build/lib .venv/bin/python \
   examples/python_engine_regime/run_python_engine_regime.py \
   --config examples/python_engine_regime/config.yaml
+```
+
+## Python Transformer Regime
+
+Path: `examples/python_transformer_regime/`
+
+```bash
+PYTHONPATH=python:build/lib .venv/bin/python \
+  examples/python_transformer_regime/run_python_transformer_strategy.py \
+  --config examples/python_transformer_regime/config.yaml
+```
+
+Generate a CSV for the C++ plugin:
+
+```bash
+PYTHONPATH=python:build/lib .venv/bin/python \
+  examples/python_transformer_regime/generate_regime_csv.py \
+  --config examples/python_transformer_regime/config.yaml \
+  --output examples/python_transformer_regime/regime_signals.csv
+```
+
+## Transformer Regime Plugin
+
+Path: `examples/transformer_regime_ensemble/`
+
+```bash
+cmake -S examples/plugins/transformer_regime -B examples/plugins/transformer_regime/build \
+  -DREGIMEFLOW_ROOT=$(pwd) -DREGIMEFLOW_BUILD=$(pwd)/build
+cmake --build examples/plugins/transformer_regime/build
+
+./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
+  --config examples/transformer_regime_ensemble/config.yaml
 ```
 
 ## Data Ingest

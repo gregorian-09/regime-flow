@@ -13,6 +13,8 @@ Safety rules:
 - `custom_regime_ensemble/` - custom regime detector + strategy (plugin example)
 - `python_custom_regime_ensemble/` - Python strategy with custom regime + signal ensemble
 - `python_custom_regime_ensemble/config_intraday_multi.yaml` - multi-symbol intraday config
+- `python_transformer_regime/` - transformer-style Python regime model + CSV export
+- `transformer_regime_ensemble/` - C++ plugin using transformer CSV signals
 - `docs/reports/multi_intraday_report.md` - latest intraday report artifacts
 - `docs/reports/intraday_strategy_tradecheck.md` - intraday pairs/harmonic trade check
 - `python_engine_regime/` - Python strategy using engine-provided regime detection
