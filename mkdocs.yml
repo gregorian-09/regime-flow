@@ -19,7 +19,8 @@ markdown_extensions:
     permalink: true
 plugins:
 - search
-- mermaid2
+- mermaid2:
+    javascript: assets/mermaid.esm.min.mjs
 nav:
   - Home: README.md
   - Tutorials:
@@ -40,6 +41,7 @@ nav:
     - Config Cheat Sheet: reference/config-cheatsheet.md
     - Broker Message Types: reference/broker-message-types.md
     - Python Interfaces: reference/python-interfaces.md
+    - Transformer Regime Plugin: reference/transformer_regime_plugin.md
     - Plugin API: reference/plugin-api.md
     - Plugins: reference/plugins.md
     - API Design:
@@ -59,6 +61,10 @@ nav:
       - Python: api/python.md
       - Metrics Validation: api/python-metrics-validation.md
       - Full File Index: api/file-index.md
+  - Reports:
+    - Intraday Strategy Tradecheck: reports/intraday_strategy_tradecheck.md
+    - Multi Intraday Report: reports/multi_intraday_report.md
+    - Transformer Regime Report: reports/transformer_regime_report.md
   - Explanation:
     - Overview: explanation/overview.md
     - Architecture: explanation/architecture.md
