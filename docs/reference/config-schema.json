@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gregorian-09.github.io/regime-flow/reference/config-schema.json",
+  "title": "RegimeFlow BacktestConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "data_source": {
+      "type": "string",
+      "default": "csv",
+      "description": "Data source type (csv, tick_csv, alpaca, api, database, or plugin)."
+    },
+    "data": {
+      "type": "object",
+      "description": "Data source configuration (same keys as C++ data.*).",
+      "additionalProperties": true
+    },
+    "symbols": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Symbols to trade."
+    },
+    "start_date": {
+      "type": "string",
+      "description": "Backtest start date (YYYY-MM-DD)."
+    },
+    "end_date": {
+      "type": "string",
+      "description": "Backtest end date (YYYY-MM-DD)."
+    },
+    "bar_type": {
+      "type": "string",
+      "default": "1d",
+      "description": "Bar type (1d, 1h, 1m, etc.)."
+    },
+    "initial_capital": {
+      "type": "number",
+      "default": 1000000.0,
+      "description": "Starting capital."
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Base currency."
+    },
+    "regime_detector": {
+      "type": "string",
+      "default": "hmm",
+      "description": "Regime detector (hmm, ensemble, constant, or plugin)."
+    },
+    "regime_params": {
+      "type": "object",
+      "description": "Regime detector parameters.",
+      "additionalProperties": true
+    },
+    "plugins_search_paths": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Plugin search paths."
+    },
+    "plugins_load": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Explicit plugin filenames or paths."
+    },
+    "slippage_model": {
+      "type": "string",
+      "default": "zero",
+      "description": "Slippage model (zero, fixed_bps, regime_bps, or plugin)."
+    },
+    "slippage_params": {
+      "type": "object",
+      "description": "Slippage parameters (same as execution.slippage.*).",
+      "additionalProperties": true
+    },
+    "commission_model": {
+      "type": "string",
+      "default": "zero",
+      "description": "Commission model (zero, fixed, or plugin)."
+    },
+    "commission_params": {
+      "type": "object",
+      "description": "Commission parameters (same as execution.commission.*).",
+      "additionalProperties": true
+    },
+    "risk_params": {
+      "type": "object",
+      "description": "Risk parameters (same as risk.limits.* and risk.stop_loss.*).",
+      "additionalProperties": true
+    },
+    "strategy_params": {
+      "type": "object",
+      "description": "Strategy parameters for built-in or Python strategies.",
+      "additionalProperties": true
+    },
+    "plugins": {
+      "type": "object",
+      "description": "Alternate plugin block (plugins.search_paths and plugins.load).",
+      "additionalProperties": true
+    }
+  }
+}

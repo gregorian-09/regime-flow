@@ -42,6 +42,9 @@ plugins:
 - `examples/plugins/transformer_regime/` shows a CSV-backed regime detector plugin.
 - `docs/reference/transformer_regime_plugin.md` outlines a TorchScript-backed detector design.
 
+Custom detectors can emit any regime label set (e.g., `risk_on`, `risk_off`, `sideways`), and your strategies
+can map those labels to different decision logic or strategy selection.
+
 ## Typical Workflow
 
 ```mermaid

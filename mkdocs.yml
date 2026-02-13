@@ -37,6 +37,7 @@ nav:
     - Dashboard Flow: how-to/dashboard-flow.md
   - Reference:
     - Config Reference: reference/config-reference.md
+    - Config Cheat Sheet: reference/config-cheatsheet.md
     - Broker Message Types: reference/broker-message-types.md
     - Python Interfaces: reference/python-interfaces.md
     - Plugin API: reference/plugin-api.md

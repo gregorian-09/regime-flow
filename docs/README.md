@@ -19,7 +19,7 @@ If you are new, follow this order for a complete mental model:
    - [Order State Machine](explanation/order-state-machine.md)
 
 3. **How regimes influence trading**  
-   Learn the regime model, transitions, and feature set.
+   Learn the regime model, transitions, and feature set, including custom detector plugins and user-defined regime labels.
    - [Regime Detection](explanation/regime-detection.md)
    - [Regime Features](explanation/regime-features.md)
    - [Regime Transitions](explanation/regime-transitions.md)
