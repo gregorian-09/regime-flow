@@ -135,6 +135,7 @@ The diagrams live in `diagrams/` and are referenced throughout the docs. If you 
 
 ### Quant Developer
 - [Quant Workflow](tutorials/quant-workflow.md)
+- [Custom Regime Workflow](tutorials/quant-custom-regime-workflow.md)
 - [Overview](explanation/overview.md)
 - [Regime Detection](explanation/regime-detection.md)
 - [Regime Features](explanation/regime-features.md)

@@ -26,6 +26,7 @@ nav:
     - Examples: tutorials/examples.md
     - Python Usage: tutorials/python-usage.md
     - Quant Workflow: tutorials/quant-workflow.md
+    - Custom Regime Workflow: tutorials/quant-custom-regime-workflow.md
   - How-to Guides:
     - Live Trading: how-to/live-trading.md
     - Data Validation: how-to/data-validation.md
