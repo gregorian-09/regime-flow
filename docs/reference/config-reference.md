@@ -5,6 +5,8 @@ This is a practical map of the most important configuration knobs used across th
 ## Core
 - `engine.audit_log_path`: backtest audit log file
 - `symbols`: list of symbols to trade
+- `plugins.search_paths`: directories to scan for plugin `.so`/`.dylib`/`.dll`
+- `plugins.load`: explicit plugin filenames (resolved relative to search paths)
 
 ## Regime
 - `hmm.kalman_enabled`
@@ -29,6 +31,8 @@ This is a practical map of the most important configuration knobs used across th
 
 ## Python
 - CLI entrypoint `regimeflow-backtest`
+- `BacktestConfig.plugins_search_paths` (list of directories)
+- `BacktestConfig.plugins_load` (list of plugin filenames or absolute paths)
 
 
 ## Interpretation

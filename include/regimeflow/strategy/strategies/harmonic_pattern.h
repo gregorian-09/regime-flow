@@ -66,6 +66,7 @@ private:
     size_t min_bars_ = 120;
     size_t cooldown_bars_ = 5;
     size_t last_signal_index_ = 0;
+    size_t bar_index_ = 0;
     bool use_limit_ = true;
     double limit_offset_bps_ = 2.0;
     double vol_threshold_pct_ = 0.01;

@@ -1,0 +1,41 @@
+# Python strategy using engine regime detector from a custom plugin
+
+data_source: csv
+data:
+  data_directory: examples/backtest_basic/data
+  file_pattern: "{symbol}.csv"
+  has_header: true
+
+symbols:
+  - AAPL
+  - MSFT
+
+start_date: "2019-01-01"
+end_date: "2020-12-31"
+bar_type: "1d"
+initial_capital: 100000.0
+currency: "USD"
+
+plugins:
+  search_paths:
+    - examples/plugins/custom_regime/build
+  load:
+    - libcustom_regime_detector.so
+
+regime_detector: custom_regime
+regime_params:
+  window: 60
+  trend_threshold: 0.02
+  vol_threshold: 0.015
+
+slippage_model: "fixed_bps"
+slippage_params:
+  bps: 1.0
+
+commission_model: "fixed"
+commission_params:
+  amount: 0.005
+
+risk_params:
+  max_notional: 100000
+  max_position_pct: 0.2

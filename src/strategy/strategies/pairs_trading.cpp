@@ -165,6 +165,9 @@ void PairsTradingStrategy::on_bar(const data::Bar& bar) {
     if (bar.symbol != symbol_a_id_ && bar.symbol != symbol_b_id_) {
         return;
     }
+    if (bar.symbol == symbol_a_id_) {
+        ++bar_index_;
+    }
     double spread = 0.0;
     double hedge_ratio = 1.0;
     if (!compute_spread(spread, hedge_ratio)) {
@@ -173,7 +176,7 @@ void PairsTradingStrategy::on_bar(const data::Bar& bar) {
 
     auto bars_a = ctx_->recent_bars(symbol_a_id_, lookback_);
     auto bars_b = ctx_->recent_bars(symbol_b_id_, lookback_);
-    if (last_signal_index_ + cooldown_bars_ > bars_a.size()) {
+    if (last_signal_index_ + cooldown_bars_ > bar_index_) {
         return;
     }
     size_t n = std::min(bars_a.size(), bars_b.size());
@@ -215,14 +218,14 @@ void PairsTradingStrategy::on_bar(const data::Bar& bar) {
                 order.metadata["action"] = "exit";
                 ctx_->submit_order(order);
             }
-            last_signal_index_ = bars_a.size();
+            last_signal_index_ = bar_index_;
         }
         return;
     }
 
     if (std::abs(zscore) >= entry_z_) {
         submit_spread_trade(hedge_ratio, zscore, bars_a.back().close, bars_b.back().close);
-        last_signal_index_ = bars_a.size();
+        last_signal_index_ = bar_index_;
     }
 }
 

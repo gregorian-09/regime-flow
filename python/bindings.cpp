@@ -17,6 +17,7 @@
 #include "regimeflow/metrics/performance_metrics.h"
 #include "regimeflow/metrics/report.h"
 #include "regimeflow/metrics/report_writer.h"
+#include "regimeflow/plugins/registry.h"
 #include "regimeflow/metrics/regime_attribution.h"
 #include "regimeflow/data/alpaca_data_client.h"
 #include "regimeflow/regime/regime_factory.h"
@@ -435,6 +436,8 @@ struct BacktestConfig {
     std::string currency = "USD";
     std::string regime_detector = "hmm";
     py::dict regime_params;
+    std::vector<std::string> plugins_search_paths;
+    std::vector<std::string> plugins_load;
     std::string slippage_model = "zero";
     py::dict slippage_params;
     std::string commission_model = "zero";
@@ -454,6 +457,22 @@ struct BacktestConfig {
         if (dict.contains("currency")) cfg.currency = dict["currency"].cast<std::string>();
         if (dict.contains("regime_detector")) cfg.regime_detector = dict["regime_detector"].cast<std::string>();
         if (dict.contains("regime_params")) cfg.regime_params = dict["regime_params"].cast<py::dict>();
+        if (dict.contains("plugins_search_paths")) {
+            cfg.plugins_search_paths = dict["plugins_search_paths"].cast<std::vector<std::string>>();
+        } else if (dict.contains("plugins")) {
+            auto plugins = dict["plugins"].cast<py::dict>();
+            if (plugins.contains("search_paths")) {
+                cfg.plugins_search_paths = plugins["search_paths"].cast<std::vector<std::string>>();
+            }
+        }
+        if (dict.contains("plugins_load")) {
+            cfg.plugins_load = dict["plugins_load"].cast<std::vector<std::string>>();
+        } else if (dict.contains("plugins")) {
+            auto plugins = dict["plugins"].cast<py::dict>();
+            if (plugins.contains("load")) {
+                cfg.plugins_load = plugins["load"].cast<std::vector<std::string>>();
+            }
+        }
         if (dict.contains("slippage_model")) cfg.slippage_model = dict["slippage_model"].cast<std::string>();
         if (dict.contains("slippage_params")) cfg.slippage_params = dict["slippage_params"].cast<py::dict>();
         if (dict.contains("commission_model")) cfg.commission_model = dict["commission_model"].cast<std::string>();
@@ -486,6 +505,38 @@ struct BacktestConfig {
         if (auto v = config.get_as<std::string>("regime_detector")) cfg.regime_detector = *v;
         if (auto v = config.get_as<ConfigValue::Object>("regime_params")) {
             cfg.regime_params = object_to_pydict(*v).cast<py::dict>();
+        }
+        if (auto v = config.get_as<ConfigValue::Array>("plugins_search_paths")) {
+            cfg.plugins_search_paths.clear();
+            for (const auto& item : *v) {
+                if (const auto* s = item.get_if<std::string>()) {
+                    cfg.plugins_search_paths.push_back(*s);
+                }
+            }
+        }
+        if (auto v = config.get_as<ConfigValue::Array>("plugins.search_paths")) {
+            cfg.plugins_search_paths.clear();
+            for (const auto& item : *v) {
+                if (const auto* s = item.get_if<std::string>()) {
+                    cfg.plugins_search_paths.push_back(*s);
+                }
+            }
+        }
+        if (auto v = config.get_as<ConfigValue::Array>("plugins_load")) {
+            cfg.plugins_load.clear();
+            for (const auto& item : *v) {
+                if (const auto* s = item.get_if<std::string>()) {
+                    cfg.plugins_load.push_back(*s);
+                }
+            }
+        }
+        if (auto v = config.get_as<ConfigValue::Array>("plugins.load")) {
+            cfg.plugins_load.clear();
+            for (const auto& item : *v) {
+                if (const auto* s = item.get_if<std::string>()) {
+                    cfg.plugins_load.push_back(*s);
+                }
+            }
         }
         if (auto v = config.get_as<std::string>("slippage_model")) cfg.slippage_model = *v;
         if (auto v = config.get_as<ConfigValue::Object>("slippage_params")) {
@@ -638,7 +689,9 @@ public:
           execution_config_(),
           risk_config_(config_from_dict(config.risk_params)),
           regime_config_(),
-          strategy_config_(config_from_dict(config.strategy_params)) {
+          strategy_config_(config_from_dict(config.strategy_params)),
+          plugins_search_paths_(config.plugins_search_paths),
+          plugins_load_(config.plugins_load) {
         data_config_.set("type", config.data_source);
 
         execution_config_.set_path("slippage.type", config.slippage_model);
@@ -822,12 +875,23 @@ public:
 
 private:
     std::unique_ptr<engine::BacktestEngine> create_engine() const {
+        configure_plugins();
         auto engine = std::make_unique<engine::BacktestEngine>(config_.initial_capital,
                                                                config_.currency);
         engine->configure_execution(execution_config_);
         engine->configure_risk(risk_config_);
         engine->configure_regime(regime_config_);
         return engine;
+    }
+
+    void configure_plugins() const {
+        auto& registry = plugins::PluginRegistry::instance();
+        for (const auto& path : plugins_search_paths_) {
+            registry.scan_plugin_directory(path);
+        }
+        for (const auto& path : plugins_load_) {
+            registry.load_dynamic_plugin(path);
+        }
     }
 
     void ensure_data_source() {
@@ -845,6 +909,8 @@ private:
     Config strategy_config_;
     TimeRange range_;
     engine::ParallelContext parallel_context_;
+    std::vector<std::string> plugins_search_paths_;
+    std::vector<std::string> plugins_load_;
     std::unique_ptr<engine::BacktestEngine> engine_;
     std::unique_ptr<data::DataSource> data_source_;
 };
@@ -1529,6 +1595,8 @@ PYBIND11_MODULE(_core, m) {
         .def_readwrite("currency", &BacktestConfig::currency)
         .def_readwrite("regime_detector", &BacktestConfig::regime_detector)
         .def_readwrite("regime_params", &BacktestConfig::regime_params)
+        .def_readwrite("plugins_search_paths", &BacktestConfig::plugins_search_paths)
+        .def_readwrite("plugins_load", &BacktestConfig::plugins_load)
         .def_readwrite("slippage_model", &BacktestConfig::slippage_model)
         .def_readwrite("slippage_params", &BacktestConfig::slippage_params)
         .def_readwrite("commission_model", &BacktestConfig::commission_model)

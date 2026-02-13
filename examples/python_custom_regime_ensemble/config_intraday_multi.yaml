@@ -1,0 +1,28 @@
+# Python custom regime + signal ensemble example (multi-symbol intraday)
+
+data_source: csv
+data:
+  data_directory: examples/python_custom_regime_ensemble/data_intraday
+  file_pattern: "{symbol}.csv"
+  has_header: true
+  datetime_format: "%Y-%m-%d %H:%M:%S"
+
+symbols:
+  - BTCUSDT
+  - ETHUSDT
+
+bar_type: "1m"
+initial_capital: 100000.0
+currency: "USD"
+
+slippage_model: "fixed_bps"
+slippage_params:
+  bps: 1.0
+
+commission_model: "fixed"
+commission_params:
+  amount: 0.005
+
+risk_params:
+  max_notional: 100000
+  max_position_pct: 0.2

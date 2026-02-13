@@ -10,10 +10,11 @@ sequenceDiagram
 
   User->>PythonAPI: load CSV data
   PythonAPI->>Core: CSVDataSource
+  User->>PythonAPI: (optional) load native plugins
+  PythonAPI->>Core: PluginRegistry
   User->>PythonAPI: define strategy
   User->>PythonAPI: run backtest
   PythonAPI->>Core: BacktestEngine
   Core-->>PythonAPI: results
   PythonAPI-->>User: metrics + plots
 ```
-

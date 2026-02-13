@@ -11,6 +11,11 @@ Safety rules:
 
 - `backtest_basic/` - deterministic backtest on local CSV data
 - `custom_regime_ensemble/` - custom regime detector + strategy (plugin example)
+- `python_custom_regime_ensemble/` - Python strategy with custom regime + signal ensemble
+- `python_custom_regime_ensemble/config_intraday_multi.yaml` - multi-symbol intraday config
+- `docs/reports/multi_intraday_report.md` - latest intraday report artifacts
+- `docs/reports/intraday_strategy_tradecheck.md` - intraday pairs/harmonic trade check
+- `python_engine_regime/` - Python strategy using engine-provided regime detection
 - `data_ingest/` - CSV ingestion and normalization pipeline
 - `live_paper_alpaca/` - paper trading example (env-gated)
 - `live_paper_ib/` - paper trading example (env-gated)

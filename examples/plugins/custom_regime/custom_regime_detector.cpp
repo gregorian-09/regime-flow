@@ -110,7 +110,7 @@ regimeflow::regime::RegimeState CustomRegimeDetector::on_tick(
     bar.high = tick.price;
     bar.low = tick.price;
     bar.close = tick.price;
-    bar.volume = static_cast<regimeflow::data::Volume>(tick.quantity);
+    bar.volume = static_cast<regimeflow::Volume>(tick.quantity);
     return on_bar(bar);
 }
 
@@ -152,23 +152,23 @@ CustomRegimeDetectorPlugin::create_detector() {
 
 extern "C" {
 
-regimeflow::plugins::REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
+REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
     return new custom_regime::CustomRegimeDetectorPlugin();
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin) {
+REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin) {
     delete plugin;
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT const char* plugin_type() {
+REGIMEFLOW_EXPORT const char* plugin_type() {
     return "regime_detector";
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT const char* plugin_name() {
+REGIMEFLOW_EXPORT const char* plugin_name() {
     return "custom_regime";
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT const char* regimeflow_abi_version() {
+REGIMEFLOW_EXPORT const char* regimeflow_abi_version() {
     return REGIMEFLOW_ABI_VERSION;
 }
 

@@ -53,34 +53,30 @@ regimeflow::Result<void> CustomRegimeStrategyPlugin::on_initialize(
 
 std::unique_ptr<regimeflow::strategy::Strategy>
 CustomRegimeStrategyPlugin::create_strategy() {
-    auto strategy = std::make_unique<CustomRegimeStrategy>();
-    if (strategy->context()) {
-        strategy->initialize(*strategy->context());
-    }
-    return strategy;
+    return std::make_unique<CustomRegimeStrategy>();
 }
 
 }  // namespace custom_regime
 
 extern "C" {
 
-regimeflow::plugins::REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
+REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
     return new custom_regime::CustomRegimeStrategyPlugin();
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin) {
+REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin) {
     delete plugin;
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT const char* plugin_type() {
+REGIMEFLOW_EXPORT const char* plugin_type() {
     return "strategy";
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT const char* plugin_name() {
+REGIMEFLOW_EXPORT const char* plugin_name() {
     return "custom_regime_strategy";
 }
 
-regimeflow::plugins::REGIMEFLOW_EXPORT const char* regimeflow_abi_version() {
+REGIMEFLOW_EXPORT const char* regimeflow_abi_version() {
     return REGIMEFLOW_ABI_VERSION;
 }
 

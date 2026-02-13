@@ -4,8 +4,12 @@
 #include "regimeflow/data/data_source_factory.h"
 #include "regimeflow/engine/backtest_runner.h"
 #include "regimeflow/engine/engine_factory.h"
+#include "regimeflow/metrics/report.h"
+#include "regimeflow/metrics/report_writer.h"
+#include "regimeflow/plugins/registry.h"
 #include "regimeflow/strategy/strategy_factory.h"
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -70,6 +74,56 @@ engine::BacktestRunSpec load_spec(const std::string& path) {
     return spec;
 }
 
+void load_plugins(const Config& config) {
+    auto& registry = plugins::PluginRegistry::instance();
+    if (auto search_paths = config.get_as<ConfigValue::Array>("plugins.search_paths")) {
+        for (const auto& value : *search_paths) {
+            if (const auto* path = value.get_if<std::string>()) {
+                registry.scan_plugin_directory(*path);
+            }
+        }
+    }
+    if (auto load_paths = config.get_as<ConfigValue::Array>("plugins.load")) {
+        for (const auto& value : *load_paths) {
+            if (const auto* entry = value.get_if<std::string>()) {
+                std::filesystem::path candidate(*entry);
+                if (candidate.is_relative()) {
+                    bool loaded = false;
+                    if (auto search_paths = config.get_as<ConfigValue::Array>("plugins.search_paths")) {
+                        for (const auto& search : *search_paths) {
+                            if (const auto* base = search.get_if<std::string>()) {
+                                auto full = std::filesystem::path(*base) / candidate;
+                                if (std::filesystem::exists(full)) {
+                                    auto res = registry.load_dynamic_plugin(full.string());
+                                    if (res.is_err()
+                                        && res.error().code != regimeflow::Error::Code::AlreadyExists) {
+                                        throw std::runtime_error(res.error().to_string());
+                                    }
+                                    loaded = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!loaded) {
+                        auto res = registry.load_dynamic_plugin(candidate.string());
+                        if (res.is_err()
+                            && res.error().code != regimeflow::Error::Code::AlreadyExists) {
+                            throw std::runtime_error(res.error().to_string());
+                        }
+                    }
+                } else {
+                    auto res = registry.load_dynamic_plugin(candidate.string());
+                    if (res.is_err()
+                        && res.error().code != regimeflow::Error::Code::AlreadyExists) {
+                        throw std::runtime_error(res.error().to_string());
+                    }
+                }
+            }
+        }
+    }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -80,9 +134,11 @@ int main(int argc, char** argv) {
 
     try {
         auto spec = load_spec(config_path);
+        load_plugins(spec.engine_config);
         auto results = engine::BacktestRunner::run_parallel({spec});
         if (!results.empty()) {
-            std::cout << results[0].report_json() << "\n";
+            auto report = metrics::build_report(results[0].metrics, results[0].fills, 0.0);
+            std::cout << metrics::ReportWriter::to_json(report) << "\n";
         }
     } catch (const std::exception& ex) {
         std::cerr << "error: " << ex.what() << "\n";

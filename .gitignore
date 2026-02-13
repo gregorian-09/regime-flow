@@ -54,6 +54,13 @@ Docker_Output.txt
 /docs_site/
 /site/
 /examples/**/output/
+/examples/**/build/
+/examples/python_custom_regime_ensemble/data_intraday/
+/examples/python_custom_regime_ensemble/multi_intraday_*.png
+/examples/python_custom_regime_ensemble/multi_intraday_*.json
+/examples/backtest_intraday_*_equity.png
+/examples/backtest_intraday_*_drawdown.png
+/examples/backtest_intraday_*_report.json
 
 # Local env
 .env

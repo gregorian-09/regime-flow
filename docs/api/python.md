@@ -13,8 +13,8 @@ Related docs:
 
 - `python/regimeflow/` provides the Python package root.
 - `python/regimeflow/analysis/` exposes analysis utilities and report helpers.
-- `python/regimeflow/bindings/` exposes native bindings.
-- `python/regimeflow/strategies/` contains Python strategy implementations and helpers.
+- `python/bindings.cpp` exposes native bindings via `_core`.
+- `python/regimeflow/strategy/` contains Python strategy helpers and registry.
 
 ## Type Index (Python)
 
@@ -28,6 +28,8 @@ Related docs:
 
 - The Python layer is designed for research workflows and reporting. Use the C++ engine for production execution.
 - The analysis utilities consume outputs from backtests and live runs through standardized report objects.
+- Native plugins can be loaded in Python via `BacktestConfig.plugins_search_paths` and `BacktestConfig.plugins_load`
+  or the equivalent `plugins.search_paths`/`plugins.load` YAML entries.
 
 ## Type Details
 

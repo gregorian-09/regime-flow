@@ -43,6 +43,7 @@ private:
     double max_qty_scale_ = 2.0;
     size_t cooldown_bars_ = 5;
     size_t last_signal_index_ = 0;
+    size_t bar_index_ = 0;
 };
 
 }  // namespace regimeflow::strategy

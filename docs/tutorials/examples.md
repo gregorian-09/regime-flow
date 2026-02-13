@@ -12,6 +12,8 @@ This section documents runnable examples intended for local testing and validati
 
 - **Backtest Basic**: deterministic backtest on local CSV data.
 - **Custom Regime Ensemble**: custom regime detector + strategy (plugin example).
+- **Python Custom Regime Ensemble**: Python strategy with custom regime logic and signal ensemble.
+- **Python Engine Regime**: Python strategy that uses `ctx.current_regime()` from engine detectors.
 - **Data Ingest**: CSV normalization and validation pipeline.
 - **Live Paper Alpaca**: paper-trading example for Alpaca (env-gated).
 - **Live Paper IB**: paper-trading example for Interactive Brokers (env-gated).
@@ -41,6 +43,37 @@ cmake --build examples/custom_regime_ensemble/build
 
 ./examples/custom_regime_ensemble/build/run_custom_regime_backtest \
   --config examples/custom_regime_ensemble/config.yaml
+```
+
+## Python Custom Regime Ensemble
+
+Path: `examples/python_custom_regime_ensemble/`
+
+```bash
+.venv/bin/python tools/download_intraday_spx_sample.py
+.venv/bin/python tools/download_intraday_spx_sample.py --multi
+
+PYTHONPATH=python:build/lib .venv/bin/python \
+  examples/python_custom_regime_ensemble/run_python_custom_regime_ensemble.py \
+  --config examples/python_custom_regime_ensemble/config.yaml
+
+PYTHONPATH=python:build/lib .venv/bin/python \
+  examples/python_custom_regime_ensemble/run_python_custom_regime_ensemble.py \
+  --config examples/python_custom_regime_ensemble/config_intraday_multi.yaml
+```
+
+Latest intraday report:
+- `docs/reports/multi_intraday_report.md`
+- `docs/reports/intraday_strategy_tradecheck.md`
+
+## Python Engine Regime
+
+Path: `examples/python_engine_regime/`
+
+```bash
+PYTHONPATH=python:build/lib .venv/bin/python \
+  examples/python_engine_regime/run_python_engine_regime.py \
+  --config examples/python_engine_regime/config.yaml
 ```
 
 ## Data Ingest

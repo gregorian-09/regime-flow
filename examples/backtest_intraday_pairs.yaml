@@ -1,0 +1,41 @@
+# Intraday pairs trading on BTCUSDT/ETHUSDT
+
+data_source: csv
+data:
+  data_directory: examples/python_custom_regime_ensemble/data_intraday
+  file_pattern: "{symbol}.csv"
+  has_header: true
+  datetime_format: "%Y-%m-%d %H:%M:%S"
+
+symbols:
+  - BTCUSDT
+  - ETHUSDT
+
+bar_type: "1m"
+initial_capital: 100000.0
+currency: "USD"
+
+slippage_model: "fixed_bps"
+slippage_params:
+  bps: 1.0
+
+commission_model: "fixed"
+commission_params:
+  amount: 0.005
+
+risk_params:
+  max_notional: 100000
+  max_position_pct: 0.2
+
+strategy_params:
+  symbol_a: "BTCUSDT"
+  symbol_b: "ETHUSDT"
+  lookback: 30
+  entry_z: 0.4
+  exit_z: 0.1
+  max_z: 4.0
+  base_qty: 1
+  min_qty_scale: 0.5
+  max_qty_scale: 2.0
+  cooldown_bars: 1
+  allow_short: false

@@ -309,11 +309,12 @@ void HarmonicPatternStrategy::on_bar(const data::Bar& bar) {
     if (bar.symbol != symbol_id_) {
         return;
     }
+    ++bar_index_;
     auto bars = ctx_->recent_bars(symbol_id_, min_bars_);
     if (bars.size() < min_bars_) {
         return;
     }
-    if (bars.size() - 1 <= last_signal_index_ + cooldown_bars_) {
+    if (bar_index_ <= last_signal_index_ + cooldown_bars_) {
         return;
     }
 
@@ -400,7 +401,7 @@ void HarmonicPatternStrategy::on_bar(const data::Bar& bar) {
         case PatternType::Cypher: order.metadata["pattern"] = "cypher"; break;
     }
     if (ctx_->submit_order(order).is_ok()) {
-        last_signal_index_ = bars.size() - 1;
+        last_signal_index_ = bar_index_;
     }
 }
 

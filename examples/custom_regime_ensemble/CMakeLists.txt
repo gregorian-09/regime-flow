@@ -21,14 +21,19 @@ target_link_directories(run_custom_regime_backtest PRIVATE
   ${REGIMEFLOW_BUILD}/lib
 )
 
+find_package(CURL REQUIRED)
+
 target_link_libraries(run_custom_regime_backtest PRIVATE
-  regimeflow_common
-  regimeflow_data
-  regimeflow_engine
+  -Wl,--start-group
   regimeflow_strategy
-  regimeflow_execution
   regimeflow_risk
+  regimeflow_execution
+  regimeflow_engine
   regimeflow_regime
   regimeflow_metrics
+  regimeflow_data
+  regimeflow_common
   regimeflow_plugins
+  -Wl,--end-group
+  CURL::libcurl
 )

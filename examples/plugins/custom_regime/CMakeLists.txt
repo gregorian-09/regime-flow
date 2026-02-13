@@ -30,10 +30,15 @@ target_link_libraries(custom_regime_detector PRIVATE
   regimeflow_plugins
 )
 target_link_libraries(custom_regime_strategy PRIVATE
-  regimeflow_common
-  regimeflow_engine
+  -Wl,--start-group
   regimeflow_strategy
+  regimeflow_engine
+  regimeflow_execution
+  regimeflow_risk
+  regimeflow_data
+  regimeflow_common
   regimeflow_plugins
+  -Wl,--end-group
 )
 
 set_target_properties(custom_regime_detector PROPERTIES OUTPUT_NAME custom_regime_detector)
