@@ -3,8 +3,11 @@
 #include "regimeflow/regime/regime_detector.h"
 #include "regimeflow/plugins/interfaces.h"
 
+#include <memory>
 #include <string>
 #include <vector>
+
+#include <torch/script.h>
 
 namespace transformer_regime {
 
@@ -29,6 +32,7 @@ private:
     std::vector<std::vector<float>> features_;
 
     bool ready_ = false;
+    std::shared_ptr<torch::jit::script::Module> module_;
 };
 
 class TransformerTorchscriptPlugin final : public regimeflow::plugins::RegimeDetectorPlugin {
@@ -45,10 +49,10 @@ private:
 
 extern "C" {
 
-REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin_torchscript();
-REGIMEFLOW_EXPORT void destroy_plugin_torchscript(regimeflow::plugins::Plugin* plugin);
-REGIMEFLOW_EXPORT const char* plugin_type_torchscript();
-REGIMEFLOW_EXPORT const char* plugin_name_torchscript();
-REGIMEFLOW_EXPORT const char* regimeflow_abi_version_torchscript();
+REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin();
+REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin);
+REGIMEFLOW_EXPORT const char* plugin_type();
+REGIMEFLOW_EXPORT const char* plugin_name();
+REGIMEFLOW_EXPORT const char* regimeflow_abi_version();
 
 }

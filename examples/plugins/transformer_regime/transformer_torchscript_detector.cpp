@@ -24,11 +24,6 @@ regimeflow::regime::RegimeType idx_to_regime(int idx) {
 
 }  // namespace
 
-class TorchModuleHolder {
-public:
-    torch::jit::script::Module module;
-};
-
 TorchscriptRegimeDetector::TorchscriptRegimeDetector() = default;
 
 void TorchscriptRegimeDetector::configure(const regimeflow::Config& config) {
@@ -50,10 +45,8 @@ void TorchscriptRegimeDetector::load_model() {
         return;
     }
     try {
-        auto module = torch::jit::load(model_path_);
-        module.eval();
-        torch::NoGradGuard guard;
-        (void)module;
+        module_ = std::make_shared<torch::jit::script::Module>(torch::jit::load(model_path_));
+        module_->eval();
         ready_ = true;
     } catch (...) {
         ready_ = false;
@@ -111,10 +104,8 @@ regimeflow::regime::RegimeState TorchscriptRegimeDetector::state_for_timestamp(
     }
 
     try {
-        auto module = torch::jit::load(model_path_);
-        module.eval();
         torch::NoGradGuard guard;
-        auto output = module.forward({tensor}).toTensor();
+        auto output = module_->forward({tensor}).toTensor();
         auto probs = torch::softmax(output, 1).squeeze(0);
         std::array<double, 4> p{
             probs[0].item<double>(),
@@ -180,23 +171,23 @@ std::unique_ptr<regimeflow::regime::RegimeDetector> TransformerTorchscriptPlugin
 
 extern "C" {
 
-REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin_torchscript() {
+REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
     return new transformer_regime::TransformerTorchscriptPlugin();
 }
 
-REGIMEFLOW_EXPORT void destroy_plugin_torchscript(regimeflow::plugins::Plugin* plugin) {
+REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin) {
     delete plugin;
 }
 
-REGIMEFLOW_EXPORT const char* plugin_type_torchscript() {
+REGIMEFLOW_EXPORT const char* plugin_type() {
     return "regime_detector";
 }
 
-REGIMEFLOW_EXPORT const char* plugin_name_torchscript() {
+REGIMEFLOW_EXPORT const char* plugin_name() {
     return "transformer_torchscript";
 }
 
-REGIMEFLOW_EXPORT const char* regimeflow_abi_version_torchscript() {
+REGIMEFLOW_EXPORT const char* regimeflow_abi_version() {
     return REGIMEFLOW_ABI_VERSION;
 }
 
