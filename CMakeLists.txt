@@ -23,6 +23,7 @@ option(ENABLE_POSTGRES "Enable PostgreSQL data source" ON)
 option(ENABLE_ZMQ "Enable ZeroMQ adapter" ON)
 option(ENABLE_REDIS "Enable Redis adapter" ON)
 option(ENABLE_KAFKA "Enable Kafka adapter" ON)
+option(ENABLE_IBAPI "Enable Interactive Brokers adapter" ON)
 
 if(BUILD_PYTHON)
     set(BUILD_PYTHON_BINDINGS ON)

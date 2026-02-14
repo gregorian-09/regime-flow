@@ -143,6 +143,7 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_PYTHON_BINDINGS=ON \
           -DREGIMEFLOW_FETCH_DEPS=ON \
+          -DENABLE_IBAPI=OFF \
           -DPython3_EXECUTABLE="$PYTHON_BIN" \
           -DPython3_NumPy_INCLUDE_DIRS="$NUMPY_INC" \
           -Dpybind11_DIR="$PYBIND11_DIR"

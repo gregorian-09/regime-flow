@@ -12,7 +12,7 @@ add_library(regimeflow_common
 )
 
 set(IBAPI_ROOT "${CMAKE_SOURCE_DIR}/third_party/ibapi/IBJts/source/cppclient/client")
-if(EXISTS "${IBAPI_ROOT}")
+if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
     file(GLOB IBAPI_SOURCES "${IBAPI_ROOT}/*.cpp")
     set(IBAPI_PROTO_DIR "${IBAPI_ROOT}/protobufUnix")
     file(GLOB IBAPI_PROTO_SOURCES "${IBAPI_PROTO_DIR}/*.pb.cc")
@@ -270,18 +270,23 @@ target_link_libraries(regimeflow_walkforward
         regimeflow_engine
 )
 
-add_library(regimeflow_live
+set(REGIMEFLOW_LIVE_SOURCES
     live/alpaca_adapter.cpp
     live/audit_log.cpp
     live/binance_adapter.cpp
     live/event_bus.cpp
-    live/ib_adapter.cpp
     live/live_engine.cpp
     live/live_order_manager.cpp
     live/mq_adapter.cpp
     live/mq_codec.cpp
     live/types.cpp
 )
+
+if(ENABLE_IBAPI)
+    list(APPEND REGIMEFLOW_LIVE_SOURCES live/ib_adapter.cpp)
+endif()
+
+add_library(regimeflow_live ${REGIMEFLOW_LIVE_SOURCES})
 
 regimeflow_target_public_include(regimeflow_live)
 
@@ -339,7 +344,7 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
     endif()
 endif()
 
-if(TARGET ibapi)
+if(ENABLE_IBAPI AND TARGET ibapi)
     target_link_libraries(regimeflow_live PUBLIC ibapi)
     target_include_directories(regimeflow_live PRIVATE ${IBAPI_ROOT})
     if(EXISTS "/usr/local/lib/libbid.a")
