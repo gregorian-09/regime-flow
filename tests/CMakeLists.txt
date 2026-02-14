@@ -2,17 +2,17 @@ if (NOT BUILD_TESTS)
     return()
 endif()
 
-if (REGIMEFLOW_FETCH_DEPS)
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-    )
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-else()
-    find_package(GTest QUIET)
-    if (NOT GTest_FOUND)
+find_package(GTest QUIET)
+if (NOT GTest_FOUND)
+    if (REGIMEFLOW_FETCH_DEPS)
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+        )
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(googletest)
+    else()
         message(WARNING "GTest not found; skipping tests")
         return()
     endif()
