@@ -36,7 +36,15 @@ jobs:
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_ARCHS_WINDOWS: "AMD64"
-          CIBW_BEFORE_ALL: "python -m pip install cmake"
+          CIBW_BEFORE_ALL_LINUX: >
+            python -m pip install cmake &&
+            (if command -v yum >/dev/null 2>&1; then yum install -y protobuf-devel;
+            elif command -v dnf >/dev/null 2>&1; then dnf install -y protobuf-devel;
+            elif command -v apt-get >/dev/null 2>&1; then apt-get update && apt-get install -y libprotobuf-dev protobuf-compiler;
+            else echo "No supported package manager found for protobuf" && exit 1; fi)
+          CIBW_BEFORE_ALL_MACOS: "python -m pip install cmake && brew install protobuf"
+          CIBW_BEFORE_ALL_WINDOWS: "python -m pip install cmake && C:/vcpkg/vcpkg.exe install protobuf:x64-windows"
+          CIBW_ENVIRONMENT_WINDOWS: "CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake VCPKG_DEFAULT_TRIPLET=x64-windows"
           CIBW_TEST_COMMAND: "python -c \"import regimeflow; print('regimeflow', regimeflow.__version__)\""
 
       - name: Upload wheels
