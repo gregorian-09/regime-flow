@@ -32,6 +32,24 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
     else()
         target_link_libraries(ibapi PUBLIC ${Protobuf_LIBRARIES})
     endif()
+    if(EXISTS "/usr/local/lib/libbid.a")
+        target_link_libraries(ibapi PUBLIC /usr/local/lib/libbid.a)
+    else()
+        find_library(IBAPI_BID_LIBRARY NAMES
+            bid
+            bidgcc000
+            bidgcc001
+            bidgcc010
+            bidgcc011
+            bidgcc100
+            bidgcc101
+            bidgcc110
+            bidgcc111
+        )
+        if(IBAPI_BID_LIBRARY)
+            target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY})
+        endif()
+    endif()
 endif()
 
 set(REGIMEFLOW_PUBLIC_INCLUDE
@@ -369,24 +387,6 @@ endif()
 if(ENABLE_IBAPI AND TARGET ibapi)
     target_link_libraries(regimeflow_live PUBLIC ibapi)
     target_include_directories(regimeflow_live PRIVATE ${IBAPI_ROOT})
-    if(EXISTS "/usr/local/lib/libbid.a")
-        target_link_libraries(regimeflow_live PRIVATE /usr/local/lib/libbid.a)
-    else()
-        find_library(BID_LIBRARY NAMES
-            bid
-            bidgcc000
-            bidgcc001
-            bidgcc010
-            bidgcc011
-            bidgcc100
-            bidgcc101
-            bidgcc110
-            bidgcc111
-        )
-        if(BID_LIBRARY)
-            target_link_libraries(regimeflow_live PRIVATE ${BID_LIBRARY})
-        endif()
-    endif()
 endif()
 
 if(CURL_FOUND)
