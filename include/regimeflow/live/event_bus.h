@@ -12,6 +12,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <thread>
 #include <mutex>
 #include <queue>
 #include <unordered_map>
