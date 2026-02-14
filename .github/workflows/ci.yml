@@ -37,7 +37,8 @@ jobs:
           cmake ninja-build clang-18 gcc-13 g++-13 ccache \
           libeigen3-dev libboost-all-dev \
           libprotobuf-dev protobuf-compiler \
-          libssl-dev libcurl4-openssl-dev
+          libssl-dev libcurl4-openssl-dev \
+          libintelrdfpmath-dev
 
     - name: Configure ccache
       run: |
@@ -227,7 +228,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           cmake ninja-build g++ \
-          libeigen3-dev libboost-all-dev libprotobuf-dev protobuf-compiler
+          libeigen3-dev libboost-all-dev libprotobuf-dev protobuf-compiler \
+          libintelrdfpmath-dev
         python -m venv .venv
         . .venv/bin/activate
         pip install --upgrade pip
