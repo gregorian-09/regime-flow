@@ -134,6 +134,7 @@ jobs:
 
     - name: Configure CMake
       run: |
+        export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig"
         PYTHON_BIN="${{ github.workspace }}/.venv/bin/python"
         NUMPY_INC="$($PYTHON_BIN -c 'import numpy; print(numpy.get_include())')"
         PYBIND11_DIR="$($PYTHON_BIN -c 'import pybind11; print(pybind11.get_cmake_dir())')"
