@@ -112,7 +112,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake ninja eigen boost protobuf@21 ccache
+        brew install cmake ninja eigen boost protobuf@21 ccache hiredis pkg-config
         brew link --force --overwrite protobuf@21
         python -m venv .venv
         . .venv/bin/activate
