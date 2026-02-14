@@ -100,7 +100,17 @@ if(EXISTS "/usr/local/lib/libbid.a")
         target_link_libraries(regimeflow_tests PRIVATE /usr/local/lib/libbid.a)
     endif()
 else()
-    find_library(BID_LIBRARY bid)
+    find_library(BID_LIBRARY NAMES
+        bid
+        bidgcc000
+        bidgcc001
+        bidgcc010
+        bidgcc011
+        bidgcc100
+        bidgcc101
+        bidgcc110
+        bidgcc111
+    )
     if(BID_LIBRARY)
         target_link_libraries(regimeflow_tests PRIVATE ${BID_LIBRARY})
     endif()
