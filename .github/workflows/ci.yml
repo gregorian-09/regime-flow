@@ -112,7 +112,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake ninja eigen boost protobuf ccache
+        brew install cmake ninja eigen boost protobuf@21 ccache
+        brew link --force --overwrite protobuf@21
         python -m venv .venv
         . .venv/bin/activate
         python -m pip install --upgrade pip
@@ -143,7 +144,6 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_PYTHON_BINDINGS=ON \
           -DREGIMEFLOW_FETCH_DEPS=ON \
-          -DENABLE_IBAPI=OFF \
           -DPython3_EXECUTABLE="$PYTHON_BIN" \
           -DPython3_NumPy_INCLUDE_DIRS="$NUMPY_INC" \
           -Dpybind11_DIR="$PYBIND11_DIR"
