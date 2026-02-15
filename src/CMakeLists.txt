@@ -32,8 +32,11 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
     else()
         target_link_libraries(ibapi PUBLIC ${Protobuf_LIBRARIES})
     endif()
+    set(IBAPI_NEEDS_BID_COMPAT OFF)
     if(EXISTS "/usr/local/lib/libbid.a")
         target_link_libraries(ibapi PUBLIC /usr/local/lib/libbid.a)
+    elseif(EXISTS "/opt/homebrew/lib/libbid.a")
+        target_link_libraries(ibapi PUBLIC /opt/homebrew/lib/libbid.a)
     else()
         find_library(IBAPI_BID_LIBRARY NAMES
             bid
@@ -45,10 +48,17 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
             bidgcc101
             bidgcc110
             bidgcc111
+            HINTS /opt/homebrew/lib /usr/local/lib
         )
         if(IBAPI_BID_LIBRARY)
             target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY})
+        elseif(APPLE)
+            set(IBAPI_NEEDS_BID_COMPAT ON)
         endif()
+    endif()
+    if(IBAPI_NEEDS_BID_COMPAT)
+        target_sources(ibapi PRIVATE ${CMAKE_SOURCE_DIR}/src/live/ib_bid_compat.cpp)
+        target_compile_definitions(ibapi PUBLIC REGIMEFLOW_IBAPI_SOFTBID)
     endif()
 endif()
 
