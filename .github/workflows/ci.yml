@@ -50,7 +50,7 @@ jobs:
         ccache --set-config=cache_dir="$HOME/.ccache"
 
     - name: Cache ccache
-      uses: actions/cache@5a3ec84
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
       with:
         path: ~/.ccache
         key: ccache-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ github.sha }}
@@ -129,7 +129,7 @@ jobs:
         ccache --set-config=cache_dir="$HOME/.ccache"
 
     - name: Cache ccache
-      uses: actions/cache@5a3ec84
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
       with:
         path: ~/.ccache
         key: ccache-macos-${{ matrix.build_type }}-${{ github.sha }}
@@ -290,7 +290,7 @@ jobs:
           fi
 
     - name: Create release
-      uses: softprops/action-gh-release@15eb890
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
       with:
         files: |
           wheelhouse/*.whl

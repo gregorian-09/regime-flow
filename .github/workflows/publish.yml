@@ -26,7 +26,7 @@ jobs:
           python-version: "3.12"
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@9cfd96e
+        uses: pypa/cibuildwheel@ee63bf16da6cddfb925f542f2c7b59ad50e93969
         with:
           package-dir: python
           output-dir: wheelhouse
@@ -87,6 +87,6 @@ jobs:
           path: dist
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@61da13d
+        uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3
         with:
           packages-dir: dist
