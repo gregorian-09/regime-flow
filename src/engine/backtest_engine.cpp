@@ -14,7 +14,7 @@ BacktestEngine::BacktestEngine(double initial_capital, std::string currency)
       portfolio_(initial_capital, std::move(currency)),
       market_data_(),
       timer_service_(&event_queue_),
-      execution_pipeline_(&order_manager_, &market_data_, &order_book_cache_, &event_queue_),
+      execution_pipeline_(&market_data_, &order_book_cache_, &event_queue_),
       regime_tracker_(nullptr) {
     event_loop_.set_dispatcher(&dispatcher_);
     install_default_handlers();

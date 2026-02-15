@@ -2,12 +2,10 @@
 
 namespace regimeflow::engine {
 
-ExecutionPipeline::ExecutionPipeline(OrderManager* order_manager,
-                                     MarketDataCache* market_data,
+ExecutionPipeline::ExecutionPipeline(MarketDataCache* market_data,
                                      OrderBookCache* order_books,
                                      events::EventQueue* event_queue)
-    : order_manager_(order_manager),
-      market_data_(market_data),
+    : market_data_(market_data),
       order_books_(order_books),
       event_queue_(event_queue) {
     auto slippage = std::make_shared<execution::ZeroSlippageModel>();

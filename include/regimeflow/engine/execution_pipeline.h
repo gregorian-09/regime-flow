@@ -34,8 +34,7 @@ public:
      * @param order_books Order book cache.
      * @param event_queue Event queue for fill events.
      */
-    ExecutionPipeline(OrderManager* order_manager,
-                      MarketDataCache* market_data,
+    ExecutionPipeline(MarketDataCache* market_data,
                       OrderBookCache* order_books,
                       events::EventQueue* event_queue);
 
@@ -74,7 +73,6 @@ public:
 private:
     Price reference_price(const Order& order) const;
 
-    OrderManager* order_manager_ = nullptr;
     MarketDataCache* market_data_ = nullptr;
     OrderBookCache* order_books_ = nullptr;
     events::EventQueue* event_queue_ = nullptr;

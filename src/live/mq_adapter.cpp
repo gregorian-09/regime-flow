@@ -398,6 +398,10 @@ public:
         }
         std::string payload = LiveMessageCodec::encode(message);
         std::string topic = config_.topic.empty() ? "regimeflow" : config_.topic;
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wgnu-statement-expression-from-macro-expansion"
+#endif
         int res = rd_kafka_producev(
             producer_,
             RD_KAFKA_V_TOPIC(topic.c_str()),
@@ -405,6 +409,9 @@ public:
             RD_KAFKA_V_MSGFLAGS(RD_KAFKA_MSG_F_COPY),
             RD_KAFKA_V_VALUE(const_cast<char*>(payload.data()), payload.size()),
             RD_KAFKA_V_END);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
         if (res != 0) {
             connected_ = false;
             return Error(Error::Code::InvalidState, rd_kafka_err2str(rd_kafka_last_error()));
