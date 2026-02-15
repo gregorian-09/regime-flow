@@ -439,7 +439,7 @@ Methods:
 
 | Method | Description |
 | --- | --- |
-| `ExecutionPipeline(order_manager, market_data, order_books, event_queue)` | Construct pipeline. |
+| `ExecutionPipeline(market_data, order_books, event_queue)` | Construct pipeline. |
 | `set_execution_model(model)` | Set execution model. |
 | `set_commission_model(model)` | Set commission model. |
 | `set_transaction_cost_model(model)` | Set transaction cost model. |
@@ -449,8 +449,8 @@ Methods:
 
 Method Details:
 
-#### `ExecutionPipeline(order_manager, market_data, order_books, event_queue)`
-Parameters: `order_manager` order manager; `market_data` cache; `order_books` cache; `event_queue` event queue.
+#### `ExecutionPipeline(market_data, order_books, event_queue)`
+Parameters: `market_data` cache; `order_books` cache; `event_queue` event queue.
 Returns: Instance.
 Throws: None.
 

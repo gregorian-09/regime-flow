@@ -19,7 +19,7 @@ classDiagram
   }
 
   class ExecutionPipeline {
-    +submit(order)
+    +on_order_submitted(order)
   }
 
   class RiskManager {
