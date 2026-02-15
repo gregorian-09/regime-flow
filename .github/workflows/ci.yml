@@ -194,7 +194,10 @@ jobs:
         $packages = @(
           "eigen3:x64-windows",
           "boost:x64-windows",
-          "protobuf:x64-windows"
+          "protobuf:x64-windows",
+          "zeromq:x64-windows",
+          "hiredis:x64-windows",
+          "librdkafka:x64-windows"
         )
         for ($i = 1; $i -le 3; $i++) {
           try {
