@@ -177,7 +177,7 @@ jobs:
         cache-dependency-path: python/pyproject.toml
 
     - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@5c330b4
+      uses: ilammy/msvc-dev-cmd@5c330b455f564f5da8d76ddd421de0e33f763f03
 
     - name: Install dependencies
       run: |
