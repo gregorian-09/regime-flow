@@ -8,25 +8,26 @@ namespace regimeflow::test {
 
 TEST(PluginRegistry, LoadsDynamicPlugin) {
     namespace fs = std::filesystem;
+    const char* plugin_ext =
+#if defined(_WIN32)
+        ".dll";
+#elif defined(__APPLE__)
+        ".dylib";
+#else
+        ".so";
+#endif
+    const std::string plugin_name = std::string("libregimeflow_test_plugin") + plugin_ext;
     fs::path plugin_path;
-    std::error_code ec;
-    auto exe_path = fs::read_symlink("/proc/self/exe", ec);
-    if (!ec) {
-        auto candidate = exe_path.parent_path() / "plugins" / "libregimeflow_test_plugin.so";
-        if (fs::exists(candidate)) {
-            plugin_path = candidate;
-        }
-    }
 
     if (plugin_path.empty()) {
         fs::path base = fs::current_path();
         for (int i = 0; i < 6; ++i) {
-            auto candidate = base / "build" / "tests" / "plugins" / "libregimeflow_test_plugin.so";
+            auto candidate = base / "build" / "tests" / "plugins" / plugin_name;
             if (fs::exists(candidate)) {
                 plugin_path = candidate;
                 break;
             }
-            candidate = base / "tests" / "plugins" / "libregimeflow_test_plugin.so";
+            candidate = base / "tests" / "plugins" / plugin_name;
             if (fs::exists(candidate)) {
                 plugin_path = candidate;
                 break;
@@ -38,7 +39,7 @@ TEST(PluginRegistry, LoadsDynamicPlugin) {
         }
     }
 
-    ASSERT_FALSE(plugin_path.empty()) << "Missing plugin libregimeflow_test_plugin.so";
+    ASSERT_FALSE(plugin_path.empty()) << "Missing plugin " << plugin_name;
 
     auto& registry = regimeflow::plugins::PluginRegistry::instance();
     auto load_res = registry.load_dynamic_plugin(plugin_path.string());
