@@ -161,6 +161,8 @@ jobs:
 
   build-windows:
     runs-on: windows-2022
+    env:
+      VCPKG_ROOT: C:\vcpkg
     strategy:
       matrix:
         build_type: [Release, Debug]
@@ -188,7 +190,17 @@ jobs:
 
     - name: Install vcpkg packages
       run: |
-        vcpkg install eigen3:x64-windows boost:x64-windows protobuf:x64-windows
+        $ErrorActionPreference = "Stop"
+        $packages = "eigen3:x64-windows boost:x64-windows protobuf:x64-windows"
+        for ($i = 1; $i -le 3; $i++) {
+          try {
+            vcpkg install $packages --vcpkg-root C:\vcpkg
+            break
+          } catch {
+            if ($i -eq 3) { throw }
+            Start-Sleep -Seconds (30 * $i)
+          }
+        }
 
     - name: Configure CMake
       run: |
