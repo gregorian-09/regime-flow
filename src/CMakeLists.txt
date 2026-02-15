@@ -10,6 +10,9 @@ add_library(regimeflow_common
     common/yaml_config.cpp
     common/sha256.cpp
 )
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(regimeflow_common PRIVATE -Wno-free-nonheap-object)
+endif()
 
 set(IBAPI_ROOT "${CMAKE_SOURCE_DIR}/third_party/ibapi/IBJts/source/cppclient/client")
 if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
