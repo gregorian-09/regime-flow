@@ -14,8 +14,8 @@ Let:
 ```mermaid
 flowchart LR
   A[Full Data] --> B[Split Windows]
-  B --> C[Optimize In‑Sample]
-  C --> D[Test Out‑of‑Sample]
+  B --> C[Optimize In-Sample]
+  C --> D[Test Out-of-Sample]
   D --> E[Next Window]
 ```
 

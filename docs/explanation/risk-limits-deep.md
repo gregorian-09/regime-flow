@@ -17,7 +17,7 @@ Let:
 ```mermaid
 flowchart TB
   A[Order] --> B[RiskManager::validate]
-  B --> C{Regime‑specific limits?}
+  B --> C{Regime-specific limits?}
   C -- Yes --> D[Apply Regime Limits]
   C -- No --> E[Apply Global Limits]
   D --> F{Pass?}

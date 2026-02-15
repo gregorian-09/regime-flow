@@ -6,7 +6,7 @@ Risk limits can be global, per‑strategy, or regime‑specific.
 
 ```mermaid
 flowchart LR
-  A[Order] --> B[Pre‑Trade Checks]
+  A[Order] --> B[Pre-Trade Checks]
   B --> C{Pass?}
   C -- No --> D[Reject]
   C -- Yes --> E[Execution Pipeline]
@@ -28,4 +28,3 @@ flowchart LR
 ## Interpretation
 
 Interpretation: orders are checked against limits before execution and again at the portfolio level.
-
