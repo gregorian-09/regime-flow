@@ -5,9 +5,9 @@
 Live trading layer. Adapters for broker APIs, live event bus, audit logging, order manager, and broker-specific codecs. Designed for resiliency, schema validation, and reconnection strategies.
 
 Related diagrams:
-- [Live Trading][Live Trading](../how-to/live-trading.md)
-- [Live Resiliency][Live Resiliency](../explanation/live-resiliency.md)
-- [Broker Streaming][Broker Streaming](../explanation/broker-streaming.md)
+- [Live Trading](../how-to/live-trading.md)
+- [Live Resiliency](../explanation/live-resiliency.md)
+- [Broker Streaming](../explanation/broker-streaming.md)
 
 ## File Index
 
@@ -322,6 +322,6 @@ The `regimeflow_live` CLI prints connect/disconnect events and heartbeat status 
 
 ## See Also
 
-- [Live Trading][Live Trading](../how-to/live-trading.md)
-- [Live Resiliency][Live Resiliency](../explanation/live-resiliency.md)
-- [Broker Streaming][Broker Streaming](../explanation/broker-streaming.md)
+- [Live Trading](../how-to/live-trading.md)
+- [Live Resiliency](../explanation/live-resiliency.md)
+- [Broker Streaming](../explanation/broker-streaming.md)

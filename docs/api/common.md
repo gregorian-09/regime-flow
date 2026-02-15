@@ -704,5 +704,5 @@ if (!risk_limit) {
 
 ## See Also
 
-- [Configuration Reference][Config Reference](../reference/config-reference.md)
-- [Data Validation][Data Validation](../how-to/data-validation.md)
+- [Configuration Reference](../reference/config-reference.md)
+- [Data Validation](../how-to/data-validation.md)

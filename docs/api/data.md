@@ -5,7 +5,7 @@
 Data access and normalization layer. Provides tick/bar types, data sources (memory, mmap, database, live), iterators, validation utilities, and symbol metadata. The data package is responsible for delivering consistent market data into the event pipeline.
 
 Related diagrams:
-- [Data Flow][Data Flow](../explanation/data-flow.md)
+- [Data Flow](../explanation/data-flow.md)
 - [Structural Flow](../diagrams/structural-flow.md)
 
 ## File Index
@@ -1287,7 +1287,7 @@ while (it->has_next()) {
 
 ## See Also
 
-- [Data Flow][Data Flow](../explanation/data-flow.md)
-- [Data Validation][Data Validation](../how-to/data-validation.md)
-- [Mmap Storage][Mmap Storage](../how-to/mmap-storage.md)
-- [Symbol Metadata][Symbol Metadata](../how-to/symbol-metadata.md)
+- [Data Flow](../explanation/data-flow.md)
+- [Data Validation](../how-to/data-validation.md)
+- [Mmap Storage](../how-to/mmap-storage.md)
+- [Symbol Metadata](../how-to/symbol-metadata.md)

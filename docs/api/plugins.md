@@ -5,8 +5,8 @@
 Plugin subsystem for extending core functionality (strategies, risk policies, metrics, and hooks). Defines plugin interfaces, hook points, and the runtime registry.
 
 Related diagrams:
-- [Plugin API][Plugin API](../reference/plugin-api.md)
-- [Plugins][Plugins](../reference/plugins.md)
+- [Plugin API](../reference/plugin-api.md)
+- [Plugins](../reference/plugins.md)
 
 ## File Index
 
@@ -238,5 +238,5 @@ auto plugin = registry.create<regimeflow::plugins::Plugin>("strategy", "my_strat
 
 ## See Also
 
-- [Plugin API][Plugin API](../reference/plugin-api.md)
-- [Plugins][Plugins](../reference/plugins.md)
+- [Plugin API](../reference/plugin-api.md)
+- [Plugins](../reference/plugins.md)

@@ -5,7 +5,7 @@
 Walk-forward optimization and parameter search. Provides optimizers, sampling distributions, and trial bookkeeping.
 
 Related diagrams:
-- [Walk-Forward][Walk-Forward](../explanation/walk-forward.md)
+- [Walk-Forward](../explanation/walk-forward.md)
 
 ## File Index
 
@@ -130,4 +130,4 @@ regimeflow::walkforward::WalkForwardOptimizer optimizer(cfg);
 ```
 ## See Also
 
-- [Walk-Forward][Walk-Forward](../explanation/walk-forward.md)
+- [Walk-Forward](../explanation/walk-forward.md)
