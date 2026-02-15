@@ -15,8 +15,16 @@ markdown_extensions:
 - attr_list
 - def_list
 - footnotes
+- pymdownx.arithmatex:
+    generic: true
 - toc:
     permalink: true
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js
+  - assets/katex-init.js
+extra_css:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css
 plugins:
 - search
 - mermaid2:
