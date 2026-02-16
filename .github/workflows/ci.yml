@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build-linux:
     runs-on: ubuntu-24.04
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
     strategy:
       matrix:
         compiler: [gcc-13, clang-18]
@@ -56,6 +58,17 @@ jobs:
         key: ccache-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ github.sha }}
         restore-keys: |
           ccache-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-
+
+    - name: Cache vcpkg downloads and binaries
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+      with:
+        path: |
+          vcpkg/archives
+          vcpkg-bincache
+        key: vcpkg-linux-${{ hashFiles('vcpkg.json') }}-${{ github.sha }}
+        restore-keys: |
+          vcpkg-linux-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-linux-
 
     - name: Setup Python venv
       run: |
@@ -99,6 +112,8 @@ jobs:
 
   build-macos:
     runs-on: macos-14
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
     strategy:
       matrix:
         build_type: [Release, Debug]
@@ -135,6 +150,17 @@ jobs:
         key: ccache-macos-${{ matrix.build_type }}-${{ github.sha }}
         restore-keys: |
           ccache-macos-${{ matrix.build_type }}-
+
+    - name: Cache vcpkg downloads and binaries
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+      with:
+        path: |
+          vcpkg/archives
+          vcpkg-bincache
+        key: vcpkg-macos-${{ hashFiles('vcpkg.json') }}-${{ github.sha }}
+        restore-keys: |
+          vcpkg-macos-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-macos-
 
     - name: Configure CMake
       run: |
