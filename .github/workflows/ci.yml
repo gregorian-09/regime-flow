@@ -102,6 +102,8 @@ jobs:
       run: cmake --build build
 
     - name: Test
+      env:
+        REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
       run: cd build && ctest --output-on-failure
 
     - name: Upload artifacts
@@ -183,6 +185,8 @@ jobs:
       run: cmake --build build
 
     - name: Test
+      env:
+        REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
       run: cd build && ctest --output-on-failure
 
   build-windows:
@@ -253,22 +257,29 @@ jobs:
         $python = "${{ github.workspace }}\.venv\Scripts\python.exe"
         $numpyInc = & $python -c "import numpy; print(numpy.get_include())"
         $pybind11Dir = & $python -c "import pybind11; print(pybind11.get_cmake_dir())"
-        cmake -B build -G Ninja `
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
-          -DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv `
-          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 `
-          -DBUILD_TESTS=ON `
-          -DBUILD_PYTHON_BINDINGS=ON `
-          -DREGIMEFLOW_FETCH_DEPS=ON `
-          -DPython3_EXECUTABLE=$python `
-          -DPython3_NumPy_INCLUDE_DIRS=$numpyInc `
-          -Dpybind11_DIR=$pybind11Dir
+        $cmakeArgs = @(
+          "-B", "build",
+          "-G", "Ninja",
+          "-DCMAKE_BUILD_TYPE=${{ matrix.build_type }}",
+          "-DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv",
+          "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+          "-DBUILD_TESTS=ON",
+          "-DBUILD_PYTHON_BINDINGS=ON",
+          "-DREGIMEFLOW_FETCH_DEPS=ON",
+          "-DPython3_EXECUTABLE=$python",
+          "-DPython3_NumPy_INCLUDE_DIRS=$numpyInc",
+          "-Dpybind11_DIR=$pybind11Dir"
+        )
+        Write-Host "CMake args: $($cmakeArgs -join ' ')"
+        cmake @cmakeArgs
 
     - name: Build
       run: cmake --build build
 
     - name: Test
+      env:
+        REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
       run: cd build && ctest --output-on-failure
 
   python-tests:
@@ -312,6 +323,8 @@ jobs:
           --config-settings=cmake.define.pybind11_DIR="$PYBIND11_DIR"
 
     - name: Run Python tests
+      env:
+        REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
       run: |
         . .venv/bin/activate
         pytest python/tests -v
