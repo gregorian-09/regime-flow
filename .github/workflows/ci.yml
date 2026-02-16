@@ -6,6 +6,18 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      target:
+        description: "Jobs to run (all, windows, linux, macos, python)"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - windows
+          - linux
+          - macos
+          - python
 
 permissions:
   contents: read
@@ -16,6 +28,7 @@ concurrency:
 
 jobs:
   build-linux:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'linux' || inputs.target == 'python' }}
     runs-on: ubuntu-24.04
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
@@ -118,6 +131,7 @@ jobs:
         path: build/lib/*.so
 
   build-macos:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'macos' }}
     runs-on: macos-14
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
@@ -195,6 +209,7 @@ jobs:
       run: cd build && ctest --output-on-failure
 
   build-windows:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'windows' }}
     runs-on: windows-2022
     env:
       VCPKG_ROOT: C:\vcpkg
@@ -288,6 +303,7 @@ jobs:
       run: cd build && ctest --output-on-failure
 
   python-tests:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'python' }}
     needs: build-linux
     runs-on: ubuntu-24.04
     strategy:
