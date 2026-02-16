@@ -65,9 +65,9 @@ jobs:
         path: |
           vcpkg/archives
           vcpkg-bincache
-        key: vcpkg-linux-${{ hashFiles('vcpkg.json') }}-${{ github.sha }}
+        key: vcpkg-linux-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-${{ github.sha }}
         restore-keys: |
-          vcpkg-linux-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-linux-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-
           vcpkg-linux-
 
     - name: Setup Python venv
@@ -157,9 +157,9 @@ jobs:
         path: |
           vcpkg/archives
           vcpkg-bincache
-        key: vcpkg-macos-${{ hashFiles('vcpkg.json') }}-${{ github.sha }}
+        key: vcpkg-macos-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-${{ github.sha }}
         restore-keys: |
-          vcpkg-macos-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-macos-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-
           vcpkg-macos-
 
     - name: Configure CMake
@@ -221,9 +221,9 @@ jobs:
         path: |
           C:\vcpkg\archives
           ${{ github.workspace }}\vcpkg-bincache
-        key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}-${{ github.sha }}
+        key: vcpkg-windows-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-${{ github.sha }}
         restore-keys: |
-          vcpkg-windows-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-windows-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-
           vcpkg-windows-
 
     - name: Install vcpkg packages
