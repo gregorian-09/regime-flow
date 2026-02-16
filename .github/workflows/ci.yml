@@ -227,6 +227,12 @@ jobs:
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@5c330b455f564f5da8d76ddd421de0e33f763f03
 
+    - name: Update vcpkg
+      run: |
+        git -C $env:VCPKG_ROOT pull
+        & "$env:VCPKG_ROOT\\bootstrap-vcpkg.bat"
+        vcpkg upgrade --no-dry-run
+
     - name: Install dependencies
       run: |
         choco install cmake ninja
