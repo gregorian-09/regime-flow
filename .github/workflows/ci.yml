@@ -163,6 +163,7 @@ jobs:
     runs-on: windows-2022
     env:
       VCPKG_ROOT: C:\vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
     strategy:
       matrix:
         build_type: [Release, Debug]
@@ -187,6 +188,17 @@ jobs:
         python -m venv .venv
         .venv\\Scripts\\python -m pip install --upgrade pip
         .venv\\Scripts\\python -m pip install pybind11 numpy pandas pytest
+
+    - name: Cache vcpkg downloads and binaries
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+      with:
+        path: |
+          C:\vcpkg\archives
+          ${{ github.workspace }}\vcpkg-bincache
+        key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}-${{ github.sha }}
+        restore-keys: |
+          vcpkg-windows-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-windows-
 
     - name: Install vcpkg packages
       run: |
