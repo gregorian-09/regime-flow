@@ -306,8 +306,10 @@ jobs:
         PYTHON_BIN="$(pwd)/.venv/bin/python"
         NUMPY_INC="$($PYTHON_BIN -c 'import numpy; print(numpy.get_include())')"
         PYBIND11_DIR="$($PYTHON_BIN -c 'import pybind11; print(pybind11.get_cmake_dir())')"
-        export CMAKE_ARGS="-DPython3_EXECUTABLE=$PYTHON_BIN -DPython3_NumPy_INCLUDE_DIRS=$NUMPY_INC -Dpybind11_DIR=$PYBIND11_DIR"
-        pip install -e "./python[dev]"
+        pip install -e "./python[dev]" \
+          --config-settings=cmake.define.Python3_EXECUTABLE="$PYTHON_BIN" \
+          --config-settings=cmake.define.Python3_NumPy_INCLUDE_DIRS="$NUMPY_INC" \
+          --config-settings=cmake.define.pybind11_DIR="$PYBIND11_DIR"
 
     - name: Run Python tests
       run: |
