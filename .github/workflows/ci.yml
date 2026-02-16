@@ -229,6 +229,7 @@ jobs:
     - name: Install vcpkg packages
       run: |
         $ErrorActionPreference = "Stop"
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\vcpkg-bincache" | Out-Null
         $packages = @(
           "eigen3:x64-windows",
           "boost:x64-windows",
