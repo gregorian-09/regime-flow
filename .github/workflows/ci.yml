@@ -306,9 +306,7 @@ jobs:
         NUMPY_INC="$($PYTHON_BIN -c 'import numpy; print(numpy.get_include())')"
         PYBIND11_DIR="$($PYTHON_BIN -c 'import pybind11; print(pybind11.get_cmake_dir())')"
         pip install -e "./python[dev]" \
-          -C cmake.args="-DPython3_EXECUTABLE=$PYTHON_BIN" \
-          -C cmake.args="-DPython3_NumPy_INCLUDE_DIRS=$NUMPY_INC" \
-          -C cmake.args="-Dpybind11_DIR=$PYBIND11_DIR"
+          --config-settings=cmake.args="-DPython3_EXECUTABLE=$PYTHON_BIN;-DPython3_NumPy_INCLUDE_DIRS=$NUMPY_INC;-Dpybind11_DIR=$PYBIND11_DIR"
 
     - name: Run Python tests
       run: |
