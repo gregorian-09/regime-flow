@@ -81,6 +81,7 @@ std::optional<PluginInfo> PluginRegistry::get_info(const std::string& type,
 
 Result<void> PluginRegistry::load_dynamic_plugin(const std::string& path) {
 #if defined(_WIN32)
+    static_cast<void>(path);
     return Error(Error::Code::InvalidState, "Dynamic loading not supported on Windows build");
 #else
     void* handle = dlopen(path.c_str(), RTLD_NOW);
@@ -161,6 +162,7 @@ Result<void> PluginRegistry::load_dynamic_plugin(const std::string& path) {
 
 Result<void> PluginRegistry::unload_dynamic_plugin(const std::string& name) {
 #if defined(_WIN32)
+    static_cast<void>(name);
     return Error(Error::Code::InvalidState, "Dynamic loading not supported on Windows build");
 #else
     DynamicPlugin plugin;

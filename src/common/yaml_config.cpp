@@ -157,8 +157,8 @@ Config YamlConfigLoader::load_file(const std::string& path) {
         if (starts_with(trimmed, "- ")) {
             std::string value = trim(trimmed.substr(2));
             if (!key_stack.empty()) {
-                std::string path = key_stack.back();
-                auto existing = config.get_path(path);
+                std::string path_key = key_stack.back();
+                auto existing = config.get_path(path_key);
                 ConfigValue::Array array;
                 if (existing && existing->get_if<ConfigValue::Array>()) {
                     array = *existing->get_if<ConfigValue::Array>();
@@ -175,7 +175,7 @@ Config YamlConfigLoader::load_file(const std::string& path) {
                         obj[obj_key] = ConfigValue::Object{};
                     }
                     array.emplace_back(obj);
-                    current_array_path = path;
+                    current_array_path = path_key;
                     current_array_indent = indent;
                     current_array_item_object = true;
                     current_array_object_key.clear();
@@ -183,7 +183,7 @@ Config YamlConfigLoader::load_file(const std::string& path) {
                 } else {
                     array.emplace_back(parse_scalar(value));
                 }
-                config.set_path(path, ConfigValue(array));
+                config.set_path(path_key, ConfigValue(array));
             }
             continue;
         }
