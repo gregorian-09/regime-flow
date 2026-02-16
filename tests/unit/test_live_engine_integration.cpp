@@ -298,7 +298,13 @@ TEST(LiveEngineIntegration, ReconciliationRefreshesAccountAndPositions) {
     live::LiveTradingEngine engine(cfg, std::move(broker));
     auto start_res = engine.start();
     ASSERT_TRUE(start_res.is_ok());
-    std::this_thread::sleep_for(std::chrono::milliseconds(120));
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (broker_ptr->account_calls() >= 2 && broker_ptr->positions_calls() >= 2) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
     EXPECT_GE(broker_ptr->account_calls(), 2);
     EXPECT_GE(broker_ptr->positions_calls(), 2);
