@@ -5,6 +5,7 @@
     "eigen3",
     "boost",
     "protobuf",
+    "cppzmq",
     "zeromq",
     "hiredis",
     "librdkafka"
