@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -90,6 +91,33 @@ void serialize_json(const regimeflow::common::JsonValue& value, std::ostream& ou
     }
 }
 
+std::optional<std::string> get_env_value(const char* key) {
+#if defined(_WIN32)
+    char* value = nullptr;
+    size_t len = 0;
+    if (_dupenv_s(&value, &len, key) != 0 || !value) {
+        return std::nullopt;
+    }
+    std::string out(value);
+    free(value);
+    return out;
+#else
+    const char* value = std::getenv(key);
+    if (!value) {
+        return std::nullopt;
+    }
+    return std::string(value);
+#endif
+}
+
+void set_env_value(const std::string& key, const std::string& value) {
+#if defined(_WIN32)
+    _putenv_s(key.c_str(), value.c_str());
+#else
+    setenv(key.c_str(), value.c_str(), 0);
+#endif
+}
+
 void load_dotenv(const std::string& path) {
     std::ifstream in(path);
     if (!in.is_open()) {
@@ -114,19 +142,19 @@ void load_dotenv(const std::string& path) {
         if (key.empty()) {
             continue;
         }
-        if (std::getenv(key.c_str()) != nullptr) {
+        if (get_env_value(key.c_str()).has_value()) {
             continue;
         }
-        setenv(key.c_str(), value.c_str(), 0);
+        set_env_value(key, value);
     }
 }
 
 std::string getenv_or_default(const char* key, const std::string& fallback) {
-    const char* value = std::getenv(key);
+    auto value = get_env_value(key);
     if (!value) {
         return fallback;
     }
-    return std::string(value);
+    return *value;
 }
 
 std::vector<std::string> split_symbols(const std::string& value) {
