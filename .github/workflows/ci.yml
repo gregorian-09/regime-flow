@@ -235,18 +235,6 @@ jobs:
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@5c330b455f564f5da8d76ddd421de0e33f763f03
 
-    - name: Update vcpkg
-      if: ${{ github.event_name != 'workflow_dispatch' || inputs.vcpkg_upgrade == 'true' }}
-      run: |
-        $vcpkgExe = (Get-Command vcpkg).Source
-        if (-not $vcpkgExe) {
-          Write-Host "vcpkg not found in PATH; skipping upgrade"
-          exit 0
-        }
-        $vcpkgRoot = Split-Path $vcpkgExe -Parent
-        Write-Host "Using vcpkg at $vcpkgRoot"
-        vcpkg upgrade --no-dry-run
-
     - name: Install dependencies
       run: |
         choco install cmake ninja
