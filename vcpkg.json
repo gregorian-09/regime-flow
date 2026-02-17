@@ -1,0 +1,12 @@
+{
+  "name": "regimeflow",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "eigen3",
+    "boost",
+    "protobuf",
+    "zeromq",
+    "hiredis",
+    "librdkafka"
+  ]
+}

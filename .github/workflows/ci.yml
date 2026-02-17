@@ -260,6 +260,7 @@ jobs:
         path: |
           C:\vcpkg\archives
           ${{ github.workspace }}\vcpkg-bincache
+          ${{ github.workspace }}\vcpkg_installed
         key: vcpkg-windows-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-${{ github.sha }}
         restore-keys: |
           vcpkg-windows-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-
@@ -269,17 +270,9 @@ jobs:
       run: |
         $ErrorActionPreference = "Stop"
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\vcpkg-bincache" | Out-Null
-        $packages = @(
-          "eigen3:x64-windows",
-          "boost:x64-windows",
-          "protobuf:x64-windows",
-          "zeromq:x64-windows",
-          "hiredis:x64-windows",
-          "librdkafka:x64-windows"
-        )
         for ($i = 1; $i -le 3; $i++) {
           try {
-            vcpkg install $packages --vcpkg-root C:\vcpkg
+            vcpkg install --x-manifest-root "${{ github.workspace }}" --x-install-root "${{ github.workspace }}\\vcpkg_installed" --triplet x64-windows
             break
           } catch {
             if ($i -eq 3) { throw }
@@ -297,7 +290,7 @@ jobs:
           "-G", "Ninja",
           "-DCMAKE_BUILD_TYPE=${{ matrix.build_type }}",
           "-DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv",
-          "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg_installed\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
           "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
           "-DBUILD_TESTS=ON",
           "-DBUILD_PYTHON_BINDINGS=ON",
