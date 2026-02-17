@@ -237,7 +237,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        choco install cmake ninja
+        choco install cmake ninja --yes --no-progress
+        refreshenv
         python -m venv .venv
         .venv\\Scripts\\python -m pip install --upgrade pip
         .venv\\Scripts\\python -m pip install pybind11 numpy pandas pytest
@@ -260,7 +261,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\vcpkg-bincache" | Out-Null
         for ($i = 1; $i -le 3; $i++) {
           try {
-            vcpkg install --x-manifest-root "${{ github.workspace }}" --x-install-root "${{ github.workspace }}\\vcpkg_installed" --triplet x64-windows
+            vcpkg install --vcpkg-root C:\vcpkg --x-manifest-root "${{ github.workspace }}" --x-install-root "${{ github.workspace }}\\vcpkg_installed" --triplet x64-windows
             break
           } catch {
             if ($i -eq 3) { throw }
@@ -271,6 +272,7 @@ jobs:
     - name: Configure CMake
       run: |
         $python = "${{ github.workspace }}\.venv\Scripts\python.exe"
+        $ninja = (Get-Command ninja).Source
         $numpyInc = & $python -c "import numpy; print(numpy.get_include())"
         $pybind11Dir = & $python -c "import pybind11; print(pybind11.get_cmake_dir())"
         $cmakeArgs = @(
@@ -278,7 +280,8 @@ jobs:
           "-G", "Ninja",
           "-DCMAKE_BUILD_TYPE=${{ matrix.build_type }}",
           "-DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv",
-          "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg_installed\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+          "-DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+          "-DCMAKE_MAKE_PROGRAM=$ninja",
           "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
           "-DBUILD_TESTS=ON",
           "-DBUILD_PYTHON_BINDINGS=ON",
