@@ -7,12 +7,21 @@
 
 #include "regimeflow/live/broker_adapter.h"
 
+#if defined(_WIN32)
+#pragma warning(push)
+#pragma warning(disable:4005)
+#endif
+
 #include "DefaultEWrapper.h"
 #include "EClientSocket.h"
 #include "EReader.h"
 #include "EReaderOSSignal.h"
 #include "Order.h"
 #include "OrderState.h"
+
+#if defined(_WIN32)
+#pragma warning(pop)
+#endif
 
 #include <atomic>
 #include <mutex>

@@ -60,64 +60,64 @@ Args parse_args(int argc, char** argv) {
         }
         if (arg == "--source" && i + 1 < argc) {
             args.source = argv[++i];
-        } else if (auto v = arg_value(arg, "--source")) {
-            args.source = *v;
+        } else if (auto source_value = arg_value(arg, "--source")) {
+            args.source = *source_value;
         } else if (arg == "--mode" && i + 1 < argc) {
             args.mode = argv[++i];
-        } else if (auto v = arg_value(arg, "--mode")) {
-            args.mode = *v;
+        } else if (auto mode_value = arg_value(arg, "--mode")) {
+            args.mode = *mode_value;
         } else if (arg == "--data-dir" && i + 1 < argc) {
             args.data_dir = argv[++i];
-        } else if (auto v = arg_value(arg, "--data-dir")) {
-            args.data_dir = *v;
+        } else if (auto data_dir_value = arg_value(arg, "--data-dir")) {
+            args.data_dir = *data_dir_value;
         } else if (arg == "--output-dir" && i + 1 < argc) {
             args.output_dir = argv[++i];
-        } else if (auto v = arg_value(arg, "--output-dir")) {
-            args.output_dir = *v;
+        } else if (auto output_dir_value = arg_value(arg, "--output-dir")) {
+            args.output_dir = *output_dir_value;
         } else if (arg == "--connection-string" && i + 1 < argc) {
             args.connection_string = argv[++i];
-        } else if (auto v = arg_value(arg, "--connection-string")) {
-            args.connection_string = *v;
+        } else if (auto connection_value = arg_value(arg, "--connection-string")) {
+            args.connection_string = *connection_value;
         } else if (arg == "--bars-table" && i + 1 < argc) {
             args.bars_table = argv[++i];
-        } else if (auto v = arg_value(arg, "--bars-table")) {
-            args.bars_table = *v;
+        } else if (auto bars_table_value = arg_value(arg, "--bars-table")) {
+            args.bars_table = *bars_table_value;
         } else if (arg == "--ticks-table" && i + 1 < argc) {
             args.ticks_table = argv[++i];
-        } else if (auto v = arg_value(arg, "--ticks-table")) {
-            args.ticks_table = *v;
+        } else if (auto ticks_table_value = arg_value(arg, "--ticks-table")) {
+            args.ticks_table = *ticks_table_value;
         } else if (arg == "--actions-table" && i + 1 < argc) {
             args.actions_table = argv[++i];
-        } else if (auto v = arg_value(arg, "--actions-table")) {
-            args.actions_table = *v;
+        } else if (auto actions_table_value = arg_value(arg, "--actions-table")) {
+            args.actions_table = *actions_table_value;
         } else if (arg == "--symbols" && i + 1 < argc) {
             args.symbols = argv[++i];
-        } else if (auto v = arg_value(arg, "--symbols")) {
-            args.symbols = *v;
+        } else if (auto symbols_value = arg_value(arg, "--symbols")) {
+            args.symbols = *symbols_value;
         } else if (arg == "--bar-type" && i + 1 < argc) {
             args.bar_type = argv[++i];
-        } else if (auto v = arg_value(arg, "--bar-type")) {
-            args.bar_type = *v;
+        } else if (auto bar_type_value = arg_value(arg, "--bar-type")) {
+            args.bar_type = *bar_type_value;
         } else if (arg == "--start" && i + 1 < argc) {
             args.start = argv[++i];
-        } else if (auto v = arg_value(arg, "--start")) {
-            args.start = *v;
+        } else if (auto start_value = arg_value(arg, "--start")) {
+            args.start = *start_value;
         } else if (arg == "--end" && i + 1 < argc) {
             args.end = argv[++i];
-        } else if (auto v = arg_value(arg, "--end")) {
-            args.end = *v;
+        } else if (auto end_value = arg_value(arg, "--end")) {
+            args.end = *end_value;
         } else if (arg == "--volume-threshold" && i + 1 < argc) {
             args.volume_threshold = static_cast<uint64_t>(std::stoull(argv[++i]));
-        } else if (auto v = arg_value(arg, "--volume-threshold")) {
-            args.volume_threshold = static_cast<uint64_t>(std::stoull(*v));
+        } else if (auto volume_value = arg_value(arg, "--volume-threshold")) {
+            args.volume_threshold = static_cast<uint64_t>(std::stoull(*volume_value));
         } else if (arg == "--tick-threshold" && i + 1 < argc) {
             args.tick_threshold = static_cast<uint64_t>(std::stoull(argv[++i]));
-        } else if (auto v = arg_value(arg, "--tick-threshold")) {
-            args.tick_threshold = static_cast<uint64_t>(std::stoull(*v));
+        } else if (auto tick_value = arg_value(arg, "--tick-threshold")) {
+            args.tick_threshold = static_cast<uint64_t>(std::stoull(*tick_value));
         } else if (arg == "--dollar-threshold" && i + 1 < argc) {
             args.dollar_threshold = std::stod(argv[++i]);
-        } else if (auto v = arg_value(arg, "--dollar-threshold")) {
-            args.dollar_threshold = std::stod(*v);
+        } else if (auto dollar_value = arg_value(arg, "--dollar-threshold")) {
+            args.dollar_threshold = std::stod(*dollar_value);
         }
     }
     return args;

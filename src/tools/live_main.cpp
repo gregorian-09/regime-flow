@@ -57,6 +57,24 @@ std::string trim(std::string value) {
     return value;
 }
 
+std::optional<std::string> get_env_value(const char* key) {
+#if defined(_WIN32)
+    char* raw = nullptr;
+    size_t len = 0;
+    if (_dupenv_s(&raw, &len, key) != 0 || raw == nullptr) {
+        return std::nullopt;
+    }
+    std::string value(raw);
+    std::free(raw);
+    return value;
+#else
+    if (const char* val = std::getenv(key)) {
+        return std::string(val);
+    }
+    return std::nullopt;
+#endif
+}
+
 void load_dotenv(const std::string& path) {
     std::ifstream in(path);
     if (!in.is_open()) {
@@ -81,7 +99,7 @@ void load_dotenv(const std::string& path) {
         if (key.empty()) {
             continue;
         }
-        if (std::getenv(key.c_str()) != nullptr) {
+        if (get_env_value(key.c_str()).has_value()) {
             continue;
         }
 #if defined(_WIN32)
@@ -127,8 +145,8 @@ void set_broker_config_from_env(std::map<std::string, std::string>& broker_confi
     if (broker_config.find(key) != broker_config.end()) {
         return;
     }
-    if (const char* val = std::getenv(env_key)) {
-        broker_config[key] = val;
+    if (auto val = get_env_value(env_key)) {
+        broker_config[key] = *val;
     }
 }
 

@@ -246,7 +246,7 @@ void IBAdapter::poll() {}
 ::Order IBAdapter::build_order(const engine::Order& order, int64_t order_id) const {
     ::Order ib_order;
     ib_order.orderId = static_cast<OrderId>(order_id);
-    ib_order.totalQuantity = order.quantity;
+    ib_order.totalQuantity = DecimalFunctions::doubleToDecimal(order.quantity);
     ib_order.action = order.side == engine::OrderSide::Sell ? "SELL" : "BUY";
     switch (order.type) {
         case engine::OrderType::Limit:
@@ -364,7 +364,7 @@ void IBAdapter::openOrder(OrderId orderId, const ::Contract& contract, const ::O
     report.broker_order_id = std::to_string(orderId);
     report.symbol = contract.symbol;
     report.side = map_side(to_upper(order.action));
-    report.quantity = order.totalQuantity;
+    report.quantity = DecimalFunctions::decimalToDouble(order.totalQuantity);
     report.price = order.lmtPrice > 0 ? order.lmtPrice : order.auxPrice;
     report.status = map_status(orderState.status);
     report.timestamp = Timestamp::now();
@@ -385,7 +385,7 @@ void IBAdapter::execDetails(int, const ::Contract& contract, const ::Execution& 
     report.broker_exec_id = execution.execId;
     report.symbol = contract.symbol;
     report.side = map_side(to_upper(execution.side));
-    report.quantity = execution.shares;
+    report.quantity = DecimalFunctions::decimalToDouble(execution.shares);
     report.price = execution.price;
     report.status = LiveOrderStatus::Filled;
     report.timestamp = Timestamp::now();
