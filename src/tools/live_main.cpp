@@ -84,7 +84,11 @@ void load_dotenv(const std::string& path) {
         if (std::getenv(key.c_str()) != nullptr) {
             continue;
         }
+#if defined(_WIN32)
+        _putenv_s(key.c_str(), value.c_str());
+#else
         setenv(key.c_str(), value.c_str(), 0);
+#endif
     }
 }
 
