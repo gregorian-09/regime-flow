@@ -9,7 +9,7 @@
     "zeromq",
     "hiredis",
     "librdkafka",
-    "intel-rdfpmath"
+    "intelrdfpmathlib"
   ],
   "overrides": [
     {
