@@ -21,6 +21,8 @@ def _configure_windows_dll_search() -> None:
     test_root = os.environ.get("REGIMEFLOW_TEST_ROOT")
     if test_root:
         root = Path(test_root)
+        _add_dll_dir(root / "build" / "python")
+        _add_dll_dir(root / "build" / "lib")
         _add_dll_dir(root / "build" / "bin")
         _add_dll_dir(root / "build")
         _add_dll_dir(root / "vcpkg_installed" / "x64-windows" / "bin")

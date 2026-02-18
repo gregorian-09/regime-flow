@@ -5,12 +5,15 @@ TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
 if not TEST_ROOT:
     raise RuntimeError("REGIMEFLOW_TEST_ROOT not set")
 
-# Ensure built module is visible
+# Ensure package + built module are visible
 build_lib = os.path.join(TEST_ROOT, "build", "lib")
-if build_lib not in sys.path:
-    sys.path.insert(0, build_lib)
+build_python = os.path.join(TEST_ROOT, "build", "python")
+source_python = os.path.join(TEST_ROOT, "python")
+for path in (build_lib, build_python, source_python):
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
-import _core as rf
+import regimeflow as rf
 
 
 def main():
