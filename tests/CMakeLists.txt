@@ -136,26 +136,26 @@ endif()
 if(PYTHON_BINDINGS_SMOKE_PYTHON)
     add_test(NAME python_numpy_check
         COMMAND ${CMAKE_COMMAND} -E env
-            PYTHONPATH=${CMAKE_BINARY_DIR}/lib:${CMAKE_BINARY_DIR}/python:${CMAKE_SOURCE_DIR}/python
+            PYTHONPATH=${CMAKE_BINARY_DIR}/lib;${CMAKE_BINARY_DIR}/python;${CMAKE_SOURCE_DIR}/python
             ${PYTHON_BINDINGS_SMOKE_PYTHON} ${CMAKE_SOURCE_DIR}/tests/python/check_numpy.py
     )
     add_test(NAME python_bindings_smoke
         COMMAND ${CMAKE_COMMAND} -E env
             REGIMEFLOW_TEST_ROOT=${CMAKE_SOURCE_DIR}
-            PYTHONPATH=${CMAKE_BINARY_DIR}/lib:${CMAKE_BINARY_DIR}/python:${CMAKE_SOURCE_DIR}/python
+            PYTHONPATH=${CMAKE_BINARY_DIR}/lib;${CMAKE_BINARY_DIR}/python;${CMAKE_SOURCE_DIR}/python
             ${PYTHON_BINDINGS_SMOKE_PYTHON} ${CMAKE_SOURCE_DIR}/tests/python/test_bindings_smoke.py
     )
     set_tests_properties(python_bindings_smoke PROPERTIES DEPENDS python_numpy_check)
 
     add_test(NAME python_pytest_check
         COMMAND ${CMAKE_COMMAND} -E env
-            PYTHONPATH=${CMAKE_BINARY_DIR}/lib:${CMAKE_BINARY_DIR}/python:${CMAKE_SOURCE_DIR}/python
+            PYTHONPATH=${CMAKE_BINARY_DIR}/lib;${CMAKE_BINARY_DIR}/python;${CMAKE_SOURCE_DIR}/python
             ${PYTHON_BINDINGS_SMOKE_PYTHON} ${CMAKE_SOURCE_DIR}/tests/python/check_pytest.py
     )
     add_test(NAME python_native_tests
         COMMAND ${CMAKE_COMMAND} -E env
             REGIMEFLOW_TEST_ROOT=${CMAKE_SOURCE_DIR}
-            PYTHONPATH=${CMAKE_BINARY_DIR}/lib:${CMAKE_BINARY_DIR}/python:${CMAKE_SOURCE_DIR}/python
+            PYTHONPATH=${CMAKE_BINARY_DIR}/lib;${CMAKE_BINARY_DIR}/python;${CMAKE_SOURCE_DIR}/python
             ${PYTHON_BINDINGS_SMOKE_PYTHON} -m pytest -q -m python_native ${CMAKE_SOURCE_DIR}/python/tests
     )
     set_tests_properties(python_native_tests PROPERTIES DEPENDS python_pytest_check)
