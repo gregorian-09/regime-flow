@@ -142,16 +142,29 @@ if(PYTHON_BINDINGS_SMOKE_PYTHON)
     set(PYTHONPATH_VALUE "${CMAKE_BINARY_DIR}/lib${PYTHONPATH_SEP}${CMAKE_BINARY_DIR}/python${PYTHONPATH_SEP}${CMAKE_SOURCE_DIR}/python")
     if(WIN32)
         string(REPLACE ";" "\\;" PYTHONPATH_VALUE "${PYTHONPATH_VALUE}")
+        if(DEFINED VCPKG_TARGET_TRIPLET)
+            set(VCPKG_TRIPLET "${VCPKG_TARGET_TRIPLET}")
+        else()
+            set(VCPKG_TRIPLET "x64-windows")
+        endif()
+        set(VCPKG_BIN_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TRIPLET}/bin")
+        set(VCPKG_DEBUG_BIN_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TRIPLET}/debug/bin")
+        set(TEST_PATH_VALUE "${CMAKE_BINARY_DIR}/bin;${CMAKE_BINARY_DIR};${VCPKG_BIN_DIR};${VCPKG_DEBUG_BIN_DIR}")
+        string(REPLACE ";" "\\;" TEST_PATH_VALUE "${TEST_PATH_VALUE}")
+    else()
+        set(TEST_PATH_VALUE "${CMAKE_BINARY_DIR}/bin:${CMAKE_BINARY_DIR}")
     endif()
     add_test(NAME python_numpy_check
         COMMAND ${CMAKE_COMMAND} -E env
             PYTHONPATH=${PYTHONPATH_VALUE}
+            PATH=${TEST_PATH_VALUE}
             ${PYTHON_BINDINGS_SMOKE_PYTHON} ${CMAKE_SOURCE_DIR}/tests/python/check_numpy.py
     )
     add_test(NAME python_bindings_smoke
         COMMAND ${CMAKE_COMMAND} -E env
             REGIMEFLOW_TEST_ROOT=${CMAKE_SOURCE_DIR}
             PYTHONPATH=${PYTHONPATH_VALUE}
+            PATH=${TEST_PATH_VALUE}
             ${PYTHON_BINDINGS_SMOKE_PYTHON} ${CMAKE_SOURCE_DIR}/tests/python/test_bindings_smoke.py
     )
     set_tests_properties(python_bindings_smoke PROPERTIES DEPENDS python_numpy_check)
@@ -159,12 +172,14 @@ if(PYTHON_BINDINGS_SMOKE_PYTHON)
     add_test(NAME python_pytest_check
         COMMAND ${CMAKE_COMMAND} -E env
             PYTHONPATH=${PYTHONPATH_VALUE}
+            PATH=${TEST_PATH_VALUE}
             ${PYTHON_BINDINGS_SMOKE_PYTHON} ${CMAKE_SOURCE_DIR}/tests/python/check_pytest.py
     )
     add_test(NAME python_native_tests
         COMMAND ${CMAKE_COMMAND} -E env
             REGIMEFLOW_TEST_ROOT=${CMAKE_SOURCE_DIR}
             PYTHONPATH=${PYTHONPATH_VALUE}
+            PATH=${TEST_PATH_VALUE}
             ${PYTHON_BINDINGS_SMOKE_PYTHON} -m pytest -q -m python_native ${CMAKE_SOURCE_DIR}/python/tests
     )
     set_tests_properties(python_native_tests PROPERTIES DEPENDS python_pytest_check)
