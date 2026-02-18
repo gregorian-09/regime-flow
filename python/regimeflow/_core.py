@@ -3,6 +3,8 @@ import os
 import sys
 from pathlib import Path
 
+_DLL_DIR_HANDLES = []
+
 
 def _add_dll_dir(path: Path) -> None:
     if not path:
@@ -10,7 +12,7 @@ def _add_dll_dir(path: Path) -> None:
     if not path.exists() or not path.is_dir():
         return
     if hasattr(os, "add_dll_directory"):
-        os.add_dll_directory(str(path))
+        _DLL_DIR_HANDLES.append(os.add_dll_directory(str(path)))
 
 
 def _configure_windows_dll_search() -> None:
