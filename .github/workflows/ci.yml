@@ -285,6 +285,7 @@ jobs:
           "-DREGIMEFLOW_FETCH_DEPS=ON",
           "-DCMAKE_MAKE_PROGRAM=$ninja",
           "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+          "-DENABLE_POSTGRES=OFF",
           "-DBUILD_TESTS=ON",
           "-DBUILD_PYTHON_BINDINGS=ON",
           "-DPython3_EXECUTABLE=$python",
