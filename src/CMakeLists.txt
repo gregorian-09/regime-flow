@@ -51,12 +51,26 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
             bidgcc101
             bidgcc110
             bidgcc111
-            HINTS /opt/homebrew/lib /usr/local/lib
+            bidvc
+            bidvc141
+            bidvc142
+            bidvc143
+            bidvc144
+            HINTS /opt/homebrew/lib /usr/local/lib ${_vcpkg_lib_hints}
         )
         if(IBAPI_BID_LIBRARY)
             target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY})
-        elseif(APPLE)
-            set(IBAPI_NEEDS_BID_COMPAT ON)
+        else()
+            if(WIN32)
+                find_library(IBAPI_BID_LIBRARY_WIN NAMES bid
+                    HINTS ${_vcpkg_lib_hints}
+                )
+                if(IBAPI_BID_LIBRARY_WIN)
+                    target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY_WIN})
+                endif()
+            elseif(APPLE)
+                set(IBAPI_NEEDS_BID_COMPAT ON)
+            endif()
         endif()
     endif()
     if(IBAPI_NEEDS_BID_COMPAT)

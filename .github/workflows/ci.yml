@@ -269,6 +269,11 @@ jobs:
           }
         }
 
+    - name: Install BID decimal library
+      run: |
+        $ErrorActionPreference = "Stop"
+        vcpkg install --vcpkg-root C:\vcpkg --triplet x64-windows intel-rdfpmath
+
     - name: Configure CMake
       run: |
         $python = "${{ github.workspace }}\.venv\Scripts\python.exe"
@@ -282,11 +287,11 @@ jobs:
           "-DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv",
           "-DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
           "-DVCPKG_INSTALLED_DIR=${{ github.workspace }}\\vcpkg_installed",
+          "-DREGIMEFLOW_FETCH_DEPS=ON",
           "-DCMAKE_MAKE_PROGRAM=$ninja",
           "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
           "-DBUILD_TESTS=ON",
           "-DBUILD_PYTHON_BINDINGS=ON",
-          "-DREGIMEFLOW_FETCH_DEPS=ON",
           "-DPython3_EXECUTABLE=$python",
           "-DPython3_NumPy_INCLUDE_DIRS=$numpyInc",
           "-Dpybind11_DIR=$pybind11Dir"
