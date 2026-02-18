@@ -13,6 +13,16 @@
 
 namespace regimeflow::test {
 
+namespace {
+void maybe_skip_live_integration() {
+#if defined(_WIN32)
+    if (std::getenv("REGIMEFLOW_RUN_LIVE_INTEGRATION") == nullptr) {
+        GTEST_SKIP() << "Live engine integration tests are disabled on Windows CI by default";
+    }
+#endif
+}
+}  // namespace
+
 class MockBrokerAdapter final : public live::BrokerAdapter {
 public:
     Result<void> connect() override {
@@ -186,6 +196,7 @@ static data::Bar make_bar(SymbolId symbol, double price) {
 }
 
 TEST(LiveEngineIntegration, FeedToStrategyToOrderToAudit) {
+    maybe_skip_live_integration();
     strategy::StrategyFactory::instance().register_creator(
         "buy_once", [](const Config&) { return std::make_unique<BuyOnceStrategy>(); });
     {
@@ -235,6 +246,7 @@ TEST(LiveEngineIntegration, FeedToStrategyToOrderToAudit) {
 }
 
 TEST(LiveEngineIntegration, RateLimitRejectsSecondOrder) {
+    maybe_skip_live_integration();
     strategy::StrategyFactory::instance().register_creator(
         "two_order", [](const Config&) { return std::make_unique<TwoOrderStrategy>(); });
     {
@@ -279,6 +291,7 @@ TEST(LiveEngineIntegration, RateLimitRejectsSecondOrder) {
 }
 
 TEST(LiveEngineIntegration, ReconciliationRefreshesAccountAndPositions) {
+    maybe_skip_live_integration();
     strategy::StrategyFactory::instance().register_creator(
         "noop", [](const Config&) { return std::make_unique<NoopStrategy>(); });
     auto broker = std::make_unique<MockBrokerAdapter>();
@@ -313,6 +326,7 @@ TEST(LiveEngineIntegration, ReconciliationRefreshesAccountAndPositions) {
 }
 
 TEST(LiveEngineIntegration, DailyLossLimitDisablesTrading) {
+    maybe_skip_live_integration();
     strategy::StrategyFactory::instance().register_creator(
         "noop_loss", [](const Config&) { return std::make_unique<NoopStrategy>(); });
     auto broker = std::make_unique<MockBrokerAdapter>();
@@ -350,6 +364,7 @@ TEST(LiveEngineIntegration, DailyLossLimitDisablesTrading) {
 }
 
 TEST(LiveEngineIntegration, PositionRiskLimitDisablesTrading) {
+    maybe_skip_live_integration();
     strategy::StrategyFactory::instance().register_creator(
         "noop_risk", [](const Config&) { return std::make_unique<NoopStrategy>(); });
     auto broker = std::make_unique<MockBrokerAdapter>();
@@ -386,6 +401,7 @@ TEST(LiveEngineIntegration, PositionRiskLimitDisablesTrading) {
 }
 
 TEST(LiveEngineIntegration, DashboardCallbackReceivesSnapshot) {
+    maybe_skip_live_integration();
     strategy::StrategyFactory::instance().register_creator(
         "noop_dashboard", [](const Config&) { return std::make_unique<NoopStrategy>(); });
     auto broker = std::make_unique<MockBrokerAdapter>();
