@@ -20,6 +20,15 @@ def _configure_windows_dll_search() -> None:
         return
     here = Path(__file__).resolve().parent
     _add_dll_dir(here)
+    for entry in sys.path:
+        try:
+            candidate = Path(entry)
+        except TypeError:
+            continue
+        if not candidate.exists():
+            continue
+        if any(candidate.glob("_core*.pyd")):
+            _add_dll_dir(candidate)
     test_root = os.environ.get("REGIMEFLOW_TEST_ROOT")
     if test_root:
         root = Path(test_root)
