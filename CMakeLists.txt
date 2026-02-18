@@ -40,6 +40,10 @@ add_compile_options(
     $<$<CXX_COMPILER_ID:MSVC>:/W4>
 )
 
+if(WIN32)
+    add_compile_definitions(_WIN32_WINNT=0x0601 _WIN32_WINDOWS=0x0601)
+endif()
+
 if(ENABLE_WERROR)
     add_compile_options(
         $<$<CXX_COMPILER_ID:GNU,Clang>:-Werror>

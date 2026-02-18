@@ -4,6 +4,13 @@
 #include <pybind11/functional.h>
 #include <pybind11/numpy.h>
 
+#include <cstddef>
+
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include "regimeflow/common/config.h"
 #include "regimeflow/common/time.h"
 #include "regimeflow/common/yaml_config.h"
