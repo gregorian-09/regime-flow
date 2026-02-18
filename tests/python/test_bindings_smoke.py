@@ -5,6 +5,19 @@ TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
 if not TEST_ROOT:
     raise RuntimeError("REGIMEFLOW_TEST_ROOT not set")
 
+# Ensure Windows DLL search paths are configured before importing extension.
+if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+    candidates = [
+        os.path.join(TEST_ROOT, "build", "python"),
+        os.path.join(TEST_ROOT, "build", "lib"),
+        os.path.join(TEST_ROOT, "build", "bin"),
+        os.path.join(TEST_ROOT, "vcpkg_installed", "x64-windows", "bin"),
+        os.path.join(TEST_ROOT, "vcpkg_installed", "x64-windows", "debug", "bin"),
+    ]
+    for entry in candidates:
+        if os.path.isdir(entry):
+            os.add_dll_directory(entry)
+
 # Ensure package + built module are visible
 build_lib = os.path.join(TEST_ROOT, "build", "lib")
 build_python = os.path.join(TEST_ROOT, "build", "python")

@@ -12,6 +12,26 @@ endif()
 
 pybind11_add_module(_core bindings.cpp)
 
+set_target_properties(_core PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/python
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/python
+)
+
+if(WIN32)
+    if(DEFINED VCPKG_TARGET_TRIPLET)
+        set(_REGIMEFLOW_VCPKG_TRIPLET "${VCPKG_TARGET_TRIPLET}")
+    else()
+        set(_REGIMEFLOW_VCPKG_TRIPLET "x64-windows")
+    endif()
+    set(_REGIMEFLOW_VCPKG_BIN "${CMAKE_SOURCE_DIR}/vcpkg_installed/${_REGIMEFLOW_VCPKG_TRIPLET}/bin")
+    set(_REGIMEFLOW_VCPKG_DEBUG_BIN "${CMAKE_SOURCE_DIR}/vcpkg_installed/${_REGIMEFLOW_VCPKG_TRIPLET}/debug/bin")
+    add_custom_command(TARGET _core POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/python
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${_REGIMEFLOW_VCPKG_BIN} ${CMAKE_BINARY_DIR}/python
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${_REGIMEFLOW_VCPKG_DEBUG_BIN} ${CMAKE_BINARY_DIR}/python
+    )
+endif()
+
 target_link_libraries(_core
     PRIVATE
         regimeflow_engine
