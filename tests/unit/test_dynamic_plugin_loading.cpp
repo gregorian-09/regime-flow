@@ -7,9 +7,6 @@
 namespace regimeflow::test {
 
 TEST(PluginRegistry, LoadsDynamicPlugin) {
-#if defined(_WIN32)
-    GTEST_SKIP() << "Dynamic loading not supported on Windows build";
-#endif
     namespace fs = std::filesystem;
     const char* plugin_ext =
 #if defined(_WIN32)

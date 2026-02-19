@@ -1,6 +1,8 @@
 #include "regimeflow/plugins/registry.h"
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <windows.h>
+#else
 #include <dlfcn.h>
 #endif
 #include <filesystem>
@@ -81,8 +83,79 @@ std::optional<PluginInfo> PluginRegistry::get_info(const std::string& type,
 
 Result<void> PluginRegistry::load_dynamic_plugin(const std::string& path) {
 #if defined(_WIN32)
-    static_cast<void>(path);
-    return Error(Error::Code::InvalidState, "Dynamic loading not supported on Windows build");
+    HMODULE handle = LoadLibraryA(path.c_str());
+    if (!handle) {
+        return Error(Error::Code::IoError, "Failed to load plugin library");
+    }
+
+    using CreateFn = Plugin* (*)();
+    using DestroyFn = void (*)(Plugin*);
+    using StrFn = const char* (*)();
+    auto create_fn = reinterpret_cast<CreateFn>(GetProcAddress(handle, "create_plugin"));
+    auto destroy_fn = reinterpret_cast<DestroyFn>(GetProcAddress(handle, "destroy_plugin"));
+    if (!create_fn || !destroy_fn) {
+        FreeLibrary(handle);
+        return Error(Error::Code::InvalidState, "Plugin missing create/destroy entry points");
+    }
+
+    auto type_fn = reinterpret_cast<StrFn>(GetProcAddress(handle, "plugin_type"));
+    auto name_fn = reinterpret_cast<StrFn>(GetProcAddress(handle, "plugin_name"));
+    auto abi_fn = reinterpret_cast<StrFn>(GetProcAddress(handle, "regimeflow_abi_version"));
+    if (abi_fn) {
+        const char* version = abi_fn();
+        if (!version || std::string(version) != REGIMEFLOW_ABI_VERSION) {
+            FreeLibrary(handle);
+            return Error(Error::Code::InvalidState, "Plugin ABI version mismatch");
+        }
+    }
+
+    PluginPtr probe(create_fn(), [destroy_fn](Plugin* p) { destroy_fn(p); });
+    if (!probe) {
+        FreeLibrary(handle);
+        return Error(Error::Code::InvalidState, "Plugin creation failed");
+    }
+
+    auto info = probe->info();
+    std::string plugin_name = info.name;
+    if (name_fn) {
+        if (const char* name = name_fn()) {
+            plugin_name = name;
+        }
+    }
+    std::string plugin_type = "dynamic";
+    if (type_fn) {
+        if (const char* type = type_fn()) {
+            plugin_type = type;
+        }
+    }
+    if (plugin_name.empty()) {
+        probe.reset();
+        FreeLibrary(handle);
+        return Error(Error::Code::InvalidArgument, "Plugin has no name");
+    }
+
+    DynamicPlugin record;
+    record.handle = handle;
+    record.create = [create_fn]() { return create_fn(); };
+    record.destroy = [destroy_fn](Plugin* p) { destroy_fn(p); };
+    record.type = plugin_type;
+    record.name = plugin_name;
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (dynamic_plugins_.find(plugin_name) != dynamic_plugins_.end()) {
+            destroy_fn(probe.release());
+            FreeLibrary(handle);
+            return Error(Error::Code::AlreadyExists, "Plugin already loaded");
+        }
+        dynamic_plugins_[plugin_name] = std::move(record);
+        factories_[plugin_type][plugin_name] = [create_fn, destroy_fn]() {
+            return PluginPtr(create_fn(), [destroy_fn](Plugin* p) { destroy_fn(p); });
+        };
+    }
+
+    probe.reset();
+    return Ok();
 #else
     void* handle = dlopen(path.c_str(), RTLD_NOW);
     if (!handle) {
@@ -162,8 +235,27 @@ Result<void> PluginRegistry::load_dynamic_plugin(const std::string& path) {
 
 Result<void> PluginRegistry::unload_dynamic_plugin(const std::string& name) {
 #if defined(_WIN32)
-    static_cast<void>(name);
-    return Error(Error::Code::InvalidState, "Dynamic loading not supported on Windows build");
+    DynamicPlugin plugin;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = dynamic_plugins_.find(name);
+        if (it == dynamic_plugins_.end()) {
+            return Error(Error::Code::NotFound, "Plugin not loaded");
+        }
+        plugin = it->second;
+        dynamic_plugins_.erase(it);
+        auto type_it = factories_.find(plugin.type);
+        if (type_it != factories_.end()) {
+            type_it->second.erase(name);
+            if (type_it->second.empty()) {
+                factories_.erase(type_it);
+            }
+        }
+    }
+    if (plugin.handle) {
+        FreeLibrary(reinterpret_cast<HMODULE>(plugin.handle));
+    }
+    return Ok();
 #else
     DynamicPlugin plugin;
     {

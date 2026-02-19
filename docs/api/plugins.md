@@ -29,6 +29,7 @@ Related diagrams:
 
 - Plugins are discovered through the registry and executed through hook points.
 - Keep plugin interfaces dependency-light to avoid leaking internal types.
+- Dynamic loading works on Linux, macOS, and Windows (`.so`, `.dylib`, `.dll`).
 
 ## Type Details
 

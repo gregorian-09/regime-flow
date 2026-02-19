@@ -2,6 +2,13 @@
 
 This section explains how plugins are discovered, loaded, and managed.
 
+## Platform Support
+
+Dynamic loading is supported on Linux, macOS, and Windows. Use `.so` on Linux,
+`.dylib` on macOS, and `.dll` on Windows. Windows plugins must export
+`create_plugin` and `destroy_plugin`, and can optionally export `plugin_name`,
+`plugin_type`, and `regimeflow_abi_version`.
+
 ## Lifecycle Flow
 
 ```mermaid
@@ -29,4 +36,3 @@ flowchart LR
 ## Interpretation
 
 Interpretation: plugins are loaded and transitioned through states; errors isolate faulty plugins.
-
