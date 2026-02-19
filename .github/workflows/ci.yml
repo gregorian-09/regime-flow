@@ -385,7 +385,7 @@ jobs:
           $filterArg = "--gtest_filter=${{ inputs.single_test }}"
           Write-Host "Using gtest filter: $filterArg"
         }
-        & $procdump -accepteula -e -ma -x $dumpRoot -- build\bin\regimeflow_tests.exe $filterArg --gtest_break_on_failure --gtest_catch_exceptions=0 --gtest_color=no --gtest_print_time=1
+        & $procdump -accepteula -e -ma -x $dumpRoot build\bin\regimeflow_tests.exe $filterArg --gtest_break_on_failure --gtest_catch_exceptions=0 --gtest_color=no --gtest_print_time=1
         Write-Host "Exit code: $LASTEXITCODE"
 
     - name: Test
