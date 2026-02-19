@@ -355,7 +355,7 @@ jobs:
         name: windows-build-${{ matrix.build_type }}
 
     - name: Debug single test (Windows)
-      if: ${{ inputs.single_test != '' }}
+      if: ${{ inputs.single_test != '' && inputs.collect_dump != 'true' }}
       run: |
         $env:REGIMEFLOW_TEST_ROOT = "${{ github.workspace }}"
         $env:PATH = "${{ github.workspace }}\\build\\bin;${{ github.workspace }}\\build;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\bin;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\debug\\bin;$env:PATH"
@@ -367,7 +367,7 @@ jobs:
         Get-Content $outFile -Tail 200
 
     - name: Windows tests with crash dump
-      if: ${{ inputs.single_test == '' && inputs.collect_dump == 'true' }}
+      if: ${{ inputs.collect_dump == 'true' }}
       run: |
         $ErrorActionPreference = "Stop"
         $env:REGIMEFLOW_TEST_ROOT = "${{ github.workspace }}"
@@ -380,7 +380,12 @@ jobs:
         Expand-Archive -Path $zip -DestinationPath $procDir -Force
         $procdump = Join-Path $procDir "procdump.exe"
         Write-Host "Running regimeflow_tests with procdump..."
-        & $procdump -accepteula -e -ma -x $dumpRoot -- build\bin\regimeflow_tests.exe --gtest_break_on_failure --gtest_catch_exceptions=0 --gtest_color=no --gtest_print_time=1
+        $filterArg = ""
+        if ("${{ inputs.single_test }}" -ne "") {
+          $filterArg = "--gtest_filter=${{ inputs.single_test }}"
+          Write-Host "Using gtest filter: $filterArg"
+        }
+        & $procdump -accepteula -e -ma -x $dumpRoot -- build\bin\regimeflow_tests.exe $filterArg --gtest_break_on_failure --gtest_catch_exceptions=0 --gtest_color=no --gtest_print_time=1
         Write-Host "Exit code: $LASTEXITCODE"
 
     - name: Test
