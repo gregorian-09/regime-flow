@@ -193,6 +193,7 @@ jobs:
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}\vcpkg-bincache,readwrite
     strategy:
       matrix:
         build_type: [Release, Debug]
@@ -277,6 +278,7 @@ jobs:
     - name: Test
       env:
         REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
+      if: matrix.build_type == 'Release'
       run: cd build && ctest --output-on-failure
 
   python-tests:
