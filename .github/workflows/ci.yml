@@ -356,7 +356,7 @@ jobs:
         python -m pip install cibuildwheel
         cibuildwheel --platform linux python
       env:
-        CMAKE_ARGS: -DREGIMEFLOW_FETCH_DEPS=ON
+        CIBW_ENVIRONMENT_LINUX: CMAKE_ARGS=-DREGIMEFLOW_FETCH_DEPS=ON SKBUILD_CMAKE_ARGS=-DREGIMEFLOW_FETCH_DEPS=ON
         CIBW_BEFORE_ALL_LINUX: >
           python -m pip install cmake &&
           if command -v yum >/dev/null 2>&1; then
