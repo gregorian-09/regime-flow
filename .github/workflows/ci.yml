@@ -236,12 +236,13 @@ jobs:
       run: cd build && ctest --output-on-failure
 
   build-windows:
-    if: ${{ inputs.target == 'all' || inputs.target == 'windows' }}
+    if: ${{ (inputs.target == 'all' || inputs.target == 'windows') && (inputs.reuse_build != 'true' || matrix.build_type == 'Debug') && (inputs.collect_dump != 'true' || matrix.build_type == 'Debug') && (inputs.single_test == '' || matrix.build_type == 'Debug') }}
     runs-on: windows-2022
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
     strategy:
+      fail-fast: false
       matrix:
         build_type: [Release, Debug]
     steps:
