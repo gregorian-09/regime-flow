@@ -16,13 +16,23 @@ TEST(PluginRegistry, LoadsDynamicPlugin) {
 #else
         ".so";
 #endif
-    const std::string plugin_name = std::string("libregimeflow_test_plugin") + plugin_ext;
+    const std::string plugin_name =
+#if defined(_WIN32)
+        std::string("regimeflow_test_plugin") + plugin_ext;
+#else
+        std::string("libregimeflow_test_plugin") + plugin_ext;
+#endif
     fs::path plugin_path;
 
     if (plugin_path.empty()) {
         fs::path base = fs::current_path();
         for (int i = 0; i < 6; ++i) {
             auto candidate = base / "build" / "tests" / "plugins" / plugin_name;
+            if (fs::exists(candidate)) {
+                plugin_path = candidate;
+                break;
+            }
+            candidate = base / "build" / "bin" / plugin_name;
             if (fs::exists(candidate)) {
                 plugin_path = candidate;
                 break;
