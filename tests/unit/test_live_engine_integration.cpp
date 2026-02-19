@@ -218,8 +218,8 @@ TEST(LiveEngineIntegration, FeedToStrategyToOrderToAudit) {
     cfg.max_order_value = 100000;
     cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_audit_test").string();
 
-    live::LiveTradingEngine engine(cfg, std::move(broker));
-    auto start_res = engine.start();
+    auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+    auto start_res = engine->start();
     ASSERT_TRUE(start_res.is_ok());
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
@@ -234,7 +234,7 @@ TEST(LiveEngineIntegration, FeedToStrategyToOrderToAudit) {
     }
     EXPECT_GE(broker_ptr->submit_count(), 1);
 
-    engine.stop();
+    engine->stop();
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
     std::filesystem::path log_path = std::filesystem::path(cfg.log_dir) / "audit.log";
@@ -268,10 +268,10 @@ TEST(LiveEngineIntegration, RateLimitRejectsSecondOrder) {
     cfg.max_order_value = 100000;
     cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_rate_limit_test").string();
 
-    live::LiveTradingEngine engine(cfg, std::move(broker));
+    auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
     std::atomic<int> errors{0};
-    engine.on_error([&](const std::string&) { errors.fetch_add(1); });
-    auto start_res = engine.start();
+    engine->on_error([&](const std::string&) { errors.fetch_add(1); });
+    auto start_res = engine->start();
     ASSERT_TRUE(start_res.is_ok());
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
@@ -287,7 +287,7 @@ TEST(LiveEngineIntegration, RateLimitRejectsSecondOrder) {
     EXPECT_EQ(broker_ptr->submit_count(), 1);
     EXPECT_GE(errors.load(), 1);
 
-    engine.stop();
+    engine->stop();
 }
 
 TEST(LiveEngineIntegration, ReconciliationRefreshesAccountAndPositions) {
@@ -308,8 +308,8 @@ TEST(LiveEngineIntegration, ReconciliationRefreshesAccountAndPositions) {
     cfg.max_order_value = 100000;
     cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_reconcile_test").string();
 
-    live::LiveTradingEngine engine(cfg, std::move(broker));
-    auto start_res = engine.start();
+    auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+    auto start_res = engine->start();
     ASSERT_TRUE(start_res.is_ok());
     auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
     while (std::chrono::steady_clock::now() < deadline) {
@@ -322,7 +322,7 @@ TEST(LiveEngineIntegration, ReconciliationRefreshesAccountAndPositions) {
     EXPECT_GE(broker_ptr->account_calls(), 2);
     EXPECT_GE(broker_ptr->positions_calls(), 2);
 
-    engine.stop();
+    engine->stop();
 }
 
 TEST(LiveEngineIntegration, DailyLossLimitDisablesTrading) {
@@ -341,8 +341,8 @@ TEST(LiveEngineIntegration, DailyLossLimitDisablesTrading) {
     cfg.daily_loss_limit = 1000.0;
     cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_loss_test").string();
 
-    live::LiveTradingEngine engine(cfg, std::move(broker));
-    auto start_res = engine.start();
+    auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+    auto start_res = engine->start();
     ASSERT_TRUE(start_res.is_ok());
 
     live::AccountInfo info;
@@ -353,14 +353,14 @@ TEST(LiveEngineIntegration, DailyLossLimitDisablesTrading) {
 
     auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
     while (std::chrono::steady_clock::now() < deadline) {
-        if (!engine.get_status().trading_enabled) {
+        if (!engine->get_status().trading_enabled) {
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    EXPECT_FALSE(engine.get_status().trading_enabled);
-    engine.stop();
+    EXPECT_FALSE(engine->get_status().trading_enabled);
+    engine->stop();
 }
 
 TEST(LiveEngineIntegration, PositionRiskLimitDisablesTrading) {
@@ -378,8 +378,8 @@ TEST(LiveEngineIntegration, PositionRiskLimitDisablesTrading) {
     cfg.risk_config.set_path("limits.max_gross_exposure", 5000.0);
     cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_risk_limit_test").string();
 
-    live::LiveTradingEngine engine(cfg, std::move(broker));
-    auto start_res = engine.start();
+    auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+    auto start_res = engine->start();
     ASSERT_TRUE(start_res.is_ok());
 
     live::Position pos;
@@ -390,14 +390,14 @@ TEST(LiveEngineIntegration, PositionRiskLimitDisablesTrading) {
 
     auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
     while (std::chrono::steady_clock::now() < deadline) {
-        if (!engine.get_status().trading_enabled) {
+        if (!engine->get_status().trading_enabled) {
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    EXPECT_FALSE(engine.get_status().trading_enabled);
-    engine.stop();
+    EXPECT_FALSE(engine->get_status().trading_enabled);
+    engine->stop();
 }
 
 TEST(LiveEngineIntegration, DashboardCallbackReceivesSnapshot) {
@@ -415,14 +415,14 @@ TEST(LiveEngineIntegration, DashboardCallbackReceivesSnapshot) {
     cfg.max_order_value = 100000;
     cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_dashboard_test").string();
 
-    live::LiveTradingEngine engine(cfg, std::move(broker));
+    auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
     std::atomic<int> updates{0};
-    engine.on_dashboard_update([&](const live::LiveTradingEngine::DashboardSnapshot& snapshot) {
+    engine->on_dashboard_update([&](const live::LiveTradingEngine::DashboardSnapshot& snapshot) {
         updates.fetch_add(1);
         EXPECT_GE(snapshot.equity, 0.0);
         EXPECT_GE(snapshot.cash, 0.0);
     });
-    auto start_res = engine.start();
+    auto start_res = engine->start();
     ASSERT_TRUE(start_res.is_ok());
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
@@ -436,7 +436,7 @@ TEST(LiveEngineIntegration, DashboardCallbackReceivesSnapshot) {
     }
 
     EXPECT_GT(updates.load(), 0);
-    engine.stop();
+    engine->stop();
 }
 
 }  // namespace regimeflow::test
