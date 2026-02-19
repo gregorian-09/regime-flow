@@ -27,9 +27,23 @@ on:
         required: false
         default: ""
         type: string
+      reuse_build:
+        description: "Reuse last successful Windows build artifacts (skips build)"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      artifact_run_id:
+        description: "Optional run ID to download build artifacts from (windows only)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -237,6 +251,7 @@ jobs:
       uses: ilammy/msvc-dev-cmd@5c330b455f564f5da8d76ddd421de0e33f763f03
 
     - name: Install dependencies
+      if: ${{ inputs.reuse_build != 'true' }}
       run: |
         choco install cmake ninja --yes --no-progress
         refreshenv
@@ -245,6 +260,7 @@ jobs:
         .venv\\Scripts\\python -m pip install pybind11 numpy pandas pytest
 
     - name: Cache vcpkg downloads and binaries
+      if: ${{ inputs.reuse_build != 'true' }}
       uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
       with:
         path: |
@@ -257,6 +273,7 @@ jobs:
           vcpkg-windows-
 
     - name: Install vcpkg packages
+      if: ${{ inputs.reuse_build != 'true' }}
       run: |
         $ErrorActionPreference = "Stop"
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\vcpkg-bincache" | Out-Null
@@ -271,6 +288,7 @@ jobs:
         }
 
     - name: Configure CMake
+      if: ${{ inputs.reuse_build != 'true' }}
       run: |
         $python = "${{ github.workspace }}\.venv\Scripts\python.exe"
         $ninja = (Get-Command ninja).Source
@@ -297,7 +315,35 @@ jobs:
         cmake @cmakeArgs
 
     - name: Build
+      if: ${{ inputs.reuse_build != 'true' }}
       run: cmake --build build
+
+    - name: Upload Windows build artifacts
+      if: ${{ inputs.reuse_build != 'true' }}
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: windows-build-${{ matrix.build_type }}
+        path: |
+          build/**
+          vcpkg_installed/x64-windows/bin/**
+          vcpkg_installed/x64-windows/debug/bin/**
+
+    - name: Download Windows build artifacts (latest successful)
+      if: ${{ inputs.reuse_build == 'true' && inputs.artifact_run_id == '' }}
+      uses: dawidd6/action-download-artifact@v3
+      with:
+        workflow: ci.yml
+        branch: ${{ github.ref_name }}
+        workflow_conclusion: success
+        name: windows-build-${{ matrix.build_type }}
+
+    - name: Download Windows build artifacts (specific run)
+      if: ${{ inputs.reuse_build == 'true' && inputs.artifact_run_id != '' }}
+      uses: dawidd6/action-download-artifact@v3
+      with:
+        workflow: ci.yml
+        run_id: ${{ inputs.artifact_run_id }}
+        name: windows-build-${{ matrix.build_type }}
 
     - name: Debug single test (Windows)
       if: ${{ inputs.single_test != '' }}
