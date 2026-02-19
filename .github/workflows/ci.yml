@@ -22,36 +22,9 @@ on:
         options:
           - "true"
           - "false"
-      single_test:
-        description: "Optional gtest filter for Windows debug (leave empty to skip)"
-        required: false
-        default: ""
-        type: string
-      reuse_build:
-        description: "Reuse last successful Windows build artifacts (skips build)"
-        required: true
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
-      artifact_run_id:
-        description: "Optional run ID to download build artifacts from (windows only)"
-        required: false
-        default: ""
-        type: string
-      collect_dump:
-        description: "Collect a crash dump when Windows tests fail"
-        required: true
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -235,204 +208,15 @@ jobs:
         REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
       run: cd build && ctest --output-on-failure
 
-  build-windows-debug:
+  build-windows:
     if: ${{ inputs.target == 'all' || inputs.target == 'windows' }}
     runs-on: windows-2022
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
-    steps:
-    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
-      with:
-        submodules: recursive
-
-    - name: Set up Python
-      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
-      with:
-        python-version: "3.12"
-        cache: "pip"
-        cache-dependency-path: python/pyproject.toml
-
-    - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@5c330b455f564f5da8d76ddd421de0e33f763f03
-
-    - name: Install dependencies
-      if: ${{ inputs.reuse_build != 'true' }}
-      run: |
-        choco install cmake ninja --yes --no-progress
-        refreshenv
-        python -m venv .venv
-        .venv\\Scripts\\python -m pip install --upgrade pip
-        .venv\\Scripts\\python -m pip install pybind11 numpy pandas pytest
-
-    - name: Cache vcpkg downloads and binaries
-      if: ${{ inputs.reuse_build != 'true' }}
-      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
-      with:
-        path: |
-          C:\vcpkg\archives
-          ${{ github.workspace }}\vcpkg-bincache
-          ${{ github.workspace }}\vcpkg_installed
-        key: vcpkg-windows-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-${{ github.sha }}
-        restore-keys: |
-          vcpkg-windows-${{ hashFiles('vcpkg.json') || 'novcpkg' }}-
-          vcpkg-windows-
-
-    - name: Install vcpkg packages
-      if: ${{ inputs.reuse_build != 'true' }}
-      run: |
-        $ErrorActionPreference = "Stop"
-        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\vcpkg-bincache" | Out-Null
-        for ($i = 1; $i -le 3; $i++) {
-          try {
-            vcpkg install --vcpkg-root C:\vcpkg --x-manifest-root "${{ github.workspace }}" --x-install-root "${{ github.workspace }}\\vcpkg_installed" --triplet x64-windows
-            break
-          } catch {
-            if ($i -eq 3) { throw }
-            Start-Sleep -Seconds (30 * $i)
-          }
-        }
-
-    - name: Configure CMake
-      if: ${{ inputs.reuse_build != 'true' }}
-      run: |
-        $python = "${{ github.workspace }}\.venv\Scripts\python.exe"
-        $ninja = (Get-Command ninja).Source
-        $numpyInc = & $python -c "import numpy; print(numpy.get_include())"
-        $pybind11Dir = & $python -c "import pybind11; print(pybind11.get_cmake_dir())"
-        $cmakeArgs = @(
-          "-B", "build",
-          "-G", "Ninja",
-          "-DCMAKE_BUILD_TYPE=Debug",
-          "-DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv",
-          "-DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
-          "-DVCPKG_INSTALLED_DIR=${{ github.workspace }}\\vcpkg_installed",
-          "-DREGIMEFLOW_FETCH_DEPS=ON",
-          "-DCMAKE_MAKE_PROGRAM=$ninja",
-          "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
-          "-DENABLE_POSTGRES=OFF",
-          "-DBUILD_TESTS=ON",
-          "-DBUILD_PYTHON_BINDINGS=ON",
-          "-DPython3_EXECUTABLE=$python",
-          "-DPython3_NumPy_INCLUDE_DIRS=$numpyInc",
-          "-Dpybind11_DIR=$pybind11Dir"
-        )
-        Write-Host "CMake args: $($cmakeArgs -join ' ')"
-        cmake @cmakeArgs
-
-    - name: Build
-      if: ${{ inputs.reuse_build != 'true' }}
-      run: cmake --build build
-
-    - name: Upload Windows build artifacts
-      if: ${{ inputs.reuse_build != 'true' }}
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      with:
-        name: windows-build-Debug
-        path: |
-          build/**
-          vcpkg_installed/x64-windows/bin/**
-          vcpkg_installed/x64-windows/debug/bin/**
-
-    - name: Download Windows build artifacts (latest successful)
-      if: ${{ inputs.reuse_build == 'true' && inputs.artifact_run_id == '' }}
-      uses: dawidd6/action-download-artifact@v3
-      with:
-        workflow: ci.yml
-        branch: ${{ github.ref_name }}
-        workflow_conclusion: success
-        name: windows-build-Debug
-
-    - name: Download Windows build artifacts (specific run)
-      if: ${{ inputs.reuse_build == 'true' && inputs.artifact_run_id != '' }}
-      uses: dawidd6/action-download-artifact@v3
-      with:
-        workflow: ci.yml
-        run_id: ${{ inputs.artifact_run_id }}
-        name: windows-build-Debug
-
-    - name: Debug single test (Windows)
-      if: ${{ inputs.single_test != '' && inputs.collect_dump != 'true' }}
-      run: |
-        $env:REGIMEFLOW_TEST_ROOT = "${{ github.workspace }}"
-        $env:PATH = "${{ github.workspace }}\\build\\bin;${{ github.workspace }}\\build;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\bin;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\debug\\bin;$env:PATH"
-        $outFile = "${{ github.workspace }}\\build\\single_test.log"
-        Write-Host "Running single test: ${{ inputs.single_test }}"
-        build\bin\regimeflow_tests.exe --gtest_filter=${{ inputs.single_test }} --gtest_break_on_failure --gtest_catch_exceptions=0 --gtest_color=no --gtest_print_time=1 2>&1 | Tee-Object -FilePath $outFile
-        Write-Host "Single test exit code: $LASTEXITCODE"
-        Write-Host "Single test log tail:"
-        Get-Content $outFile -Tail 200
-
-    - name: Windows tests with crash dump
-      if: ${{ inputs.collect_dump == 'true' }}
-      run: |
-        $ErrorActionPreference = "Stop"
-        $env:REGIMEFLOW_TEST_ROOT = "${{ github.workspace }}"
-        $env:PATH = "${{ github.workspace }}\\build\\bin;${{ github.workspace }}\\build;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\bin;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\debug\\bin;$env:PATH"
-        $dumpRoot = "${{ github.workspace }}\\crash_dumps"
-        New-Item -ItemType Directory -Force -Path $dumpRoot | Out-Null
-        $zip = "${{ github.workspace }}\\procdump.zip"
-        $procDir = "${{ github.workspace }}\\procdump"
-        Invoke-WebRequest -Uri "https://download.sysinternals.com/files/Procdump.zip" -OutFile $zip
-        Expand-Archive -Path $zip -DestinationPath $procDir -Force
-        $procdump = Join-Path $procDir "procdump.exe"
-        Write-Host "Running regimeflow_tests with procdump..."
-        $filterArg = ""
-        if ("${{ inputs.single_test }}" -ne "") {
-          $filterArg = "--gtest_filter=${{ inputs.single_test }}"
-          Write-Host "Using gtest filter: $filterArg"
-        }
-        & $procdump -accepteula -e -ma -x $dumpRoot build\bin\regimeflow_tests.exe $filterArg --gtest_break_on_failure --gtest_catch_exceptions=0 --gtest_color=no --gtest_print_time=1
-        Write-Host "Exit code: $LASTEXITCODE"
-
-    - name: Test
-      if: ${{ inputs.single_test == '' && inputs.collect_dump != 'true' }}
-      env:
-        REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
-      run: cd build && ctest --output-on-failure
-
-    - name: Upload crash dumps
-      if: ${{ inputs.collect_dump == 'true' && always() }}
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      with:
-        name: windows-crash-dumps-Debug
-        path: crash_dumps/**
-
-    - name: Analyze crash dump
-      if: ${{ inputs.collect_dump == 'true' && always() }}
-      run: |
-        $dump = Get-ChildItem -Path "${{ github.workspace }}\\crash_dumps" -Filter *.dmp -ErrorAction SilentlyContinue |
-          Sort-Object LastWriteTime -Descending |
-          Select-Object -First 1
-        if (-not $dump) {
-          Write-Host "No dump found to analyze."
-          exit 0
-        }
-        $cdb = "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe"
-        if (-not (Test-Path $cdb)) {
-          Write-Host "cdb.exe not found at $cdb"
-          exit 0
-        }
-        $symDir = "${{ github.workspace }}\\symbols"
-        New-Item -ItemType Directory -Force -Path $symDir | Out-Null
-        $env:_NT_SYMBOL_PATH = "srv*$symDir*https://msdl.microsoft.com/download/symbols;${{ github.workspace }}\\build;${{ github.workspace }}\\build\\src;${{ github.workspace }}\\build\\tests"
-        $outFile = "${{ github.workspace }}\\crash_dumps\\analysis.txt"
-        Write-Host "Analyzing dump: $($dump.FullName)"
-        & $cdb -z $dump.FullName -c "!analyze -v; k; q" 2>&1 | Tee-Object -FilePath $outFile
-
-    - name: Upload crash analysis
-      if: ${{ inputs.collect_dump == 'true' && always() }}
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      with:
-        name: windows-crash-analysis-Debug
-        path: crash_dumps/analysis.txt
-
-  build-windows-release:
-    if: ${{ (inputs.target == 'all' || inputs.target == 'windows') && inputs.reuse_build != 'true' && inputs.collect_dump != 'true' && inputs.single_test == '' }}
-    runs-on: windows-2022
-    env:
-      VCPKG_ROOT: C:\vcpkg
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
+    strategy:
+      matrix:
+        build_type: [Release, Debug]
     steps:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
       with:
@@ -491,7 +275,7 @@ jobs:
         $cmakeArgs = @(
           "-B", "build",
           "-G", "Ninja",
-          "-DCMAKE_BUILD_TYPE=Release",
+          "-DCMAKE_BUILD_TYPE=${{ matrix.build_type }}",
           "-DCMAKE_PREFIX_PATH=${{ github.workspace }}\.venv",
           "-DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
           "-DVCPKG_INSTALLED_DIR=${{ github.workspace }}\\vcpkg_installed",
@@ -510,15 +294,6 @@ jobs:
 
     - name: Build
       run: cmake --build build
-
-    - name: Upload Windows build artifacts
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      with:
-        name: windows-build-Release
-        path: |
-          build/**
-          vcpkg_installed/x64-windows/bin/**
-          vcpkg_installed/x64-windows/debug/bin/**
 
     - name: Test
       env:
@@ -575,7 +350,7 @@ jobs:
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [build-linux, build-macos, build-windows-debug, build-windows-release, python-tests]
+    needs: [build-linux, build-macos, build-windows, python-tests]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
