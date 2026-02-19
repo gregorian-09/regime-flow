@@ -1,10 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       target:
@@ -41,7 +37,7 @@ concurrency:
 
 jobs:
   build-linux:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'linux' || inputs.target == 'python' }}
+    if: ${{ inputs.target == 'all' || inputs.target == 'linux' || inputs.target == 'python' }}
     runs-on: ubuntu-24.04
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
@@ -144,7 +140,7 @@ jobs:
         path: build/lib/*.so
 
   build-macos:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'macos' }}
+    if: ${{ inputs.target == 'all' || inputs.target == 'macos' }}
     runs-on: macos-14
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
@@ -222,7 +218,7 @@ jobs:
       run: cd build && ctest --output-on-failure
 
   build-windows:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'windows' }}
+    if: ${{ inputs.target == 'all' || inputs.target == 'windows' }}
     runs-on: windows-2022
     env:
       VCPKG_ROOT: C:\vcpkg
@@ -234,16 +230,6 @@ jobs:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
       with:
         submodules: recursive
-
-    - name: Dump workflow inputs
-      if: ${{ always() }}
-      run: |
-        Write-Host "inputs.target=${{ inputs.target }}"
-        Write-Host "inputs.single_test=${{ inputs.single_test }}"
-        Write-Host "inputs.vcpkg_upgrade=${{ inputs.vcpkg_upgrade }}"
-        Write-Host "event.inputs.target=${{ github.event.inputs.target }}"
-        Write-Host "event.inputs.single_test=${{ github.event.inputs.single_test }}"
-        Write-Host "event.inputs.vcpkg_upgrade=${{ github.event.inputs.vcpkg_upgrade }}"
 
     - name: Set up Python
       uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -318,13 +304,19 @@ jobs:
     - name: Build
       run: cmake --build build
 
+    - name: Debug single test (Windows)
+      if: ${{ inputs.single_test != '' }}
+      run: |
+        build\bin\regimeflow_tests.exe --gtest_filter=${{ inputs.single_test }} --gtest_break_on_failure --gtest_catch_exceptions=0
+
     - name: Test
+      if: ${{ inputs.single_test == '' }}
       env:
         REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
       run: cd build && ctest --output-on-failure
 
   python-tests:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'python' }}
+    if: ${{ inputs.target == 'all' || inputs.target == 'python' }}
     needs: build-linux
     runs-on: ubuntu-24.04
     strategy:
