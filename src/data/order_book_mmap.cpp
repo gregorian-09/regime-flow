@@ -392,7 +392,11 @@ Result<void> OrderBookMmapWriter::write_books(const std::string& path,
     header.version = kFileVersion;
     header.flags = 0;
     std::memset(header.symbol, 0, sizeof(header.symbol));
+    #if defined(_WIN32)
+    strncpy_s(header.symbol, sizeof(header.symbol), symbol.c_str(), _TRUNCATE);
+    #else
     std::strncpy(header.symbol, symbol.c_str(), sizeof(header.symbol) - 1);
+    #endif
     header.level_count = kLevels;
     if (!books.empty()) {
         header.start_timestamp = books.front().timestamp.microseconds();

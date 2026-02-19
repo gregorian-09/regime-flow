@@ -396,7 +396,11 @@ Result<void> TickMmapWriter::write_ticks(const std::string& path,
     header.version = kFileVersion;
     header.flags = 0;
     std::memset(header.symbol, 0, sizeof(header.symbol));
+    #if defined(_WIN32)
+    strncpy_s(header.symbol, sizeof(header.symbol), symbol.c_str(), _TRUNCATE);
+    #else
     std::strncpy(header.symbol, symbol.c_str(), sizeof(header.symbol) - 1);
+    #endif
     if (!ticks.empty()) {
         header.start_timestamp = ticks.front().timestamp.microseconds();
         header.end_timestamp = ticks.back().timestamp.microseconds();

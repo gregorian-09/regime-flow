@@ -70,7 +70,11 @@ Result<void> MmapWriter::write_bars(const std::string& path,
     header.version = kFileVersion;
     header.flags = 0;
     std::memset(header.symbol, 0, sizeof(header.symbol));
+    #if defined(_WIN32)
+    strncpy_s(header.symbol, sizeof(header.symbol), symbol.c_str(), _TRUNCATE);
+    #else
     std::strncpy(header.symbol, symbol.c_str(), sizeof(header.symbol) - 1);
+    #endif
     header.bar_type = static_cast<uint32_t>(bar_type);
     header.bar_size_ms = bar_size_ms(bar_type);
     if (!bars.empty()) {
