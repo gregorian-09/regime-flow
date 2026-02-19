@@ -40,6 +40,14 @@ on:
         required: false
         default: ""
         type: string
+      collect_dump:
+        description: "Collect a crash dump when Windows tests fail"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: read
@@ -358,11 +366,35 @@ jobs:
         Write-Host "Single test log tail:"
         Get-Content $outFile -Tail 200
 
+    - name: Windows tests with crash dump
+      if: ${{ inputs.single_test == '' && inputs.collect_dump == 'true' }}
+      run: |
+        $ErrorActionPreference = "Stop"
+        $env:REGIMEFLOW_TEST_ROOT = "${{ github.workspace }}"
+        $env:PATH = "${{ github.workspace }}\\build\\bin;${{ github.workspace }}\\build;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\bin;${{ github.workspace }}\\vcpkg_installed\\x64-windows\\debug\\bin;$env:PATH"
+        $dumpRoot = "${{ github.workspace }}\\crash_dumps"
+        New-Item -ItemType Directory -Force -Path $dumpRoot | Out-Null
+        $zip = "${{ github.workspace }}\\procdump.zip"
+        $procDir = "${{ github.workspace }}\\procdump"
+        Invoke-WebRequest -Uri "https://download.sysinternals.com/files/Procdump.zip" -OutFile $zip
+        Expand-Archive -Path $zip -DestinationPath $procDir -Force
+        $procdump = Join-Path $procDir "procdump.exe"
+        Write-Host "Running regimeflow_tests with procdump..."
+        & $procdump -accepteula -e -ma -x $dumpRoot -- build\bin\regimeflow_tests.exe --gtest_break_on_failure --gtest_catch_exceptions=0 --gtest_color=no --gtest_print_time=1
+        Write-Host "Exit code: $LASTEXITCODE"
+
     - name: Test
-      if: ${{ inputs.single_test == '' }}
+      if: ${{ inputs.single_test == '' && inputs.collect_dump != 'true' }}
       env:
         REGIMEFLOW_TEST_ROOT: ${{ github.workspace }}
       run: cd build && ctest --output-on-failure
+
+    - name: Upload crash dumps
+      if: ${{ inputs.collect_dump == 'true' }}
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: windows-crash-dumps-${{ matrix.build_type }}
+        path: crash_dumps/**
 
   python-tests:
     if: ${{ inputs.target == 'all' || inputs.target == 'python' }}
