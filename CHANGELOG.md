@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-02-19
+### Fixed
+- Build Python wheels from the `python/` package directory in the release job.
+
 ## [1.0.0] - 2026-02-19
 ### Added
 - Windows support for dynamic plugin loading, plus docs updates for plugin platform support.
@@ -14,4 +18,3 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ### Changed
 - Skip Windows Debug tests in CI to keep pipelines fast; Release remains the gating test run.
 - Trigger CI on version tags (`v*`) so tag pushes can create releases.
-- Build Python wheels from the `python/` package directory in the release job.
