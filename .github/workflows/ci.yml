@@ -26,6 +26,11 @@ on:
         options:
           - "true"
           - "false"
+      single_test:
+        description: "Optional gtest filter for Windows debug (leave empty to skip)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -121,6 +126,11 @@ jobs:
 
     - name: Build
       run: cmake --build build
+
+    - name: Debug single test (Windows)
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.single_test != '' }}
+      run: |
+        build\bin\regimeflow_tests.exe --gtest_filter=${{ inputs.single_test }} --gtest_break_on_failure --gtest_catch_exceptions=0
 
     - name: Test
       env:
