@@ -8,6 +8,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 ### Fixed
 - Build Python extension using `Development.Module` to avoid requiring embedded Python libs in wheel builds.
+- Fetch a newer Protobuf when the system version lacks `google/protobuf/port_def.inc`.
 
 ## [1.0.1] - 2026-02-19
 ### Fixed
