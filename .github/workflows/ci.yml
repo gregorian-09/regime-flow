@@ -546,7 +546,7 @@ jobs:
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [build-linux, build-macos, build-windows, python-tests]
+    needs: [build-linux, build-macos, build-windows-debug, build-windows-release, python-tests]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
