@@ -395,7 +395,7 @@ jobs:
       run: cd build && ctest --output-on-failure
 
     - name: Upload crash dumps
-      if: ${{ inputs.collect_dump == 'true' }}
+      if: ${{ inputs.collect_dump == 'true' && always() }}
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: windows-crash-dumps-${{ matrix.build_type }}
