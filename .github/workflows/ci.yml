@@ -236,7 +236,7 @@ jobs:
         submodules: recursive
 
     - name: Dump workflow inputs
-      if: ${{ github.event_name == 'workflow_dispatch' }}
+      if: ${{ always() }}
       run: |
         Write-Host "inputs.target=${{ inputs.target }}"
         Write-Host "inputs.single_test=${{ inputs.single_test }}"
