@@ -1,11 +1,14 @@
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
 if (REGIMEFLOW_FETCH_DEPS)
-    include(FetchContent)
-    FetchContent_Declare(
-        pybind11
-        URL https://github.com/pybind/pybind11/archive/refs/tags/v2.11.1.zip
-    )
-    FetchContent_MakeAvailable(pybind11)
+    find_package(pybind11 CONFIG QUIET)
+    if (NOT pybind11_FOUND)
+        include(FetchContent)
+        FetchContent_Declare(
+            pybind11
+            URL https://github.com/pybind/pybind11/archive/refs/tags/v2.11.1.zip
+        )
+        FetchContent_MakeAvailable(pybind11)
+    endif()
 else()
     find_package(pybind11 CONFIG REQUIRED)
 endif()
