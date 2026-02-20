@@ -320,6 +320,9 @@ target_link_libraries(regimeflow_plugins
     PUBLIC
         regimeflow_common
 )
+if(UNIX AND NOT APPLE)
+    target_link_libraries(regimeflow_plugins PUBLIC ${CMAKE_DL_LIBS})
+endif()
 
 add_library(regimeflow_walkforward
     walkforward/optimizer.cpp
