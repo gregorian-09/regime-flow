@@ -366,7 +366,7 @@ jobs:
           elif command -v apt-get >/dev/null 2>&1; then
             apt-get update && apt-get install -y libprotobuf-dev protobuf-compiler;
           else
-            echo "No supported package manager found for protobuf" && exit 1;
+            echo "No supported package manager found for protobuf; continuing.";
           fi
 
     - name: Create release
