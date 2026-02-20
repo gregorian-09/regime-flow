@@ -2,7 +2,9 @@
 
 #include "regimeflow/live/alpaca_adapter.h"
 #include "regimeflow/live/binance_adapter.h"
+#if defined(REGIMEFLOW_ENABLE_IBAPI)
 #include "regimeflow/live/ib_adapter.h"
+#endif
 #include "regimeflow/regime/regime_factory.h"
 #include "regimeflow/risk/risk_factory.h"
 #include "regimeflow/strategy/strategy_factory.h"
@@ -118,6 +120,7 @@ std::unique_ptr<BrokerAdapter> build_broker(const LiveConfig& config) {
         return std::make_unique<BinanceAdapter>(std::move(cfg));
     }
     if (config.broker_type == "ib") {
+#if defined(REGIMEFLOW_ENABLE_IBAPI)
         IBAdapter::Config cfg;
         auto it = config.broker_config.find("host");
         if (it != config.broker_config.end()) cfg.host = it->second;
@@ -126,6 +129,9 @@ std::unique_ptr<BrokerAdapter> build_broker(const LiveConfig& config) {
         it = config.broker_config.find("client_id");
         if (it != config.broker_config.end()) cfg.client_id = std::stoi(it->second);
         return std::make_unique<IBAdapter>(std::move(cfg));
+#else
+        return nullptr;
+#endif
     }
     return nullptr;
 }

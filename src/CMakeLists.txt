@@ -372,6 +372,10 @@ if(WIN32)
     target_compile_definitions(regimeflow_live PRIVATE _WIN32_WINNT=0x0A00 NOMINMAX)
 endif()
 
+if(ENABLE_IBAPI)
+    target_compile_definitions(regimeflow_live PRIVATE REGIMEFLOW_ENABLE_IBAPI)
+endif()
+
 if(ENABLE_OPENSSL)
 find_package(OpenSSL QUIET)
 if(OpenSSL_FOUND)
