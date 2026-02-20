@@ -7,12 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 ### Fixed
-- Build Python extension using `Development.Module` to avoid requiring embedded Python libs in wheel builds.
-- Fetch a newer Protobuf when the system version lacks `google/protobuf/port_def.inc`.
+- (none)
 
-## [1.0.1] - 2026-02-19
+## [1.0.1] - 2026-02-20
 ### Fixed
 - Build Python wheels from the `python/` package directory in the release job.
+- Resolve Windows stack overflow in live engine integration tests by allocating the engine on the heap.
+- Fix Windows dynamic plugin test lookup for `regimeflow_test_plugin.dll`.
+- Ensure cibuildwheel uses a compatible CMake policy minimum when fetching dependencies.
 
 ## [1.0.0] - 2026-02-19
 ### Added
