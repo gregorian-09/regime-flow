@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <cstdlib>
+#include <cstdint>
 
 namespace regimeflow {
 
