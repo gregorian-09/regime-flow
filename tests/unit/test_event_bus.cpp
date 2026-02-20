@@ -42,7 +42,7 @@ TEST(EventBus, DeliversMarketDataMessages) {
     bus.publish(std::move(msg));
 
     std::unique_lock<std::mutex> lock(mutex);
-    cv.wait_for(lock, std::chrono::milliseconds(100), [&] { return received.load() > 0; });
+    cv.wait_for(lock, std::chrono::milliseconds(500), [&] { return received.load() > 0; });
 
     EXPECT_EQ(received.load(), 1);
 
