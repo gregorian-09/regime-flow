@@ -10,34 +10,33 @@
 #include <memory>
 #include <vector>
 
-namespace regimeflow::data {
-
-/**
- * @brief Helper for querying time series data from a source.
- */
-class TimeSeriesQuery {
-public:
+namespace regimeflow::data
+{
     /**
-     * @brief Construct with a data source.
-     * @param source Data source.
+     * @brief Helper for querying time series data from a source.
      */
-    explicit TimeSeriesQuery(std::shared_ptr<DataSource> source);
+    class TimeSeriesQuery {
+    public:
+        /**
+         * @brief Construct with a data source.
+         * @param source Data source.
+         */
+        explicit TimeSeriesQuery(std::shared_ptr<DataSource> source);
 
-    /**
-     * @brief Query bars for a symbol and range.
-     */
-    std::vector<Bar> bars(SymbolId symbol, TimeRange range, BarType bar_type);
-    /**
-     * @brief Query ticks for a symbol and range.
-     */
-    std::vector<Tick> ticks(SymbolId symbol, TimeRange range);
-    /**
-     * @brief Query order books for a symbol and range.
-     */
-    std::vector<OrderBook> order_books(SymbolId symbol, TimeRange range);
+        /**
+         * @brief Query bars for a symbol and range.
+         */
+        std::vector<Bar> bars(SymbolId symbol, TimeRange range, BarType bar_type) const;
+        /**
+         * @brief Query ticks for a symbol and range.
+         */
+        std::vector<Tick> ticks(SymbolId symbol, TimeRange range) const;
+        /**
+         * @brief Query order books for a symbol and range.
+         */
+        std::vector<OrderBook> order_books(SymbolId symbol, TimeRange range) const;
 
-private:
-    std::shared_ptr<DataSource> source_;
-};
-
+    private:
+        std::shared_ptr<DataSource> source_;
+    };
 }  // namespace regimeflow::data

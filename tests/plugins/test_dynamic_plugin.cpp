@@ -3,7 +3,7 @@
 
 class DynamicTestPlugin : public regimeflow::plugins::Plugin {
 public:
-    regimeflow::plugins::PluginInfo info() const override {
+    [[nodiscard]] regimeflow::plugins::PluginInfo info() const override {
         return {"dynamic_test", "1.0", "dynamic", "tests", {}};
     }
 
@@ -32,7 +32,7 @@ extern "C" REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
     return new DynamicTestPlugin();
 }
 
-extern "C" REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin) {
+extern "C" REGIMEFLOW_EXPORT void destroy_plugin(const regimeflow::plugins::Plugin* plugin) {
     delete plugin;
 }
 

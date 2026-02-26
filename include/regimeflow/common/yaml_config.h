@@ -9,19 +9,18 @@
 
 #include <string>
 
-namespace regimeflow {
-
-/**
- * @brief YAML configuration loader.
- */
-class YamlConfigLoader {
-public:
+namespace regimeflow
+{
     /**
-     * @brief Load a config from a YAML file.
-     * @param path Path to YAML file.
-     * @return Parsed Config.
+     * @brief YAML configuration loader.
      */
-    static Config load_file(const std::string& path);
-};
-
+    class YamlConfigLoader {
+    public:
+        /**
+         * @brief Load a config from a YAML file.
+         * @param path Path to YAML file.
+         * @return Parsed Config.
+         */
+        static Config load_file(const std::string& path);
+    };
 }  // namespace regimeflow

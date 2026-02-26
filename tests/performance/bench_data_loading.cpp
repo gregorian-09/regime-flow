@@ -6,7 +6,7 @@
 
 int main() {
     constexpr int kBars = 500000;
-    auto source = std::make_shared<regimeflow::data::MemoryDataSource>();
+    const auto source = std::make_shared<regimeflow::data::MemoryDataSource>();
     auto symbol = regimeflow::SymbolRegistry::instance().intern("BENCH");
 
     std::vector<regimeflow::data::Bar> bars;
@@ -21,19 +21,19 @@ int main() {
     }
     source->add_bars(symbol, bars);
 
-    regimeflow::TimeRange range{regimeflow::Timestamp(0), regimeflow::Timestamp(kBars)};
+    const regimeflow::TimeRange range{regimeflow::Timestamp(0), regimeflow::Timestamp(kBars)};
 
-    auto start = std::chrono::high_resolution_clock::now();
-    auto iter = source->create_iterator({symbol}, range, regimeflow::data::BarType::Time_1Min);
+    const auto start = std::chrono::high_resolution_clock::now();
+    const auto iter = source->create_iterator({symbol}, range, regimeflow::data::BarType::Time_1Min);
     int count = 0;
     while (iter->has_next()) {
         iter->next();
         ++count;
     }
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
+    const auto end = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double> elapsed = end - start;
 
-    double eps = static_cast<double>(count) / elapsed.count();
+    const double eps = static_cast<double>(count) / elapsed.count();
     std::cout << "Data loading: " << eps << " bars/sec" << std::endl;
     return 0;
 }

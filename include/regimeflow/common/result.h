@@ -97,7 +97,7 @@ struct Error {
      * @brief Render the error as a single-line string.
      * @return Formatted string with code, message, and source location.
      */
-    std::string to_string() const {
+    [[nodiscard]] std::string to_string() const {
         std::ostringstream out;
         out << "[" << static_cast<int>(code) << "] " << message
             << " (at " << location.file_name() << ":" << location.line() << ")";
@@ -116,21 +116,21 @@ public:
      * @brief Construct a success result.
      * @param value Value to store.
      */
-    Result(T value) : value_(std::move(value)) {}
+    explicit Result(T value) : value_(std::move(value)) {}
     /**
      * @brief Construct an error result.
      * @param error Error to store.
      */
-    Result(Error error) : value_(std::move(error)) {}
+    explicit Result(Error error) : value_(std::move(error)) {}
 
     /**
      * @brief True if the result holds a value.
      */
-    bool is_ok() const { return std::holds_alternative<T>(value_); }
+    [[nodiscard]] bool is_ok() const { return std::holds_alternative<T>(value_); }
     /**
      * @brief True if the result holds an error.
      */
-    bool is_err() const { return std::holds_alternative<Error>(value_); }
+    [[nodiscard]] bool is_err() const { return std::holds_alternative<Error>(value_); }
 
     /**
      * @brief Access the value or throw on error.
@@ -169,7 +169,7 @@ public:
      * @brief Access the stored error.
      * @return Const reference to error.
      */
-    const Error& error() const& { return std::get<Error>(value_); }
+    [[nodiscard]] const Error& error() const& { return std::get<Error>(value_); }
 
     /**
      * @brief Map a value to another Result without changing error state.
@@ -226,22 +226,22 @@ public:
      * @brief Construct an error result.
      * @param error Error to store.
      */
-    Result(Error error) : error_(std::move(error)) {}
+    explicit Result(Error error) : error_(std::move(error)) {}
 
     /**
      * @brief True if the result has no error.
      */
-    bool is_ok() const { return !error_.has_value(); }
+    [[nodiscard]] bool is_ok() const { return !error_.has_value(); }
     /**
      * @brief True if the result carries an error.
      */
-    bool is_err() const { return error_.has_value(); }
+    [[nodiscard]] bool is_err() const { return error_.has_value(); }
 
     /**
      * @brief Access the stored error.
      * @return Const reference to error.
      */
-    const Error& error() const { return *error_; }
+    [[nodiscard]] const Error& error() const { return *error_; }
 
 private:
     std::optional<Error> error_;
@@ -260,7 +260,7 @@ Result<T> Ok(T value) { return Result<T>(std::move(value)); }
  * @brief Helper to construct a successful Result<void>.
  * @return Success result.
  */
-inline Result<void> Ok() { return Result<void>(); }
+inline Result<void> Ok() { return {}; }
 
 #if defined(__cpp_lib_format)
 
@@ -287,8 +287,8 @@ template<typename... Args>
  * @param fmt String to use as the message.
  * @return Error with the provided message.
  */
-Error Err(Error::Code code, std::string_view fmt, Args&&...) {
-    return Error(code, std::string(fmt));
+Error Err(const Error::Code code, const std::string_view fmt, Args&&...) {
+    return {code, std::string(fmt)};
 }
 
 #endif

@@ -7,77 +7,76 @@
 #include "regimeflow/engine/order.h"
 #include "regimeflow/plugins/registry.h"
 
-namespace custom_regime {
-
-void CustomRegimeStrategy::initialize(regimeflow::strategy::StrategyContext& ctx) {
-    ctx_ = &ctx;
-    auto symbol = ctx.get_as<std::string>("symbol").value_or("AAPL");
-    symbol_ = regimeflow::SymbolRegistry::instance().intern(symbol);
-    base_qty_ = static_cast<int>(ctx.get_as<int64_t>("base_qty").value_or(10));
-    trend_qty_ = static_cast<int>(ctx.get_as<int64_t>("trend_qty").value_or(20));
-    stress_qty_ = static_cast<int>(ctx.get_as<int64_t>("stress_qty").value_or(5));
-}
-
-void CustomRegimeStrategy::on_bar(const regimeflow::data::Bar& bar) {
-    if (!ctx_) return;
-    if (bar.symbol != symbol_) return;
-
-    const auto& regime = ctx_->current_regime();
-    int qty = base_qty_;
-    if (regime.regime == regimeflow::regime::RegimeType::Bull) {
-        qty = trend_qty_;
-    } else if (regime.regime == regimeflow::regime::RegimeType::Crisis) {
-        qty = stress_qty_;
+namespace custom_regime
+{
+    void CustomRegimeStrategy::initialize(regimeflow::strategy::StrategyContext& ctx) {
+        ctx_ = &ctx;
+        const auto symbol = ctx.get_as<std::string>("symbol").value_or("AAPL");
+        symbol_ = regimeflow::SymbolRegistry::instance().intern(symbol);
+        base_qty_ = static_cast<int>(ctx.get_as<int64_t>("base_qty").value_or(10));
+        trend_qty_ = static_cast<int>(ctx.get_as<int64_t>("trend_qty").value_or(20));
+        stress_qty_ = static_cast<int>(ctx.get_as<int64_t>("stress_qty").value_or(5));
     }
 
-    regimeflow::engine::Order order;
-    order.symbol = symbol_;
-    order.side = (regime.regime == regimeflow::regime::RegimeType::Bear)
-        ? regimeflow::engine::OrderSide::Sell
-        : regimeflow::engine::OrderSide::Buy;
-    order.type = regimeflow::engine::OrderType::Market;
-    order.quantity = qty;
-    ctx_->submit_order(order);
-}
+    void CustomRegimeStrategy::on_bar(const regimeflow::data::Bar& bar) {
+        if (!ctx_) return;
+        if (bar.symbol != symbol_) return;
 
-regimeflow::plugins::PluginInfo CustomRegimeStrategyPlugin::info() const {
-    return {"custom_regime_strategy", "0.1.0",
-            "Regime-aware strategy with signal routing", "RegimeFlow", {}};
-}
+        const auto& regime = ctx_->current_regime();
+        int qty = base_qty_;
+        if (regime.regime == regimeflow::regime::RegimeType::Bull) {
+            qty = trend_qty_;
+        } else if (regime.regime == regimeflow::regime::RegimeType::Crisis) {
+            qty = stress_qty_;
+        }
 
-regimeflow::Result<void> CustomRegimeStrategyPlugin::on_initialize(
-    const regimeflow::Config& config) {
-    config_ = config;
-    return regimeflow::Ok();
-}
+        regimeflow::engine::Order order;
+        order.symbol = symbol_;
+        order.side = (regime.regime == regimeflow::regime::RegimeType::Bear)
+            ? regimeflow::engine::OrderSide::Sell
+            : regimeflow::engine::OrderSide::Buy;
+        order.type = regimeflow::engine::OrderType::Market;
+        order.quantity = qty;
+        ctx_->submit_order(order);
+    }
 
-std::unique_ptr<regimeflow::strategy::Strategy>
-CustomRegimeStrategyPlugin::create_strategy() {
-    return std::make_unique<CustomRegimeStrategy>();
-}
+    regimeflow::plugins::PluginInfo CustomRegimeStrategyPlugin::info() const {
+        return {"custom_regime_strategy", "0.1.0",
+                "Regime-aware strategy with signal routing", "RegimeFlow", {}};
+    }
 
+    regimeflow::Result<void> CustomRegimeStrategyPlugin::on_initialize(
+        const regimeflow::Config& config) {
+        config_ = config;
+        return regimeflow::Ok();
+    }
+
+    std::unique_ptr<regimeflow::strategy::Strategy>
+    CustomRegimeStrategyPlugin::create_strategy() {
+        return std::make_unique<CustomRegimeStrategy>();
+    }
 }  // namespace custom_regime
 
 extern "C" {
 
-REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
-    return new custom_regime::CustomRegimeStrategyPlugin();
-}
+    REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin() {
+        return new custom_regime::CustomRegimeStrategyPlugin();
+    }
 
-REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin) {
-    delete plugin;
-}
+    REGIMEFLOW_EXPORT void destroy_plugin(const regimeflow::plugins::Plugin* plugin) {
+        delete plugin;
+    }
 
-REGIMEFLOW_EXPORT const char* plugin_type() {
-    return "strategy";
-}
+    REGIMEFLOW_EXPORT const char* plugin_type() {
+        return "strategy";
+    }
 
-REGIMEFLOW_EXPORT const char* plugin_name() {
-    return "custom_regime_strategy";
-}
+    REGIMEFLOW_EXPORT const char* plugin_name() {
+        return "custom_regime_strategy";
+    }
 
-REGIMEFLOW_EXPORT const char* regimeflow_abi_version() {
-    return REGIMEFLOW_ABI_VERSION;
-}
+    REGIMEFLOW_EXPORT const char* regimeflow_abi_version() {
+        return REGIMEFLOW_ABI_VERSION;
+    }
 
 }  // extern "C"

@@ -16,51 +16,50 @@
 #include <variant>
 #include <vector>
 
-namespace regimeflow::live {
-
-/**
- * @brief Live position snapshot.
- */
-struct Position {
-    std::string symbol;
-    double quantity = 0.0;
-    double average_price = 0.0;
-    double market_value = 0.0;
-};
-
-/**
- * @brief Account-level information for live trading.
- */
-struct AccountInfo {
-    double equity = 0.0;
-    double cash = 0.0;
-    double buying_power = 0.0;
-};
-
-/**
- * @brief Market data update wrapper for live feeds.
- */
-struct MarketDataUpdate {
-    std::variant<data::Bar, data::Tick, data::Quote, data::OrderBook> data;
+namespace regimeflow::live
+{
+    /**
+     * @brief Live position snapshot.
+     */
+    struct Position {
+        std::string symbol;
+        double quantity = 0.0;
+        double average_price = 0.0;
+        double market_value = 0.0;
+    };
 
     /**
-     * @brief Extract timestamp from the underlying data.
+     * @brief Account-level information for live trading.
      */
-    Timestamp timestamp() const;
+    struct AccountInfo {
+        double equity = 0.0;
+        double cash = 0.0;
+        double buying_power = 0.0;
+    };
+
     /**
-     * @brief Extract symbol ID from the underlying data.
+     * @brief Market data update wrapper for live feeds.
      */
-    SymbolId symbol() const;
-};
+    struct MarketDataUpdate {
+        std::variant<data::Bar, data::Tick, data::Quote, data::OrderBook> data;
 
-/**
- * @brief Trade execution record.
- */
-struct Trade {
-    std::string symbol;
-    double quantity = 0.0;
-    double price = 0.0;
-    Timestamp timestamp;
-};
+        /**
+         * @brief Extract timestamp from the underlying data.
+         */
+        [[nodiscard]] Timestamp timestamp() const;
+        /**
+         * @brief Extract symbol ID from the underlying data.
+         */
+        [[nodiscard]] SymbolId symbol() const;
+    };
 
+    /**
+     * @brief Trade execution record.
+     */
+    struct Trade {
+        std::string symbol;
+        double quantity = 0.0;
+        double price = 0.0;
+        Timestamp timestamp;
+    };
 }  // namespace regimeflow::live

@@ -42,7 +42,7 @@ public:
      */
     bool register_plugin(const std::string& type, const std::string& name) {
         auto factory = []() {
-            return PluginPtr(new PluginT(), [](Plugin* p) { delete p; });
+            return PluginPtr(new PluginT(), [](const Plugin* p) { delete p; });
         };
         return register_factory(type, name, std::move(factory));
     }

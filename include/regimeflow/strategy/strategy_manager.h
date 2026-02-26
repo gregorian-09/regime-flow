@@ -10,74 +10,73 @@
 #include <memory>
 #include <vector>
 
-namespace regimeflow::strategy {
-
-namespace engine = ::regimeflow::engine;
-
-/**
- * @brief Manages multiple strategy instances.
- */
-class StrategyManager {
-public:
-    /**
-     * @brief Add a strategy to the manager.
-     * @param strategy Strategy instance.
-     */
-    void add_strategy(std::unique_ptr<Strategy> strategy);
-    /**
-     * @brief Remove all strategies.
-     */
-    void clear();
+namespace regimeflow::strategy
+{
+    namespace engine = ::regimeflow::engine;
 
     /**
-     * @brief Initialize all strategies with context.
-     * @param ctx Strategy context.
+     * @brief Manages multiple strategy instances.
      */
-    void initialize(StrategyContext& ctx);
-    /**
-     * @brief Start all strategies.
-     */
-    void start();
-    /**
-     * @brief Stop all strategies.
-     */
-    void stop();
+    class StrategyManager {
+    public:
+        /**
+         * @brief Add a strategy to the manager.
+         * @param strategy Strategy instance.
+         */
+        void add_strategy(std::unique_ptr<Strategy> strategy);
+        /**
+         * @brief Remove all strategies.
+         */
+        void clear();
 
-    /**
-     * @brief Dispatch bar events to strategies.
-     */
-    void on_bar(const data::Bar& bar);
-    /**
-     * @brief Dispatch tick events to strategies.
-     */
-    void on_tick(const data::Tick& tick);
-    /**
-     * @brief Dispatch quote events to strategies.
-     */
-    void on_quote(const data::Quote& quote);
-    /**
-     * @brief Dispatch order book events to strategies.
-     */
-    void on_order_book(const data::OrderBook& book);
-    /**
-     * @brief Dispatch order updates to strategies.
-     */
-    void on_order_update(const engine::Order& order);
-    /**
-     * @brief Dispatch fill events to strategies.
-     */
-    void on_fill(const engine::Fill& fill);
-    /**
-     * @brief Dispatch regime change events to strategies.
-     */
-    void on_regime_change(const regime::RegimeTransition& transition);
-    /**
-     * @brief Dispatch timer events to strategies.
-     */
-    void on_timer(const std::string& timer_id);
+        /**
+         * @brief Initialize all strategies with context.
+         * @param ctx Strategy context.
+         */
+        void initialize(StrategyContext& ctx) const;
+        /**
+         * @brief Start all strategies.
+         */
+        void start() const;
+        /**
+         * @brief Stop all strategies.
+         */
+        void stop() const;
 
-private:
-    std::vector<std::unique_ptr<Strategy>> strategies_;
-};
+        /**
+         * @brief Dispatch bar events to strategies.
+         */
+        void on_bar(const data::Bar& bar) const;
+        /**
+         * @brief Dispatch tick events to strategies.
+         */
+        void on_tick(const data::Tick& tick) const;
+        /**
+         * @brief Dispatch quote events to strategies.
+         */
+        void on_quote(const data::Quote& quote) const;
+        /**
+         * @brief Dispatch order book events to strategies.
+         */
+        void on_order_book(const data::OrderBook& book) const;
+        /**
+         * @brief Dispatch order updates to strategies.
+         */
+        void on_order_update(const engine::Order& order) const;
+        /**
+         * @brief Dispatch fill events to strategies.
+         */
+        void on_fill(const engine::Fill& fill) const;
+        /**
+         * @brief Dispatch regime change events to strategies.
+         */
+        void on_regime_change(const regime::RegimeTransition& transition) const;
+        /**
+         * @brief Dispatch timer events to strategies.
+         */
+        void on_timer(const std::string& timer_id) const;
 
+    private:
+        std::vector<std::unique_ptr<Strategy>> strategies_;
+    };
 }  // namespace regimeflow::strategy

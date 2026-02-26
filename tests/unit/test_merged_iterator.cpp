@@ -6,20 +6,19 @@
 using namespace regimeflow;
 using namespace regimeflow::data;
 
-namespace {
-
-Bar make_bar(SymbolId symbol, const std::string& ts, double price) {
-    Bar bar;
-    bar.symbol = symbol;
-    bar.timestamp = Timestamp::from_string(ts, "%Y-%m-%d %H:%M:%S");
-    bar.open = price;
-    bar.high = price;
-    bar.low = price;
-    bar.close = price;
-    bar.volume = 1;
-    return bar;
-}  // namespace
-
+namespace
+{
+    Bar make_bar(SymbolId symbol, const std::string& ts, double price) {
+        Bar bar;
+        bar.symbol = symbol;
+        bar.timestamp = Timestamp::from_string(ts, "%Y-%m-%d %H:%M:%S");
+        bar.open = price;
+        bar.high = price;
+        bar.low = price;
+        bar.close = price;
+        bar.volume = 1;
+        return bar;
+    }  // namespace
 }
 
 TEST(MergedIterator, OrdersByTimestampThenSymbol) {

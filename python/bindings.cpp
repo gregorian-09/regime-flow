@@ -36,6 +36,7 @@ typedef SSIZE_T ssize_t;
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace py = pybind11;
@@ -66,33 +67,33 @@ static ConfigValue::Array to_array(const py::list& list) {
 
 static ConfigValue::Object to_object(const py::dict& dict) {
     ConfigValue::Object obj;
-    for (auto item : dict) {
-        auto key = py::cast<std::string>(item.first);
-        obj[key] = to_config_value(item.second);
+    for (auto [fst, snd] : dict) {
+        auto key = py::cast<std::string>(fst);
+        obj[key] = to_config_value(snd);
     }
     return obj;
 }
 
 static ConfigValue to_config_value(const py::handle& obj) {
     if (py::isinstance<py::bool_>(obj)) {
-        return ConfigValue(obj.cast<bool>());
+        return {obj.cast<bool>()};
     }
     if (py::isinstance<py::int_>(obj)) {
-        return ConfigValue(static_cast<int64_t>(obj.cast<long long>()));
+        return {static_cast<int64_t>(obj.cast<long long>())};
     }
     if (py::isinstance<py::float_>(obj)) {
-        return ConfigValue(obj.cast<double>());
+        return {obj.cast<double>()};
     }
     if (py::isinstance<py::str>(obj)) {
-        return ConfigValue(obj.cast<std::string>());
+        return {obj.cast<std::string>()};
     }
     if (py::isinstance<py::list>(obj)) {
-        return ConfigValue(to_array(obj.cast<py::list>()));
+        return {to_array(obj.cast<py::list>())};
     }
     if (py::isinstance<py::dict>(obj)) {
-        return ConfigValue(to_object(obj.cast<py::dict>()));
+        return {to_object(obj.cast<py::dict>())};
     }
-    return ConfigValue();
+    return {};
 }
 
 static py::object config_value_to_py(const ConfigValue& value);
@@ -106,26 +107,26 @@ static py::object object_to_pydict(const ConfigValue::Object& obj) {
 }
 
 static py::object config_value_to_py(const ConfigValue& value) {
-    if (auto v = value.get_if<bool>()) {
+    if (const auto v = value.get_if<bool>()) {
         return py::bool_(*v);
     }
-    if (auto v = value.get_if<int64_t>()) {
+    if (const auto v = value.get_if<int64_t>()) {
         return py::int_(*v);
     }
-    if (auto v = value.get_if<double>()) {
+    if (const auto v = value.get_if<double>()) {
         return py::float_(*v);
     }
-    if (auto v = value.get_if<std::string>()) {
+    if (const auto v = value.get_if<std::string>()) {
         return py::str(*v);
     }
-    if (auto v = value.get_if<ConfigValue::Array>()) {
+    if (const auto v = value.get_if<ConfigValue::Array>()) {
         py::list out;
         for (const auto& item : *v) {
             out.append(config_value_to_py(item));
         }
         return out;
     }
-    if (auto v = value.get_if<ConfigValue::Object>()) {
+    if (const auto v = value.get_if<ConfigValue::Object>()) {
         return object_to_pydict(*v);
     }
     return py::none();
@@ -136,24 +137,24 @@ static Config config_from_dict(const py::dict& dict) {
 }
 
 static void merge_dict_into_config(Config& cfg, const py::dict& dict, const std::string& prefix) {
-    for (auto item : dict) {
-        auto key = py::cast<std::string>(item.first);
+    for (auto [fst, snd] : dict) {
+        auto key = py::cast<std::string>(fst);
         auto path = prefix.empty() ? key : prefix + "." + key;
-        cfg.set_path(path, to_config_value(item.second));
+        cfg.set_path(path, to_config_value(snd));
     }
 }
 
 static py::object timestamp_to_datetime(const Timestamp& ts) {
-    auto datetime = py::module_::import("datetime");
+    const auto datetime = py::module_::import("datetime");
     auto seconds = ts.seconds();
     auto micros = ts.microseconds() - seconds * 1'000'000;
-    auto dt = datetime.attr("datetime").attr("fromtimestamp")(seconds);
-    auto delta = datetime.attr("timedelta")(py::arg("microseconds") = micros);
+    const auto dt = datetime.attr("datetime").attr("fromtimestamp")(seconds);
+    const auto delta = datetime.attr("timedelta")(py::arg("microseconds") = micros);
     return dt + delta;
 }
 
 static Timestamp timestamp_from_datetime(const py::object& dt) {
-    double seconds = dt.attr("timestamp")().cast<double>();
+    const auto seconds = dt.attr("timestamp")().cast<double>();
     return Timestamp(static_cast<int64_t>(seconds * 1'000'000.0));
 }
 
@@ -324,48 +325,47 @@ static walkforward::ParameterDef::Distribution dist_from_string(const std::strin
 
 static walkforward::WalkForwardConfig walkforward_config_from_kwargs(const py::kwargs& kwargs) {
     walkforward::WalkForwardConfig cfg;
-    for (auto item : kwargs) {
-        auto key = py::cast<std::string>(item.first);
-        if (key == "window_type") {
-            cfg.window_type = window_type_from_string(py::cast<std::string>(item.second));
+    for (auto [fst, snd] : kwargs) {
+        if (auto key = py::cast<std::string>(fst); key == "window_type") {
+            cfg.window_type = window_type_from_string(py::cast<std::string>(snd));
         } else if (key == "in_sample_months") {
-            cfg.in_sample_period = Duration::months(py::cast<int>(item.second));
+            cfg.in_sample_period = Duration::months(py::cast<int>(snd));
         } else if (key == "out_of_sample_months") {
-            cfg.out_of_sample_period = Duration::months(py::cast<int>(item.second));
+            cfg.out_of_sample_period = Duration::months(py::cast<int>(snd));
         } else if (key == "step_months") {
-            cfg.step_size = Duration::months(py::cast<int>(item.second));
+            cfg.step_size = Duration::months(py::cast<int>(snd));
         } else if (key == "in_sample_days") {
-            cfg.in_sample_period = Duration::days(py::cast<int>(item.second));
+            cfg.in_sample_period = Duration::days(py::cast<int>(snd));
         } else if (key == "out_of_sample_days") {
-            cfg.out_of_sample_period = Duration::days(py::cast<int>(item.second));
+            cfg.out_of_sample_period = Duration::days(py::cast<int>(snd));
         } else if (key == "step_days") {
-            cfg.step_size = Duration::days(py::cast<int>(item.second));
+            cfg.step_size = Duration::days(py::cast<int>(snd));
         } else if (key == "optimization_method") {
-            cfg.optimization_method = opt_method_from_string(py::cast<std::string>(item.second));
+            cfg.optimization_method = opt_method_from_string(py::cast<std::string>(snd));
         } else if (key == "max_trials") {
-            cfg.max_trials = py::cast<int>(item.second);
+            cfg.max_trials = py::cast<int>(snd);
         } else if (key == "fitness_metric") {
-            cfg.fitness_metric = py::cast<std::string>(item.second);
+            cfg.fitness_metric = py::cast<std::string>(snd);
         } else if (key == "maximize") {
-            cfg.maximize = py::cast<bool>(item.second);
+            cfg.maximize = py::cast<bool>(snd);
         } else if (key == "retrain_regime_each_window") {
-            cfg.retrain_regime_each_window = py::cast<bool>(item.second);
+            cfg.retrain_regime_each_window = py::cast<bool>(snd);
         } else if (key == "optimize_per_regime") {
-            cfg.optimize_per_regime = py::cast<bool>(item.second);
+            cfg.optimize_per_regime = py::cast<bool>(snd);
         } else if (key == "disable_default_regime_training") {
-            cfg.disable_default_regime_training = py::cast<bool>(item.second);
+            cfg.disable_default_regime_training = py::cast<bool>(snd);
         } else if (key == "num_parallel_backtests") {
-            cfg.num_parallel_backtests = py::cast<int>(item.second);
+            cfg.num_parallel_backtests = py::cast<int>(snd);
         } else if (key == "enable_overfitting_detection") {
-            cfg.enable_overfitting_detection = py::cast<bool>(item.second);
+            cfg.enable_overfitting_detection = py::cast<bool>(snd);
         } else if (key == "max_is_oos_ratio") {
-            cfg.max_is_oos_ratio = py::cast<double>(item.second);
+            cfg.max_is_oos_ratio = py::cast<double>(snd);
         } else if (key == "initial_capital") {
-            cfg.initial_capital = py::cast<double>(item.second);
+            cfg.initial_capital = py::cast<double>(snd);
         } else if (key == "bar_type") {
-            cfg.bar_type = bar_type_from_string(py::cast<std::string>(item.second));
+            cfg.bar_type = bar_type_from_string(py::cast<std::string>(snd));
         } else if (key == "periods_per_year") {
-            cfg.periods_per_year = py::cast<double>(item.second);
+            cfg.periods_per_year = py::cast<double>(snd);
         }
     }
     return cfg;
@@ -373,21 +373,20 @@ static walkforward::WalkForwardConfig walkforward_config_from_kwargs(const py::k
 
 static walkforward::ParameterDef parameter_def_from_kwargs(const py::kwargs& kwargs) {
     walkforward::ParameterDef def;
-    for (auto item : kwargs) {
-        auto key = py::cast<std::string>(item.first);
-        if (key == "name") {
-            def.name = py::cast<std::string>(item.second);
+    for (auto [fst, snd] : kwargs) {
+        if (auto key = py::cast<std::string>(fst); key == "name") {
+            def.name = py::cast<std::string>(snd);
         } else if (key == "type") {
-            def.type = param_type_from_string(py::cast<std::string>(item.second));
+            def.type = param_type_from_string(py::cast<std::string>(snd));
         } else if (key == "min_value") {
-            def.min_value = py::cast<double>(item.second);
+            def.min_value = py::cast<double>(snd);
         } else if (key == "max_value") {
-            def.max_value = py::cast<double>(item.second);
+            def.max_value = py::cast<double>(snd);
         } else if (key == "step") {
-            def.step = py::cast<double>(item.second);
+            def.step = py::cast<double>(snd);
         } else if (key == "categories") {
             def.categories.clear();
-            for (auto v : py::cast<py::list>(item.second)) {
+            for (auto v : py::cast<py::list>(snd)) {
                 if (py::isinstance<py::str>(v)) {
                     def.categories.emplace_back(py::cast<std::string>(v));
                 } else if (py::isinstance<py::int_>(v)) {
@@ -397,7 +396,7 @@ static walkforward::ParameterDef parameter_def_from_kwargs(const py::kwargs& kwa
                 }
             }
         } else if (key == "distribution") {
-            def.distribution = dist_from_string(py::cast<std::string>(item.second));
+            def.distribution = dist_from_string(py::cast<std::string>(snd));
         }
     }
     return def;
@@ -416,7 +415,7 @@ static Timestamp parse_date_object(const py::object& value) {
     return Timestamp{};
 }
 
-static const char* regime_type_name(regime::RegimeType regime_type) {
+static const char* regime_type_name(const regime::RegimeType regime_type) {
     switch (regime_type) {
         case regime::RegimeType::Bull:
             return "BULL";
@@ -453,7 +452,7 @@ struct BacktestConfig {
     py::dict strategy_params;
 
     static BacktestConfig from_dict(const py::dict& dict) {
-        BacktestConfig cfg;
+        BacktestConfig cfg = {};
         if (dict.contains("data_source")) cfg.data_source = dict["data_source"].cast<std::string>();
         if (dict.contains("data_config")) cfg.data_config = dict["data_config"].cast<py::dict>();
         if (dict.contains("symbols")) cfg.symbols = dict["symbols"].cast<std::vector<std::string>>();
@@ -467,16 +466,14 @@ struct BacktestConfig {
         if (dict.contains("plugins_search_paths")) {
             cfg.plugins_search_paths = dict["plugins_search_paths"].cast<std::vector<std::string>>();
         } else if (dict.contains("plugins")) {
-            auto plugins = dict["plugins"].cast<py::dict>();
-            if (plugins.contains("search_paths")) {
+            if (const auto plugins = dict["plugins"].cast<py::dict>(); plugins.contains("search_paths")) {
                 cfg.plugins_search_paths = plugins["search_paths"].cast<std::vector<std::string>>();
             }
         }
         if (dict.contains("plugins_load")) {
             cfg.plugins_load = dict["plugins_load"].cast<std::vector<std::string>>();
         } else if (dict.contains("plugins")) {
-            auto plugins = dict["plugins"].cast<py::dict>();
-            if (plugins.contains("load")) {
+            if (const auto plugins = dict["plugins"].cast<py::dict>(); plugins.contains("load")) {
                 cfg.plugins_load = plugins["load"].cast<std::vector<std::string>>();
             }
         }
@@ -727,7 +724,7 @@ public:
         parallel_context_.bar_type = bar_type_;
     }
 
-    engine::BacktestResults run(py::object strategy_obj) {
+    engine::BacktestResults run(const py::object& strategy_obj) {
         auto engine = create_engine();
         ensure_data_source();
         if (!data_source_) {
@@ -745,7 +742,7 @@ public:
 
         std::unique_ptr<strategy::Strategy> strategy;
         if (py::isinstance<py::str>(strategy_obj)) {
-            auto name = strategy_obj.cast<std::string>();
+            const auto name = strategy_obj.cast<std::string>();
             Config cfg = strategy_config_;
             cfg.set("name", name);
             strategy = strategy::StrategyFactory::instance().create(cfg);
@@ -764,21 +761,22 @@ public:
     }
 
     std::vector<engine::BacktestResults> run_parallel(const std::vector<py::dict>& param_sets,
-                                                      py::object strategy_factory,
-                                                      int num_threads) {
+                                                      const py::object& strategy_factory,
+                                                      const int num_threads) const
+    {
         if (!strategy_factory) {
             throw std::runtime_error("Strategy factory not provided");
         }
-        auto engine = create_engine();
+        const auto engine = create_engine();
         engine->set_parallel_context(parallel_context_);
 
         std::vector<std::map<std::string, double>> params;
         params.reserve(param_sets.size());
         for (const auto& param_set : param_sets) {
             std::map<std::string, double> out;
-            for (auto item : param_set) {
-                auto key = py::cast<std::string>(item.first);
-                auto value = py::cast<double>(item.second);
+            for (auto [fst, snd] : param_set) {
+                auto key = py::cast<std::string>(fst);
+                const auto value = py::cast<double>(snd);
                 out[key] = value;
             }
             params.push_back(std::move(out));
@@ -790,7 +788,7 @@ public:
             for (const auto& [key, value] : set) {
                 args[py::str(key)] = value;
             }
-            py::object strat = strategy_factory(args);
+            const py::object strat = strategy_factory(args);
             return std::unique_ptr<strategy::Strategy>(
                 new PythonStrategyAdapter(strat));
         };
@@ -828,17 +826,17 @@ public:
         if (end) {
             range.end = parse_date(*end);
         }
-        auto bars = data_source_->get_bars(symbol_from_string(symbol), range, bar_type_);
-        auto data = std::make_shared<std::vector<double>>();
+        const auto bars = data_source_->get_bars(symbol_from_string(symbol), range, bar_type_);
+        const auto data = std::make_shared<std::vector<double>>();
         data->reserve(bars.size());
         for (const auto& bar : bars) {
             data->push_back(bar.close);
         }
-        auto capsule = py::capsule(new std::shared_ptr<std::vector<double>>(data),
+        const auto capsule = py::capsule(new std::shared_ptr<std::vector<double>>(data),
                                    [](void* p) {
-                                       delete reinterpret_cast<std::shared_ptr<std::vector<double>>*>(p);
+                                       delete static_cast<std::shared_ptr<std::vector<double>>*>(p);
                                    });
-        return py::array_t<double>(data->size(), data->data(), capsule);
+        return py::array_t<double>(static_cast<ssize_t>(data->size()), data->data(), capsule);
     }
 
     py::array get_bars_array(const std::string& symbol,
@@ -855,8 +853,8 @@ public:
         if (end) {
             range.end = parse_date(*end);
         }
-        auto bars = data_source_->get_bars(symbol_from_string(symbol), range, bar_type_);
-        auto data = std::make_shared<std::vector<BarRow>>();
+        const auto bars = data_source_->get_bars(symbol_from_string(symbol), range, bar_type_);
+        const auto data = std::make_shared<std::vector<BarRow>>();
         data->reserve(bars.size());
         for (const auto& bar : bars) {
             data->push_back(BarRow{
@@ -868,9 +866,9 @@ public:
                 static_cast<uint64_t>(bar.volume),
             });
         }
-        auto capsule = py::capsule(new std::shared_ptr<std::vector<BarRow>>(data),
+        const auto capsule = py::capsule(new std::shared_ptr<std::vector<BarRow>>(data),
                                    [](void* p) {
-                                       delete reinterpret_cast<std::shared_ptr<std::vector<BarRow>>*>(p);
+                                       delete static_cast<std::shared_ptr<std::vector<BarRow>>*>(p);
                                    });
         py::array array(py::dtype::of<BarRow>(),
                         {static_cast<ssize_t>(data->size())},
@@ -924,14 +922,15 @@ private:
 
 class PyWalkForwardOptimizer {
 public:
-    explicit PyWalkForwardOptimizer(const walkforward::WalkForwardConfig& config)
-        : config_(config) {}
+    explicit PyWalkForwardOptimizer(walkforward::WalkForwardConfig  config)
+        : config_(std::move(config)) {}
 
-    walkforward::WalkForwardResults optimize(const py::list& params,
-                                             py::object strategy_factory,
-                                             py::object data_source_config,
+    [[nodiscard]] walkforward::WalkForwardResults optimize(const py::list& params,
+                                             const py::object& strategy_factory,
+                                             const py::object& data_source_config,
                                              const py::tuple& date_range,
-                                             py::object detector_config = py::none()) {
+                                             const py::object& detector_config = py::none()) const
+    {
         if (!strategy_factory) {
             throw std::runtime_error("Strategy factory not provided");
         }
@@ -945,7 +944,7 @@ public:
             if (py::isinstance<walkforward::ParameterDef>(item)) {
                 param_defs.push_back(item.cast<walkforward::ParameterDef>());
             } else if (py::isinstance<py::dict>(item)) {
-                py::dict dict = py::reinterpret_borrow<py::dict>(item);
+                auto dict = py::reinterpret_borrow<py::dict>(item);
                 py::kwargs kwargs(dict);
                 param_defs.push_back(parameter_def_from_kwargs(kwargs));
             } else {
@@ -1004,7 +1003,7 @@ public:
                     args[py::str(key)] = *v3;
                 }
             }
-            py::object strat = strategy_factory(args);
+            const py::object strat = strategy_factory(args);
             return std::unique_ptr<strategy::Strategy>(
                 new PythonStrategyAdapter(strat));
         };
@@ -1028,8 +1027,8 @@ static py::object equity_curve_dataframe(const metrics::EquityCurve& curve) {
         timestamps.append(timestamp_to_datetime(ts[i]));
         equities.append(vals[i]);
     }
-    auto pandas = py::module_::import("pandas");
-    auto df = pandas.attr("DataFrame")(py::dict(
+    const auto pandas = py::module_::import("pandas");
+    const auto df = pandas.attr("DataFrame")(py::dict(
         py::arg("timestamp") = timestamps,
         py::arg("equity") = equities));
     return df.attr("set_index")("timestamp");
@@ -1050,8 +1049,8 @@ static py::object portfolio_equity_dataframe(const std::vector<engine::Portfolio
         net.append(snap.net_exposure);
         leverage.append(snap.leverage);
     }
-    auto pandas = py::module_::import("pandas");
-    auto df = pandas.attr("DataFrame")(py::dict(
+    const auto pandas = py::module_::import("pandas");
+    const auto df = pandas.attr("DataFrame")(py::dict(
         py::arg("timestamp") = timestamps,
         py::arg("cash") = cash,
         py::arg("equity") = equity,
@@ -1082,7 +1081,7 @@ static py::object fills_dataframe(const std::vector<engine::Fill>& fills) {
         fill_ids.append(fill.id);
         is_maker.append(fill.is_maker);
     }
-    auto pandas = py::module_::import("pandas");
+    const auto pandas = py::module_::import("pandas");
     auto df = pandas.attr("DataFrame")(py::dict(
         py::arg("timestamp") = timestamps,
         py::arg("symbol") = symbols,
@@ -1104,8 +1103,7 @@ static double win_rate_from_equity(const metrics::EquityCurve& curve) {
     size_t wins = 0;
     size_t total = 0;
     for (size_t i = 1; i < equities.size(); ++i) {
-        double ret = equities[i] - equities[i - 1];
-        if (ret > 0) {
+        if (const double ret = equities[i] - equities[i - 1]; ret > 0) {
             ++wins;
         }
         ++total;
@@ -1121,8 +1119,7 @@ static double profit_factor_from_equity(const metrics::EquityCurve& curve) {
     double gains = 0.0;
     double losses = 0.0;
     for (size_t i = 1; i < equities.size(); ++i) {
-        double ret = equities[i] - equities[i - 1];
-        if (ret >= 0) {
+        if (const double ret = equities[i] - equities[i - 1]; ret >= 0) {
             gains += ret;
         } else {
             losses += -ret;
@@ -1141,13 +1138,13 @@ PYBIND11_MODULE(_core, m) {
 
     SymbolRegistry::instance().intern("");
 
-    auto m_data = m.def_submodule("data", "Data handling");
-    auto m_regime = m.def_submodule("regime", "Regime detection");
-    auto m_engine = m.def_submodule("engine", "Backtesting engine");
-    auto m_strategy = m.def_submodule("strategy", "Strategy definitions");
-    auto m_metrics = m.def_submodule("metrics", "Performance metrics");
-    auto m_risk = m.def_submodule("risk", "Risk management");
-    auto m_walkforward = m.def_submodule("walkforward", "Walk-forward optimization");
+    const auto m_data = m.def_submodule("data", "Data handling");
+    const auto m_regime = m.def_submodule("regime", "Regime detection");
+    const auto m_engine = m.def_submodule("engine", "Backtesting engine");
+    const auto m_strategy = m.def_submodule("strategy", "Strategy definitions");
+    const auto m_metrics = m.def_submodule("metrics", "Performance metrics");
+    const auto m_risk = m.def_submodule("risk", "Risk management");
+    const auto m_walkforward = m.def_submodule("walkforward", "Walk-forward optimization");
 
     py::class_<Timestamp>(m, "Timestamp")
         .def(py::init<int64_t>())
@@ -1248,7 +1245,7 @@ PYBIND11_MODULE(_core, m) {
 
     py::class_<walkforward::ParameterDef>(m_walkforward, "ParameterDef")
         .def(py::init<>())
-        .def(py::init([](py::kwargs kwargs) { return parameter_def_from_kwargs(kwargs); }))
+        .def(py::init([](const py::kwargs& kwargs) { return parameter_def_from_kwargs(kwargs); }))
         .def_readwrite("name", &walkforward::ParameterDef::name)
         .def_readwrite("type", &walkforward::ParameterDef::type)
         .def_readwrite("min_value", &walkforward::ParameterDef::min_value)
@@ -1259,7 +1256,7 @@ PYBIND11_MODULE(_core, m) {
 
     py::class_<walkforward::WalkForwardConfig>(m_walkforward, "WalkForwardConfig")
         .def(py::init<>())
-        .def(py::init([](py::kwargs kwargs) { return walkforward_config_from_kwargs(kwargs); }))
+        .def(py::init([](const py::kwargs& kwargs) { return walkforward_config_from_kwargs(kwargs); }))
         .def_readwrite("window_type", &walkforward::WalkForwardConfig::window_type)
         .def_property("in_sample_days",
                       [](const walkforward::WalkForwardConfig& cfg) {
@@ -1357,11 +1354,11 @@ PYBIND11_MODULE(_core, m) {
 
     py::class_<engine::Order>(m, "Order")
         .def(py::init([](const std::string& symbol,
-                         engine::OrderSide side,
-                         engine::OrderType type,
-                         double quantity,
-                         std::optional<double> limit_price,
-                         std::optional<double> stop_price) {
+                         const engine::OrderSide side,
+                         const engine::OrderType type,
+                         const double quantity,
+                         const std::optional<double> limit_price,
+                         const std::optional<double> stop_price) {
             engine::Order order;
             order.symbol = symbol_from_string(symbol);
             order.side = side;
@@ -1533,7 +1530,7 @@ PYBIND11_MODULE(_core, m) {
                             const std::string& timeframe,
                             const std::string& start,
                             const std::string& end,
-                            int limit,
+                            const int limit,
                             const std::string& page_token) {
             auto res = client.get_bars(symbols, timeframe, start, end, limit, page_token);
             if (res.is_err()) {
@@ -1547,7 +1544,7 @@ PYBIND11_MODULE(_core, m) {
                               const std::vector<std::string>& symbols,
                               const std::string& start,
                               const std::string& end,
-                              int limit,
+                              const int limit,
                               const std::string& page_token) {
             auto res = client.get_trades(symbols, start, end, limit, page_token);
             if (res.is_err()) {
@@ -1617,11 +1614,11 @@ PYBIND11_MODULE(_core, m) {
         .def_property_readonly("total_return", [](const engine::BacktestResults& r) { return r.total_return; })
         .def_property_readonly("max_drawdown", [](const engine::BacktestResults& r) { return r.max_drawdown; })
         .def_property_readonly("sharpe_ratio", [](const engine::BacktestResults& r) {
-            auto stats = metrics::compute_stats(r.metrics.equity_curve(), 252.0);
+            const auto stats = metrics::compute_stats(r.metrics.equity_curve(), 252.0);
             return stats.sharpe;
         })
         .def_property_readonly("sortino_ratio", [](const engine::BacktestResults& r) {
-            auto stats = metrics::compute_stats(r.metrics.equity_curve(), 252.0);
+            const auto stats = metrics::compute_stats(r.metrics.equity_curve(), 252.0);
             return stats.sortino;
         })
         .def_property_readonly("win_rate", [](const engine::BacktestResults& r) {
@@ -1640,33 +1637,32 @@ PYBIND11_MODULE(_core, m) {
             return fills_dataframe(r.fills);
         })
         .def("report_csv", [](const engine::BacktestResults& r) {
-            auto report = metrics::build_report(r.metrics, r.fills);
+            const auto report = metrics::build_report(r.metrics, r.fills);
             return metrics::ReportWriter::to_csv(report);
         })
         .def("report_json", [](const engine::BacktestResults& r) {
-            auto report = metrics::build_report(r.metrics, r.fills);
+            const auto report = metrics::build_report(r.metrics, r.fills);
             return metrics::ReportWriter::to_json(report);
         })
         .def("performance_summary", [](const engine::BacktestResults& r) {
-            auto report = metrics::build_report(r.metrics, r.fills);
+            const auto report = metrics::build_report(r.metrics, r.fills);
             return performance_summary_to_dict(report.performance_summary);
         })
         .def("performance_stats", [](const engine::BacktestResults& r) {
-            auto report = metrics::build_report(r.metrics, r.fills);
+            const auto report = metrics::build_report(r.metrics, r.fills);
             return performance_stats_to_dict(report.performance);
         })
         .def("regime_performance", [](const engine::BacktestResults& r) {
-            auto report = metrics::build_report(r.metrics, r.fills);
+            const auto report = metrics::build_report(r.metrics, r.fills);
             return regime_performance_to_dict(report.regime_performance);
         })
         .def("transition_metrics", [](const engine::BacktestResults& r) {
-            auto report = metrics::build_report(r.metrics, r.fills);
+            const auto report = metrics::build_report(r.metrics, r.fills);
             return transition_stats_to_dict(report.transitions);
         })
         .def("regime_metrics", [](const engine::BacktestResults& r) {
             py::dict out;
-            const auto& results = r.metrics.regime_attribution().results();
-            for (const auto& [regime_type, metrics] : results) {
+            for (const auto& results = r.metrics.regime_attribution().results(); const auto& [regime_type, metrics] : results) {
                 py::dict entry;
                 entry["return"] = metrics.total_return;
                 entry["sharpe"] = metrics.sharpe;
@@ -1683,13 +1679,13 @@ PYBIND11_MODULE(_core, m) {
 
     py::class_<PyBacktestEngine>(m_engine, "BacktestEngine")
         .def(py::init<const BacktestConfig&>())
-        .def("run", [](PyBacktestEngine& engine, py::object strategy) {
-            return engine.run(std::move(strategy));
+        .def("run", [](PyBacktestEngine& engine, const py::object& strategy) {
+            return engine.run(strategy);
         })
-        .def("run_parallel", [](PyBacktestEngine& engine,
+        .def("run_parallel", [](const PyBacktestEngine& engine,
                                  const std::vector<py::dict>& param_sets,
-                                 py::object factory,
-                                 int num_threads) {
+                                 const py::object& factory,
+                                 const int num_threads) {
             return engine.run_parallel(param_sets, factory, num_threads);
         }, py::arg("param_sets"), py::arg("strategy_factory"), py::arg("num_threads") = -1)
         .def_property_readonly("portfolio", &PyBacktestEngine::portfolio,
@@ -1706,16 +1702,15 @@ PYBIND11_MODULE(_core, m) {
              py::arg("end") = py::none());
 
     py::class_<strategy::StrategyContext>(m_strategy, "StrategyContext")
-        .def("submit_order", [](strategy::StrategyContext& ctx, engine::Order order) {
+        .def("submit_order", [](const strategy::StrategyContext& ctx, engine::Order order) {
             auto result = ctx.submit_order(std::move(order));
             if (result.is_err()) {
                 throw std::runtime_error(result.error().to_string());
             }
             return result.value();
         })
-        .def("cancel_order", [](strategy::StrategyContext& ctx, engine::OrderId id) {
-            auto result = ctx.cancel_order(id);
-            if (result.is_err()) {
+        .def("cancel_order", [](const strategy::StrategyContext& ctx, const engine::OrderId id) {
+            if (const auto result = ctx.cancel_order(id); result.is_err()) {
                 throw std::runtime_error(result.error().to_string());
             }
         })
@@ -1723,7 +1718,7 @@ PYBIND11_MODULE(_core, m) {
             return ctx.portfolio();
         }, py::return_value_policy::reference_internal)
         .def("get_position", [](const strategy::StrategyContext& ctx, const std::string& symbol) {
-            auto pos = ctx.portfolio().get_position(symbol_from_string(symbol));
+            const auto pos = ctx.portfolio().get_position(symbol_from_string(symbol));
             return pos ? pos->quantity : 0.0;
         })
         .def("current_regime", &strategy::StrategyContext::current_regime)
@@ -1752,15 +1747,15 @@ PYBIND11_MODULE(_core, m) {
         .def("on_regime_change", &strategy::Strategy::on_regime_change)
         .def("on_end_of_day", &strategy::Strategy::on_end_of_day)
         .def("on_timer", &strategy::Strategy::on_timer)
-        .def_property_readonly("ctx", [](strategy::Strategy& s) {
+        .def_property_readonly("ctx", [](const strategy::Strategy& s) {
             return s.context();
         }, py::return_value_policy::reference_internal);
 
-    m.def("register_strategy", [](const std::string& name, py::object strategy_class) {
+    m.def("register_strategy", [](const std::string& name, const py::object& strategy_class) {
         strategy::StrategyFactory::instance().register_creator(
             name, [strategy_class](const Config&) {
                 py::gil_scoped_acquire acquire;
-                py::object instance = strategy_class();
+                const py::object instance = strategy_class();
                 return std::unique_ptr<strategy::Strategy>(new PythonStrategyAdapter(instance));
             });
     });

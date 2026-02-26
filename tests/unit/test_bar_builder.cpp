@@ -6,17 +6,16 @@
 using namespace regimeflow;
 using namespace regimeflow::data;
 
-namespace {
-
-Tick make_tick(SymbolId symbol, const std::string& ts, double price, double qty) {
-    Tick tick;
-    tick.symbol = symbol;
-    tick.timestamp = Timestamp::from_string(ts, "%Y-%m-%d %H:%M:%S");
-    tick.price = price;
-    tick.quantity = qty;
-    return tick;
-}  // namespace
-
+namespace
+{
+    Tick make_tick(const SymbolId symbol, const std::string& ts, const double price, const double qty) {
+        Tick tick;
+        tick.symbol = symbol;
+        tick.timestamp = Timestamp::from_string(ts, "%Y-%m-%d %H:%M:%S");
+        tick.price = price;
+        tick.quantity = qty;
+        return tick;
+    }  // namespace
 }
 
 TEST(BarBuilder, VolumeBarEmitsAtThreshold) {
@@ -48,10 +47,10 @@ TEST(BarBuilder, TickBarCountsTicks) {
     cfg.tick_threshold = 3;
     BarBuilder builder(cfg);
 
-    SymbolId sym = SymbolRegistry::instance().intern("MSFT");
+    const SymbolId sym = SymbolRegistry::instance().intern("MSFT");
     EXPECT_FALSE(builder.process(make_tick(sym, "2024-01-01 00:00:00", 100.0, 1.0)));
     EXPECT_FALSE(builder.process(make_tick(sym, "2024-01-01 00:00:01", 101.0, 1.0)));
-    auto bar = builder.process(make_tick(sym, "2024-01-01 00:00:02", 102.0, 1.0));
+    const auto bar = builder.process(make_tick(sym, "2024-01-01 00:00:02", 102.0, 1.0));
     ASSERT_TRUE(bar.has_value());
     EXPECT_EQ(bar->trade_count, 3u);
     EXPECT_EQ(bar->close, 102.0);
@@ -63,9 +62,9 @@ TEST(BarBuilder, DollarBarEmitsOnDollarThreshold) {
     cfg.dollar_threshold = 1000.0;
     BarBuilder builder(cfg);
 
-    SymbolId sym = SymbolRegistry::instance().intern("TSLA");
+    const SymbolId sym = SymbolRegistry::instance().intern("TSLA");
     EXPECT_FALSE(builder.process(make_tick(sym, "2024-01-01 00:00:00", 50.0, 10.0)));
-    auto bar = builder.process(make_tick(sym, "2024-01-01 00:00:01", 25.0, 20.0));
+    const auto bar = builder.process(make_tick(sym, "2024-01-01 00:00:01", 25.0, 20.0));
     ASSERT_TRUE(bar.has_value());
     EXPECT_EQ(bar->volume, 30u);
     EXPECT_EQ(bar->close, 25.0);
@@ -78,10 +77,10 @@ TEST(BarBuilder, TimeBarSplitsOnIntervalBoundary) {
     cfg.time_interval_ms = 60'000;
     BarBuilder builder(cfg);
 
-    SymbolId sym = SymbolRegistry::instance().intern("NVDA");
+    const SymbolId sym = SymbolRegistry::instance().intern("NVDA");
     EXPECT_FALSE(builder.process(make_tick(sym, "2024-01-01 00:00:00", 10.0, 1.0)));
     EXPECT_FALSE(builder.process(make_tick(sym, "2024-01-01 00:00:30", 11.0, 1.0)));
-    auto bar = builder.process(make_tick(sym, "2024-01-01 00:01:01", 12.0, 1.0));
+    const auto bar = builder.process(make_tick(sym, "2024-01-01 00:01:01", 12.0, 1.0));
     ASSERT_TRUE(bar.has_value());
     EXPECT_EQ(bar->timestamp.to_string(), "2024-01-01 00:00:00");
     EXPECT_EQ(bar->close, 11.0);

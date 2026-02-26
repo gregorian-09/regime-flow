@@ -5,24 +5,23 @@
 
 #include <filesystem>
 
-namespace {
+namespace
+{
+    TEST(CsvDbClientTest, ReadsBarsFromCsv) {
+        regimeflow::data::CSVDataSource::Config cfg;
+        cfg.data_directory = (std::filesystem::path(REGIMEFLOW_TEST_ROOT) / "tests/fixtures").string();
+        cfg.file_pattern = "{symbol}.csv";
+        cfg.has_header = true;
 
-TEST(CsvDbClientTest, ReadsBarsFromCsv) {
-    regimeflow::data::CSVDataSource::Config cfg;
-    cfg.data_directory = (std::filesystem::path(REGIMEFLOW_TEST_ROOT) / "tests/fixtures").string();
-    cfg.file_pattern = "{symbol}.csv";
-    cfg.has_header = true;
+        regimeflow::data::CSVDataSource source(cfg);
+        regimeflow::data::CsvDbClient client(std::move(source));
 
-    regimeflow::data::CSVDataSource source(cfg);
-    regimeflow::data::CsvDbClient client(std::move(source));
+        const auto symbol = regimeflow::SymbolRegistry::instance().intern("TEST");
+        regimeflow::TimeRange range;
+        range.start = regimeflow::Timestamp::from_string("2020-01-01 00:00:00", "%Y-%m-%d %H:%M:%S");
+        range.end = regimeflow::Timestamp::from_string("2020-01-03 00:00:00", "%Y-%m-%d %H:%M:%S");
 
-    auto symbol = regimeflow::SymbolRegistry::instance().intern("TEST");
-    regimeflow::TimeRange range;
-    range.start = regimeflow::Timestamp::from_string("2020-01-01 00:00:00", "%Y-%m-%d %H:%M:%S");
-    range.end = regimeflow::Timestamp::from_string("2020-01-03 00:00:00", "%Y-%m-%d %H:%M:%S");
-
-    auto bars = client.query_bars(symbol, range, regimeflow::data::BarType::Time_1Day);
-    EXPECT_FALSE(bars.empty());
-}
-
+        const auto bars = client.query_bars(symbol, range, regimeflow::data::BarType::Time_1Day);
+        EXPECT_FALSE(bars.empty());
+    }
 }  // namespace

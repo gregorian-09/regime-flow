@@ -49,7 +49,7 @@ private:
 extern "C" {
 
 REGIMEFLOW_EXPORT regimeflow::plugins::Plugin* create_plugin();
-REGIMEFLOW_EXPORT void destroy_plugin(regimeflow::plugins::Plugin* plugin);
+REGIMEFLOW_EXPORT void destroy_plugin(const regimeflow::plugins::Plugin* plugin);
 REGIMEFLOW_EXPORT const char* plugin_type();
 REGIMEFLOW_EXPORT const char* plugin_name();
 REGIMEFLOW_EXPORT const char* regimeflow_abi_version();

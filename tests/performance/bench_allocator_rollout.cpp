@@ -4,18 +4,17 @@
 #include <iostream>
 #include <vector>
 
-namespace {
-
-template<typename F>
-double run_stage(const char* name, F&& func) {
-    auto start = std::chrono::high_resolution_clock::now();
-    func();
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << name << ": " << elapsed.count() << "s" << std::endl;
-    return elapsed.count();
-}
-
+namespace
+{
+    template<typename F>
+    double run_stage(const char* name, F&& func) {
+        const auto start = std::chrono::high_resolution_clock::now();
+        func();
+        const auto end = std::chrono::high_resolution_clock::now();
+        const std::chrono::duration<double> elapsed = end - start;
+        std::cout << name << ": " << elapsed.count() << "s" << std::endl;
+        return elapsed.count();
+    }
 }  // namespace
 
 int main() {
@@ -27,7 +26,7 @@ int main() {
         for (size_t i = 0; i < kItems; ++i) {
             pointers.push_back(new int(static_cast<int>(i)));
         }
-        for (auto* ptr : pointers) {
+        for (const auto* ptr : pointers) {
             delete ptr;
         }
     });

@@ -15,19 +15,18 @@
 
 #include <memory>
 
-namespace regimeflow::engine {
-
-/**
- * @brief Factory for creating backtest engines from config.
- */
-class EngineFactory {
-public:
+namespace regimeflow::engine
+{
     /**
-     * @brief Create a configured BacktestEngine.
-     * @param config Root configuration.
-     * @return Engine instance.
+     * @brief Factory for creating backtest engines from config.
      */
-    static std::unique_ptr<BacktestEngine> create(const Config& config);
-};
-
+    class EngineFactory {
+    public:
+        /**
+         * @brief Create a configured BacktestEngine.
+         * @param config Root configuration.
+         * @return Engine instance.
+         */
+        static std::unique_ptr<BacktestEngine> create(const Config& config);
+    };
 }  // namespace regimeflow::engine

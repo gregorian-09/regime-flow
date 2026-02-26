@@ -13,215 +13,212 @@
 #include <thread>
 #include <iomanip>
 
-namespace {
+namespace
+{
+    std::atomic<bool> g_running{true};
 
-std::atomic<bool> g_running{true};
+    void log_line(const std::string& message);
 
-void log_line(const std::string& message);
+    void handle_signal(int) {
+        g_running.store(false);
+    }
 
-void handle_signal(int) {
-    g_running.store(false);
-}
+    std::optional<std::string> get_string(const regimeflow::Config& cfg, const std::string& key) {
+        return cfg.get_as<std::string>(key);
+    }
 
-std::optional<std::string> get_string(const regimeflow::Config& cfg, const std::string& key) {
-    return cfg.get_as<std::string>(key);
-}
+    std::optional<int64_t> get_int(const regimeflow::Config& cfg, const std::string& key) {
+        return cfg.get_as<int64_t>(key);
+    }
 
-std::optional<int64_t> get_int(const regimeflow::Config& cfg, const std::string& key) {
-    return cfg.get_as<int64_t>(key);
-}
+    std::optional<bool> get_bool(const regimeflow::Config& cfg, const std::string& key) {
+        return cfg.get_as<bool>(key);
+    }
 
-std::optional<bool> get_bool(const regimeflow::Config& cfg, const std::string& key) {
-    return cfg.get_as<bool>(key);
-}
-
-std::vector<std::string> get_string_array(const regimeflow::Config& cfg,
-                                          const std::string& key) {
-    std::vector<std::string> out;
-    auto arr = cfg.get_as<regimeflow::ConfigValue::Array>(key);
-    if (!arr) {
+    std::vector<std::string> get_string_array(const regimeflow::Config& cfg,
+                                              const std::string& key) {
+        std::vector<std::string> out;
+        const auto arr = cfg.get_as<regimeflow::ConfigValue::Array>(key);
+        if (!arr) {
+            return out;
+        }
+        for (const auto& item : *arr) {
+            if (const auto* s = item.get_if<std::string>()) {
+                out.push_back(*s);
+            }
+        }
         return out;
     }
-    for (const auto& item : *arr) {
-        if (const auto* s = item.get_if<std::string>()) {
-            out.push_back(*s);
-        }
+
+    std::string trim(std::string value) {
+        const auto ws = " \t\r\n";
+        value.erase(0, value.find_first_not_of(ws));
+        value.erase(value.find_last_not_of(ws) + 1);
+        return value;
     }
-    return out;
-}
 
-std::string trim(std::string value) {
-    const char* ws = " \t\r\n";
-    value.erase(0, value.find_first_not_of(ws));
-    value.erase(value.find_last_not_of(ws) + 1);
-    return value;
-}
-
-std::optional<std::string> get_env_value(const char* key) {
+    std::optional<std::string> get_env_value(const char* key) {
 #if defined(_WIN32)
-    char* raw = nullptr;
-    size_t len = 0;
-    if (_dupenv_s(&raw, &len, key) != 0 || raw == nullptr) {
+        char* raw = nullptr;
+        size_t len = 0;
+        if (_dupenv_s(&raw, &len, key) != 0 || raw == nullptr) {
+            return std::nullopt;
+        }
+        std::string value(raw);
+        std::free(raw);
+        return value;
+#else
+        if (const char* val = std::getenv(key)) {
+            return std::string(val);
+        }
         return std::nullopt;
-    }
-    std::string value(raw);
-    std::free(raw);
-    return value;
-#else
-    if (const char* val = std::getenv(key)) {
-        return std::string(val);
-    }
-    return std::nullopt;
 #endif
-}
-
-void load_dotenv(const std::string& path) {
-    std::ifstream in(path);
-    if (!in.is_open()) {
-        return;
     }
-    std::string line;
-    while (std::getline(in, line)) {
-        line = trim(line);
-        if (line.empty() || line[0] == '#') {
-            continue;
+
+    void load_dotenv(const std::string& path) {
+        std::ifstream in(path);
+        if (!in.is_open()) {
+            return;
         }
-        auto pos = line.find('=');
-        if (pos == std::string::npos) {
-            continue;
-        }
-        std::string key = trim(line.substr(0, pos));
-        std::string value = trim(line.substr(pos + 1));
-        if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') ||
-                                  (value.front() == '\'' && value.back() == '\''))) {
-            value = value.substr(1, value.size() - 2);
-        }
-        if (key.empty()) {
-            continue;
-        }
-        if (get_env_value(key.c_str()).has_value()) {
-            continue;
-        }
+        std::string line;
+        while (std::getline(in, line)) {
+            line = trim(line);
+            if (line.empty() || line[0] == '#') {
+                continue;
+            }
+            auto pos = line.find('=');
+            if (pos == std::string::npos) {
+                continue;
+            }
+            std::string key = trim(line.substr(0, pos));
+            std::string value = trim(line.substr(pos + 1));
+            if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') ||
+                                      (value.front() == '\'' && value.back() == '\''))) {
+                value = value.substr(1, value.size() - 2);
+                                      }
+            if (key.empty()) {
+                continue;
+            }
+            if (get_env_value(key.c_str()).has_value()) {
+                continue;
+            }
 #if defined(_WIN32)
-        _putenv_s(key.c_str(), value.c_str());
+            _putenv_s(key.c_str(), value.c_str());
 #else
-        setenv(key.c_str(), value.c_str(), 0);
+            setenv(key.c_str(), value.c_str(), 0);
 #endif
+        }
     }
-}
 
-regimeflow::Config get_object_config(const regimeflow::Config& cfg, const std::string& key) {
-    auto obj = cfg.get_as<regimeflow::ConfigValue::Object>(key);
-    if (!obj) {
-        return {};
+    regimeflow::Config get_object_config(const regimeflow::Config& cfg, const std::string& key) {
+        const auto obj = cfg.get_as<regimeflow::ConfigValue::Object>(key);
+        if (!obj) {
+            return {};
+        }
+        return regimeflow::Config(*obj);
     }
-    return regimeflow::Config(*obj);
-}
 
-std::map<std::string, std::string> get_object_map(const regimeflow::Config& cfg,
-                                                  const std::string& key) {
-    std::map<std::string, std::string> out;
-    auto obj = cfg.get_as<regimeflow::ConfigValue::Object>(key);
-    if (!obj) {
+    std::map<std::string, std::string> get_object_map(const regimeflow::Config& cfg,
+                                                      const std::string& key) {
+        std::map<std::string, std::string> out;
+        auto obj = cfg.get_as<regimeflow::ConfigValue::Object>(key);
+        if (!obj) {
+            return out;
+        }
+        for (const auto& [k, v] : *obj) {
+            if (const auto* s = v.get_if<std::string>()) {
+                out[k] = *s;
+            } else if (const auto* b = v.get_if<bool>()) {
+                out[k] = *b ? "true" : "false";
+            } else if (const auto* i = v.get_if<int64_t>()) {
+                out[k] = std::to_string(*i);
+            } else if (const auto* d = v.get_if<double>()) {
+                out[k] = std::to_string(*d);
+            }
+        }
         return out;
     }
-    for (const auto& [k, v] : *obj) {
-        if (const auto* s = v.get_if<std::string>()) {
-            out[k] = *s;
-        } else if (const auto* b = v.get_if<bool>()) {
-            out[k] = *b ? "true" : "false";
-        } else if (const auto* i = v.get_if<int64_t>()) {
-            out[k] = std::to_string(*i);
-        } else if (const auto* d = v.get_if<double>()) {
-            out[k] = std::to_string(*d);
+
+    void set_broker_config_from_env(std::map<std::string, std::string>& broker_config,
+                                    const std::string& key,
+                                    const char* env_key) {
+        if (broker_config.contains(key)) {
+            return;
         }
-    }
-    return out;
-}
-
-void set_broker_config_from_env(std::map<std::string, std::string>& broker_config,
-                                const std::string& key,
-                                const char* env_key) {
-    if (broker_config.find(key) != broker_config.end()) {
-        return;
-    }
-    if (auto val = get_env_value(env_key)) {
-        broker_config[key] = *val;
-    }
-}
-
-regimeflow::Result<regimeflow::live::LiveConfig> load_live_config(const std::string& path) {
-    using regimeflow::Config;
-    using regimeflow::ConfigValue;
-    using regimeflow::live::LiveConfig;
-    using regimeflow::Result;
-
-    Config root = regimeflow::YamlConfigLoader::load_file(path);
-
-    LiveConfig cfg;
-    auto broker = get_string(root, "live.broker");
-    if (!broker || broker->empty()) {
-        return regimeflow::Error(regimeflow::Error::Code::ConfigError,
-                                 "Missing live.broker");
-    }
-    cfg.broker_type = *broker;
-    cfg.symbols = get_string_array(root, "live.symbols");
-    cfg.paper_trading = get_bool(root, "live.paper").value_or(true);
-    cfg.strategy_name = get_string(root, "strategy.name").value_or("buy_and_hold");
-    cfg.strategy_config = get_object_config(root, "strategy.params");
-    cfg.risk_config = get_object_config(root, "live.risk");
-
-    if (auto enabled = get_bool(root, "live.reconnect.enabled")) {
-        cfg.enable_auto_reconnect = *enabled;
-    }
-    if (auto ms = get_int(root, "live.reconnect.initial_ms")) {
-        cfg.reconnect_initial = regimeflow::Duration::milliseconds(*ms);
-    }
-    if (auto ms = get_int(root, "live.reconnect.max_ms")) {
-        cfg.reconnect_max = regimeflow::Duration::milliseconds(*ms);
-    }
-
-    bool heartbeat_enabled = get_bool(root, "live.heartbeat.enabled").value_or(false);
-    if (heartbeat_enabled) {
-        auto interval_ms = get_int(root, "live.heartbeat.interval_ms").value_or(0);
-        if (interval_ms > 0) {
-            cfg.heartbeat_timeout = regimeflow::Duration::milliseconds(interval_ms);
+        if (const auto val = get_env_value(env_key)) {
+            broker_config[key] = *val;
         }
     }
 
-    cfg.broker_config = get_object_map(root, "live.broker_config");
+    regimeflow::Result<regimeflow::live::LiveConfig> load_live_config(const std::string& path) {
+        using regimeflow::Config;
+        using regimeflow::ConfigValue;
+        using regimeflow::live::LiveConfig;
+        using regimeflow::Result;
 
-    cfg.broker_config["paper"] = cfg.paper_trading ? "true" : "false";
+        const Config root = regimeflow::YamlConfigLoader::load_file(path);
 
-    if (cfg.broker_type == "alpaca") {
-        set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");
-        set_broker_config_from_env(cfg.broker_config, "secret_key", "ALPACA_API_SECRET");
-        set_broker_config_from_env(cfg.broker_config, "base_url", "ALPACA_PAPER_BASE_URL");
-        if (cfg.broker_config.find("api_key") == cfg.broker_config.end() ||
-            cfg.broker_config.find("secret_key") == cfg.broker_config.end()) {
-            return regimeflow::Error(regimeflow::Error::Code::ConfigError,
-                                     "Missing Alpaca API key/secret");
+        LiveConfig cfg;
+        const auto broker = get_string(root, "live.broker");
+        if (!broker || broker->empty()) {
+            return regimeflow::Result<regimeflow::live::LiveConfig>(regimeflow::Error(regimeflow::Error::Code::ConfigError,
+                "Missing live.broker"));
         }
-        if (cfg.broker_config.find("base_url") == cfg.broker_config.end()) {
-            return regimeflow::Error(regimeflow::Error::Code::ConfigError,
-                                     "Missing Alpaca base URL (ALPACA_PAPER_BASE_URL)");
+        cfg.broker_type = *broker;
+        cfg.symbols = get_string_array(root, "live.symbols");
+        cfg.paper_trading = get_bool(root, "live.paper").value_or(true);
+        cfg.strategy_name = get_string(root, "strategy.name").value_or("buy_and_hold");
+        cfg.strategy_config = get_object_config(root, "strategy.params");
+        cfg.risk_config = get_object_config(root, "live.risk");
+
+        if (const auto enabled = get_bool(root, "live.reconnect.enabled")) {
+            cfg.enable_auto_reconnect = *enabled;
         }
+        if (const auto ms = get_int(root, "live.reconnect.initial_ms")) {
+            cfg.reconnect_initial = regimeflow::Duration::milliseconds(*ms);
+        }
+        if (const auto ms = get_int(root, "live.reconnect.max_ms")) {
+            cfg.reconnect_max = regimeflow::Duration::milliseconds(*ms);
+        }
+
+        if (bool heartbeat_enabled = get_bool(root, "live.heartbeat.enabled").value_or(false)) {
+            if (const auto interval_ms = get_int(root, "live.heartbeat.interval_ms").value_or(0); interval_ms > 0) {
+                cfg.heartbeat_timeout = regimeflow::Duration::milliseconds(interval_ms);
+            }
+        }
+
+        cfg.broker_config = get_object_map(root, "live.broker_config");
+
+        cfg.broker_config["paper"] = cfg.paper_trading ? "true" : "false";
+
+        if (cfg.broker_type == "alpaca") {
+            set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");
+            set_broker_config_from_env(cfg.broker_config, "secret_key", "ALPACA_API_SECRET");
+            set_broker_config_from_env(cfg.broker_config, "base_url", "ALPACA_PAPER_BASE_URL");
+            if (!cfg.broker_config.contains("api_key") ||
+                !cfg.broker_config.contains("secret_key")) {
+                return regimeflow::Result<regimeflow::live::LiveConfig>(regimeflow::Error(regimeflow::Error::Code::ConfigError,
+                    "Missing Alpaca API key/secret"));
+                }
+            if (!cfg.broker_config.contains("base_url")) {
+                return regimeflow::Result<regimeflow::live::LiveConfig>(regimeflow::Error(regimeflow::Error::Code::ConfigError,
+                    "Missing Alpaca base URL (ALPACA_PAPER_BASE_URL)"));
+            }
+        }
+
+        return regimeflow::Result<regimeflow::live::LiveConfig>(cfg);
     }
 
-    return cfg;
-}
-
-void log_line(const std::string& message) {
-    auto now = std::time(nullptr);
-    std::tm tm {};
+    void log_line(const std::string& message) {
+        auto now = std::time(nullptr);
+        std::tm tm {};
 #if defined(_WIN32)
-    localtime_s(&tm, &now);
+        localtime_s(&tm, &now);
 #else
-    localtime_r(&now, &tm);
+        localtime_r(&now, &tm);
 #endif
-    std::cout << "[" << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << "] " << message << "\n";
-}
-
+        std::cout << "[" << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << "] " << message << "\n";
+    }
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -242,8 +239,7 @@ int main(int argc, char** argv) {
     std::signal(SIGINT, handle_signal);
     std::signal(SIGTERM, handle_signal);
 
-    auto res = engine.start();
-    if (res.is_err()) {
+    if (auto res = engine.start(); res.is_err()) {
         std::cerr << "Failed to start live engine: " << res.error().to_string() << "\n";
         return 1;
     }

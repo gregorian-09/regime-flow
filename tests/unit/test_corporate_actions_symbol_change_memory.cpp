@@ -2,22 +2,21 @@
 
 #include "regimeflow/data/memory_data_source.h"
 
-namespace {
-
-regimeflow::data::Bar make_bar(regimeflow::SymbolId symbol,
-                               const std::string& ts,
-                               double close) {
-    regimeflow::data::Bar bar{};
-    bar.symbol = symbol;
-    bar.timestamp = regimeflow::Timestamp::from_string(ts, "%Y-%m-%d %H:%M:%S");
-    bar.open = close;
-    bar.high = close;
-    bar.low = close;
-    bar.close = close;
-    bar.volume = 1;
-    return bar;
-}
-
+namespace
+{
+    regimeflow::data::Bar make_bar(regimeflow::SymbolId symbol,
+                                   const std::string& ts,
+                                   double close) {
+        regimeflow::data::Bar bar{};
+        bar.symbol = symbol;
+        bar.timestamp = regimeflow::Timestamp::from_string(ts, "%Y-%m-%d %H:%M:%S");
+        bar.open = close;
+        bar.high = close;
+        bar.low = close;
+        bar.close = close;
+        bar.volume = 1;
+        return bar;
+    }
 }  // namespace
 
 TEST(MemoryDataSourceTest, SymbolChangeAliasesResolve) {

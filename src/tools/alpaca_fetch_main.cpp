@@ -13,20 +13,20 @@
 #include <unordered_map>
 #include <vector>
 
-namespace {
+namespace
+{
+    std::string trim(std::string value) {
+        const auto ws = " \t\r\n";
+        value.erase(0, value.find_first_not_of(ws));
+        value.erase(value.find_last_not_of(ws) + 1);
+        return value;
+    }
 
-std::string trim(std::string value) {
-    const char* ws = " \t\r\n";
-    value.erase(0, value.find_first_not_of(ws));
-    value.erase(value.find_last_not_of(ws) + 1);
-    return value;
-}
-
-std::string json_escape(const std::string& value) {
-    std::string out;
-    out.reserve(value.size() + 8);
-    for (char c : value) {
-        switch (c) {
+    std::string json_escape(const std::string& value) {
+        std::string out;
+        out.reserve(value.size() + 8);
+        for (const char c : value) {
+            switch (c) {
             case '\"': out += "\\\""; break;
             case '\\': out += "\\\\"; break;
             case '\b': out += "\\b"; break;
@@ -43,146 +43,145 @@ std::string json_escape(const std::string& value) {
                 } else {
                     out += c;
                 }
-        }
-    }
-    return out;
-}
-
-void serialize_json(const regimeflow::common::JsonValue& value, std::ostream& out) {
-    if (value.is_null()) {
-        out << "null";
-        return;
-    }
-    if (const auto* b = value.as_bool()) {
-        out << (*b ? "true" : "false");
-        return;
-    }
-    if (const auto* n = value.as_number()) {
-        out << std::setprecision(15) << *n;
-        return;
-    }
-    if (const auto* s = value.as_string()) {
-        out << "\"" << json_escape(*s) << "\"";
-        return;
-    }
-    if (const auto* arr = value.as_array()) {
-        out << "[";
-        for (size_t i = 0; i < arr->size(); ++i) {
-            if (i > 0) {
-                out << ",";
             }
-            serialize_json((*arr)[i], out);
         }
-        out << "]";
-        return;
+        return out;
     }
-    if (const auto* obj = value.as_object()) {
-        out << "{";
-        size_t i = 0;
-        for (const auto& [k, v] : *obj) {
-            if (i++ > 0) {
-                out << ",";
+
+    void serialize_json(const regimeflow::common::JsonValue& value, std::ostream& out) {
+        if (value.is_null()) {
+            out << "null";
+            return;
+        }
+        if (const auto* b = value.as_bool()) {
+            out << (*b ? "true" : "false");
+            return;
+        }
+        if (const auto* n = value.as_number()) {
+            out << std::setprecision(15) << *n;
+            return;
+        }
+        if (const auto* s = value.as_string()) {
+            out << "\"" << json_escape(*s) << "\"";
+            return;
+        }
+        if (const auto* arr = value.as_array()) {
+            out << "[";
+            for (size_t i = 0; i < arr->size(); ++i) {
+                if (i > 0) {
+                    out << ",";
+                }
+                serialize_json((*arr)[i], out);
             }
-            out << "\"" << json_escape(k) << "\":";
-            serialize_json(v, out);
+            out << "]";
+            return;
         }
-        out << "}";
-        return;
+        if (const auto* obj = value.as_object()) {
+            out << "{";
+            size_t i = 0;
+            for (const auto& [k, v] : *obj) {
+                if (i++ > 0) {
+                    out << ",";
+                }
+                out << "\"" << json_escape(k) << "\":";
+                serialize_json(v, out);
+            }
+            out << "}";
+            return;
+        }
     }
-}
 
-std::optional<std::string> get_env_value(const char* key) {
+    std::optional<std::string> get_env_value(const char* key) {
 #if defined(_WIN32)
-    char* value = nullptr;
-    size_t len = 0;
-    if (_dupenv_s(&value, &len, key) != 0 || !value) {
-        return std::nullopt;
-    }
-    std::string out(value);
-    free(value);
-    return out;
+        char* value = nullptr;
+        size_t len = 0;
+        if (_dupenv_s(&value, &len, key) != 0 || !value) {
+            return std::nullopt;
+        }
+        std::string out(value);
+        free(value);
+        return out;
 #else
-    const char* value = std::getenv(key);
-    if (!value) {
-        return std::nullopt;
-    }
-    return std::string(value);
+        const char* value = std::getenv(key);
+        if (!value) {
+            return std::nullopt;
+        }
+        return std::string(value);
 #endif
-}
+    }
 
-void set_env_value(const std::string& key, const std::string& value) {
+    void set_env_value(const std::string& key, const std::string& value) {
 #if defined(_WIN32)
-    _putenv_s(key.c_str(), value.c_str());
+        _putenv_s(key.c_str(), value.c_str());
 #else
-    setenv(key.c_str(), value.c_str(), 0);
+        setenv(key.c_str(), value.c_str(), 0);
 #endif
-}
-
-void load_dotenv(const std::string& path) {
-    std::ifstream in(path);
-    if (!in.is_open()) {
-        return;
     }
-    std::string line;
-    while (std::getline(in, line)) {
-        line = trim(line);
-        if (line.empty() || line[0] == '#') {
-            continue;
-        }
-        auto pos = line.find('=');
-        if (pos == std::string::npos) {
-            continue;
-        }
-        std::string key = trim(line.substr(0, pos));
-        std::string value = trim(line.substr(pos + 1));
-        if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') ||
-                                  (value.front() == '\'' && value.back() == '\''))) {
-            value = value.substr(1, value.size() - 2);
-        }
-        if (key.empty()) {
-            continue;
-        }
-        if (get_env_value(key.c_str()).has_value()) {
-            continue;
-        }
-        set_env_value(key, value);
-    }
-}
 
-std::string getenv_or_default(const char* key, const std::string& fallback) {
-    auto value = get_env_value(key);
-    if (!value) {
-        return fallback;
-    }
-    return *value;
-}
-
-std::vector<std::string> split_symbols(const std::string& value) {
-    std::vector<std::string> out;
-    std::istringstream stream(value);
-    std::string token;
-    while (std::getline(stream, token, ',')) {
-        if (!token.empty()) {
-            out.push_back(token);
+    void load_dotenv(const std::string& path) {
+        std::ifstream in(path);
+        if (!in.is_open()) {
+            return;
+        }
+        std::string line;
+        while (std::getline(in, line)) {
+            line = trim(line);
+            if (line.empty() || line[0] == '#') {
+                continue;
+            }
+            auto pos = line.find('=');
+            if (pos == std::string::npos) {
+                continue;
+            }
+            std::string key = trim(line.substr(0, pos));
+            std::string value = trim(line.substr(pos + 1));
+            if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') ||
+                                      (value.front() == '\'' && value.back() == '\''))) {
+                value = value.substr(1, value.size() - 2);
+                                      }
+            if (key.empty()) {
+                continue;
+            }
+            if (get_env_value(key.c_str()).has_value()) {
+                continue;
+            }
+            set_env_value(key, value);
         }
     }
-    return out;
-}
 
-void print_usage(const char* argv0) {
-    std::cerr << "Usage: " << argv0 << " [options]\n"
-              << "Options:\n"
-              << "  --symbols=SYM1,SYM2   Symbols (default: AAPL)\n"
-              << "  --start=YYYY-MM-DD    Start date (default: 2024-01-01)\n"
-              << "  --end=YYYY-MM-DD      End date (default: 2024-01-05)\n"
-              << "  --timeframe=TF        Timeframe (default: 1Day)\n"
-              << "  --limit=N             Limit per page (default: 0)\n"
-              << "  --list-assets         Fetch asset list\n"
-              << "  --bars                Fetch bars\n"
-              << "  --trades              Fetch trades\n"
-              << "  --snapshot            Fetch snapshot (first symbol)\n";
-}
+    std::string getenv_or_default(const char* key, const std::string& fallback) {
+        auto value = get_env_value(key);
+        if (!value) {
+            return fallback;
+        }
+        return *value;
+    }
 
+    std::vector<std::string> split_symbols(const std::string& value) {
+        std::vector<std::string> out;
+        std::istringstream stream(value);
+        std::string token;
+        while (std::getline(stream, token, ',')) {
+            if (!token.empty()) {
+                out.push_back(token);
+            }
+        }
+        return out;
+    }
+
+    void print_usage(const char* argv0) {
+        std::cerr << "Usage: " << argv0 << " [options]\n"
+                  << "Options:\n"
+                  << "  --symbols=SYM1,SYM2   Symbols (default: AAPL)\n"
+                  << "  --start=YYYY-MM-DD    Start date (default: 2024-01-01)\n"
+                  << "  --end=YYYY-MM-DD      End date (default: 2024-01-05)\n"
+                  << "  --timeframe=TF        Timeframe (default: 1Day)\n"
+                  << "  --limit=N             Limit per page (default: 0)\n"
+                  << "  --list-assets         Fetch asset list\n"
+                  << "  --bars                Fetch bars\n"
+                  << "  --trades              Fetch trades\n"
+                  << "  --snapshot            Fetch snapshot (first symbol)\n";
+    }
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -248,12 +247,11 @@ int main(int argc, char** argv) {
     regimeflow::data::AlpacaDataClient client(cfg);
     auto symbols = split_symbols(symbols_value);
     if (symbols.empty()) {
-        symbols.push_back("AAPL");
+        symbols.emplace_back("AAPL");
     }
 
     if (do_list_assets) {
-        auto res = client.list_assets();
-        if (res.is_err()) {
+        if (auto res = client.list_assets(); res.is_err()) {
             std::cerr << "list_assets error: " << res.error().to_string() << "\n";
         } else {
             std::cout << "assets:\n" << res.value() << "\n";
@@ -281,8 +279,7 @@ int main(int argc, char** argv) {
                 std::cerr << "get_bars invalid JSON\n";
                 break;
             }
-            auto it = root->find("bars");
-            if (it != root->end()) {
+            if (auto it = root->find("bars"); it != root->end()) {
                 if (const auto* bars_obj = it->second.as_object()) {
                     for (const auto& [sym, arr_value] : *bars_obj) {
                         if (const auto* arr = arr_value.as_array()) {
@@ -293,8 +290,7 @@ int main(int argc, char** argv) {
                 }
             }
             std::string next_token;
-            auto token_it = root->find("next_page_token");
-            if (token_it != root->end()) {
+            if (auto token_it = root->find("next_page_token"); token_it != root->end()) {
                 if (const auto* token = token_it->second.as_string()) {
                     next_token = *token;
                 }
@@ -339,8 +335,7 @@ int main(int argc, char** argv) {
                 std::cerr << "get_trades invalid JSON\n";
                 break;
             }
-            auto it = root->find("trades");
-            if (it != root->end()) {
+            if (auto it = root->find("trades"); it != root->end()) {
                 if (const auto* trades_obj = it->second.as_object()) {
                     for (const auto& [sym, arr_value] : *trades_obj) {
                         if (const auto* arr = arr_value.as_array()) {
@@ -351,8 +346,7 @@ int main(int argc, char** argv) {
                 }
             }
             std::string next_token;
-            auto token_it = root->find("next_page_token");
-            if (token_it != root->end()) {
+            if (auto token_it = root->find("next_page_token"); token_it != root->end()) {
                 if (const auto* token = token_it->second.as_string()) {
                     next_token = *token;
                 }
@@ -377,8 +371,7 @@ int main(int argc, char** argv) {
     }
 
     if (do_snapshot) {
-        auto res = client.get_snapshot(symbols.front());
-        if (res.is_err()) {
+        if (auto res = client.get_snapshot(symbols.front()); res.is_err()) {
             std::cerr << "get_snapshot error: " << res.error().to_string() << "\n";
         } else {
             std::cout << "snapshot:\n" << res.value() << "\n";

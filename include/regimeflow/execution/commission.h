@@ -7,54 +7,53 @@
 
 #include "regimeflow/engine/order.h"
 
-namespace regimeflow::execution {
-
-/**
- * @brief Base class for commission models.
- */
-class CommissionModel {
-public:
+namespace regimeflow::execution
+{
     /**
-     * @brief Virtual destructor.
+     * @brief Base class for commission models.
      */
-    virtual ~CommissionModel() = default;
-    /**
-     * @brief Compute commission for a fill.
-     * @param order Order being filled.
-     * @param fill Fill details.
-     * @return Commission amount.
-     */
-    virtual double commission(const engine::Order& order, const engine::Fill& fill) const = 0;
-};
+    class CommissionModel {
+    public:
+        /**
+         * @brief Virtual destructor.
+         */
+        virtual ~CommissionModel() = default;
+        /**
+         * @brief Compute commission for a fill.
+         * @param order Order being filled.
+         * @param fill Fill details.
+         * @return Commission amount.
+         */
+        [[nodiscard]] virtual double commission(const engine::Order& order, const engine::Fill& fill) const = 0;
+    };
 
-/**
- * @brief Commission model that always returns zero.
- */
-class ZeroCommissionModel final : public CommissionModel {
-public:
     /**
-     * @brief Return zero commission.
+     * @brief Commission model that always returns zero.
      */
-    double commission(const engine::Order&, const engine::Fill&) const override { return 0.0; }
-};
+    class ZeroCommissionModel final : public CommissionModel {
+    public:
+        /**
+         * @brief Return zero commission.
+         */
+        [[nodiscard]] double commission(const engine::Order&, const engine::Fill&) const override { return 0.0; }
+    };
 
-/**
- * @brief Fixed commission per fill.
- */
-class FixedPerFillCommissionModel final : public CommissionModel {
-public:
     /**
-     * @brief Construct with a fixed amount.
-     * @param amount Commission per fill.
+     * @brief Fixed commission per fill.
      */
-    explicit FixedPerFillCommissionModel(double amount) : amount_(amount) {}
-    /**
-     * @brief Return the fixed commission.
-     */
-    double commission(const engine::Order&, const engine::Fill&) const override { return amount_; }
+    class FixedPerFillCommissionModel final : public CommissionModel {
+    public:
+        /**
+         * @brief Construct with a fixed amount.
+         * @param amount Commission per fill.
+         */
+        explicit FixedPerFillCommissionModel(const double amount) : amount_(amount) {}
+        /**
+         * @brief Return the fixed commission.
+         */
+        [[nodiscard]] double commission(const engine::Order&, const engine::Fill&) const override { return amount_; }
 
-private:
-    double amount_ = 0.0;
-};
-
+    private:
+        double amount_ = 0.0;
+    };
 }  // namespace regimeflow::execution

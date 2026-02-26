@@ -10,29 +10,28 @@
 #include <unordered_map>
 #include <vector>
 
-namespace regimeflow::strategy {
-
-/**
- * @brief Moving average crossover strategy.
- */
-class MovingAverageCrossStrategy final : public Strategy {
-public:
+namespace regimeflow::strategy
+{
     /**
-     * @brief Initialize the strategy with context.
+     * @brief Moving average crossover strategy.
      */
-    void initialize(StrategyContext& ctx) override;
-    /**
-     * @brief Generate signals on each bar.
-     */
-    void on_bar(const data::Bar& bar) override;
+    class MovingAverageCrossStrategy final : public Strategy {
+    public:
+        /**
+         * @brief Initialize the strategy with context.
+         */
+        void initialize(StrategyContext& ctx) override;
+        /**
+         * @brief Generate signals on each bar.
+         */
+        void on_bar(const data::Bar& bar) override;
 
-private:
-    double compute_sma(SymbolId symbol, int period) const;
+    private:
+        double compute_sma(SymbolId symbol, int period) const;
 
-    int fast_period_ = 10;
-    int slow_period_ = 30;
-    double quantity_ = 0.0;
-    std::unordered_map<SymbolId, std::vector<double>> price_history_;
-};
-
+        int fast_period_ = 10;
+        int slow_period_ = 30;
+        double quantity_ = 0.0;
+        std::unordered_map<SymbolId, std::vector<double>> price_history_;
+    };
 }  // namespace regimeflow::strategy

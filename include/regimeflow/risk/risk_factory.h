@@ -10,19 +10,18 @@
 
 #include <memory>
 
-namespace regimeflow::risk {
-
-/**
- * @brief Factory for risk managers.
- */
-class RiskFactory {
-public:
+namespace regimeflow::risk
+{
     /**
-     * @brief Create a risk manager from config.
-     * @param config Risk configuration.
-     * @return RiskManager instance.
+     * @brief Factory for risk managers.
      */
-    static RiskManager create_risk_manager(const Config& config);
-};
-
+    class RiskFactory {
+    public:
+        /**
+         * @brief Create a risk manager from config.
+         * @param config Risk configuration.
+         * @return RiskManager instance.
+         */
+        static RiskManager create_risk_manager(const Config& config);
+    };
 }  // namespace regimeflow::risk

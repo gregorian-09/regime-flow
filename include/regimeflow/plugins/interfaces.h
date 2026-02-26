@@ -16,76 +16,75 @@
 
 #include <memory>
 
-namespace regimeflow::plugins {
-
-/**
- * @brief Plugin interface for custom regime detectors.
- */
-class RegimeDetectorPlugin : public Plugin {
-public:
+namespace regimeflow::plugins
+{
     /**
-     * @brief Create a regime detector instance.
+     * @brief Plugin interface for custom regime detectors.
      */
-    virtual std::unique_ptr<regime::RegimeDetector> create_detector() = 0;
-};
+    class RegimeDetectorPlugin : public Plugin {
+    public:
+        /**
+         * @brief Create a regime detector instance.
+         */
+        virtual std::unique_ptr<regime::RegimeDetector> create_detector() = 0;
+    };
 
-/**
- * @brief Plugin interface for execution models.
- */
-class ExecutionModelPlugin : public Plugin {
-public:
     /**
-     * @brief Create a slippage model.
+     * @brief Plugin interface for execution models.
      */
-    virtual std::unique_ptr<execution::SlippageModel> create_slippage_model() = 0;
-    /**
-     * @brief Create a commission model.
-     */
-    virtual std::unique_ptr<execution::CommissionModel> create_commission_model() = 0;
-};
+    class ExecutionModelPlugin : public Plugin {
+    public:
+        /**
+         * @brief Create a slippage model.
+         */
+        virtual std::unique_ptr<execution::SlippageModel> create_slippage_model() = 0;
+        /**
+         * @brief Create a commission model.
+         */
+        virtual std::unique_ptr<execution::CommissionModel> create_commission_model() = 0;
+    };
 
-/**
- * @brief Plugin interface for data sources.
- */
-class DataSourcePlugin : public Plugin {
-public:
     /**
-     * @brief Create a data source instance.
+     * @brief Plugin interface for data sources.
      */
-    virtual std::unique_ptr<data::DataSource> create_data_source() = 0;
-};
+    class DataSourcePlugin : public Plugin {
+    public:
+        /**
+         * @brief Create a data source instance.
+         */
+        virtual std::unique_ptr<data::DataSource> create_data_source() = 0;
+    };
 
-/**
- * @brief Plugin interface for risk managers.
- */
-class RiskManagerPlugin : public Plugin {
-public:
     /**
-     * @brief Create a risk manager instance.
+     * @brief Plugin interface for risk managers.
      */
-    virtual std::unique_ptr<risk::RiskManager> create_risk_manager() = 0;
-};
+    class RiskManagerPlugin : public Plugin {
+    public:
+        /**
+         * @brief Create a risk manager instance.
+         */
+        virtual std::unique_ptr<risk::RiskManager> create_risk_manager() = 0;
+    };
 
-/**
- * @brief Plugin interface for strategies.
- */
-class StrategyPlugin : public Plugin {
-public:
     /**
-     * @brief Create a strategy instance.
+     * @brief Plugin interface for strategies.
      */
-    virtual std::unique_ptr<strategy::Strategy> create_strategy() = 0;
-};
+    class StrategyPlugin : public Plugin {
+    public:
+        /**
+         * @brief Create a strategy instance.
+         */
+        virtual std::unique_ptr<strategy::Strategy> create_strategy() = 0;
+    };
 
-/**
- * @brief Plugin interface for custom performance metrics.
- */
-class MetricsPlugin : public Plugin {
-public:
     /**
-     * @brief Create a performance metric instance.
+     * @brief Plugin interface for custom performance metrics.
      */
-    virtual std::unique_ptr<metrics::PerformanceMetric> create_metric() = 0;
-};
-
+    class MetricsPlugin : public Plugin {
+    public:
+        /**
+         * @brief Create a performance metric instance.
+         */
+        virtual std::unique_ptr<metrics::PerformanceMetric> create_metric() = 0;
+    };
 }  // namespace regimeflow::plugins

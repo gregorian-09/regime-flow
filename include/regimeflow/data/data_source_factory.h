@@ -18,23 +18,22 @@
 #include <memory>
 #include <string>
 
-namespace regimeflow::data {
-
-/**
- * @brief Factory for creating data sources from configuration.
- */
-class DataSourceFactory {
-public:
+namespace regimeflow::data
+{
     /**
-     * @brief Create a data source based on config.
-     * @param config Data source configuration.
-     * @return Data source instance.
+     * @brief Factory for creating data sources from configuration.
      */
-    static std::unique_ptr<DataSource> create(const Config& config);
+    class DataSourceFactory {
+    public:
+        /**
+         * @brief Create a data source based on config.
+         * @param config Data source configuration.
+         * @return Data source instance.
+         */
+        static std::unique_ptr<DataSource> create(const Config& config);
 
-private:
-    static CSVDataSource::Config parse_csv_config(const Config& cfg);
-    static CSVTickDataSource::Config parse_tick_csv_config(const Config& cfg);
-};
-
+    private:
+        static CSVDataSource::Config parse_csv_config(const Config& cfg);
+        static CSVTickDataSource::Config parse_tick_csv_config(const Config& cfg);
+    };
 }  // namespace regimeflow::data

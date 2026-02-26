@@ -9,32 +9,31 @@
 
 #include <memory>
 
-namespace regimeflow::execution {
-
-/**
- * @brief Simulates fills with slippage.
- */
-class FillSimulator {
-public:
+namespace regimeflow::execution
+{
     /**
-     * @brief Construct with a slippage model.
-     * @param slippage_model Slippage model instance.
+     * @brief Simulates fills with slippage.
      */
-    explicit FillSimulator(std::shared_ptr<SlippageModel> slippage_model);
+    class FillSimulator {
+    public:
+        /**
+         * @brief Construct with a slippage model.
+         * @param slippage_model Slippage model instance.
+         */
+        explicit FillSimulator(std::shared_ptr<SlippageModel> slippage_model);
 
-    /**
-     * @brief Simulate a single fill.
-     * @param order Order to fill.
-     * @param reference_price Reference price.
-     * @param timestamp Fill timestamp.
-     * @param is_maker Whether the fill is maker-side.
-     * @return Simulated fill.
-     */
-    engine::Fill simulate(const engine::Order& order, Price reference_price, Timestamp timestamp,
-                          bool is_maker = false) const;
+        /**
+         * @brief Simulate a single fill.
+         * @param order Order to fill.
+         * @param reference_price Reference price.
+         * @param timestamp Fill timestamp.
+         * @param is_maker Whether the fill is maker-side.
+         * @return Simulated fill.
+         */
+        [[nodiscard]] engine::Fill simulate(const engine::Order& order, Price reference_price, Timestamp timestamp,
+                              bool is_maker = false) const;
 
-private:
-    std::shared_ptr<SlippageModel> slippage_model_;
-};
-
+    private:
+        std::shared_ptr<SlippageModel> slippage_model_;
+    };
 }  // namespace regimeflow::execution

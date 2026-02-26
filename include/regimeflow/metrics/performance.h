@@ -9,38 +9,37 @@
 
 #include <vector>
 
-namespace regimeflow::metrics {
-
-/**
- * @brief Tracks equity curve over time.
- */
-class EquityCurve {
-public:
+namespace regimeflow::metrics
+{
     /**
-     * @brief Add an equity sample.
-     * @param timestamp Sample time.
-     * @param equity Equity value.
+     * @brief Tracks equity curve over time.
      */
-    void add_point(Timestamp timestamp, double equity);
+    class EquityCurve {
+    public:
+        /**
+         * @brief Add an equity sample.
+         * @param timestamp Sample time.
+         * @param equity Equity value.
+         */
+        void add_point(Timestamp timestamp, double equity);
 
-    /**
-     * @brief Timestamps for the equity curve.
-     */
-    const std::vector<Timestamp>& timestamps() const { return timestamps_; }
-    /**
-     * @brief Equity values corresponding to timestamps.
-     */
-    const std::vector<double>& equities() const { return equities_; }
+        /**
+         * @brief Timestamps for the equity curve.
+         */
+        [[nodiscard]] const std::vector<Timestamp>& timestamps() const { return timestamps_; }
+        /**
+         * @brief Equity values corresponding to timestamps.
+         */
+        [[nodiscard]] const std::vector<double>& equities() const { return equities_; }
 
-    /**
-     * @brief Total return from first to last point.
-     * @return Total return as a fraction.
-     */
-    double total_return() const;
+        /**
+         * @brief Total return from first to last point.
+         * @return Total return as a fraction.
+         */
+        [[nodiscard]] double total_return() const;
 
-private:
-    std::vector<Timestamp> timestamps_;
-    std::vector<double> equities_;
-};
-
+    private:
+        std::vector<Timestamp> timestamps_;
+        std::vector<double> equities_;
+    };
 }  // namespace regimeflow::metrics

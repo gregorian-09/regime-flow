@@ -10,27 +10,26 @@
 #include <optional>
 #include <unordered_map>
 
-namespace regimeflow::engine {
-
-/**
- * @brief In-memory cache of latest order book snapshots.
- */
-class OrderBookCache {
-public:
+namespace regimeflow::engine
+{
     /**
-     * @brief Update the cache with a new order book snapshot.
-     * @param book Order book snapshot.
+     * @brief In-memory cache of latest order book snapshots.
      */
-    void update(const data::OrderBook& book);
-    /**
-     * @brief Retrieve the latest order book for a symbol.
-     * @param symbol Symbol ID.
-     * @return Optional order book.
-     */
-    std::optional<data::OrderBook> latest(SymbolId symbol) const;
+    class OrderBookCache {
+    public:
+        /**
+         * @brief Update the cache with a new order book snapshot.
+         * @param book Order book snapshot.
+         */
+        void update(const data::OrderBook& book);
+        /**
+         * @brief Retrieve the latest order book for a symbol.
+         * @param symbol Symbol ID.
+         * @return Optional order book.
+         */
+        std::optional<data::OrderBook> latest(SymbolId symbol) const;
 
-private:
-    std::unordered_map<SymbolId, data::OrderBook> books_;
-};
-
+    private:
+        std::unordered_map<SymbolId, data::OrderBook> books_;
+    };
 }  // namespace regimeflow::engine

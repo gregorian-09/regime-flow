@@ -11,24 +11,23 @@
 using namespace regimeflow;
 using namespace regimeflow::data;
 
-namespace {
+namespace
+{
+    std::filesystem::path make_temp_dir(const std::string& name) {
+        auto base = std::filesystem::temp_directory_path() / "regimeflow_tests" / name;
+        std::filesystem::create_directories(base);
+        return base;
+    }
 
-std::filesystem::path make_temp_dir(const std::string& name) {
-    auto base = std::filesystem::temp_directory_path() / "regimeflow_tests" / name;
-    std::filesystem::create_directories(base);
-    return base;
-}
-
-void write_file(const std::filesystem::path& path, const std::string& content) {
-    std::ofstream out(path);
-    out << content;
-}
-
+    void write_file(const std::filesystem::path& path, const std::string& content) {
+        std::ofstream out(path);
+        out << content;
+    }
 }  // namespace
 
 TEST(DataValidation, CsvVolumeBoundsSkipsInvalidRow) {
-    auto dir = make_temp_dir("csv_volume_bounds");
-    auto path = dir / "AAPL.csv";
+    const auto dir = make_temp_dir("csv_volume_bounds");
+    const auto path = dir / "AAPL.csv";
     write_file(path,
                "timestamp,open,high,low,close,volume\n"
                "2024-01-01 00:00:00,10,11,9,10.5,1000\n"
@@ -42,16 +41,16 @@ TEST(DataValidation, CsvVolumeBoundsSkipsInvalidRow) {
     cfg.validation.on_error = ValidationAction::Skip;
 
     CSVDataSource source(cfg);
-    auto sym = SymbolRegistry::instance().intern("AAPL");
-    auto bars = source.get_bars(sym, {});
+    const auto sym = SymbolRegistry::instance().intern("AAPL");
+    const auto bars = source.get_bars(sym, {});
 
     EXPECT_EQ(bars.size(), 1u);
     EXPECT_EQ(source.last_report().error_count(), 1);
 }
 
 TEST(DataValidation, CsvOutlierAddsWarning) {
-    auto dir = make_temp_dir("csv_outliers");
-    auto path = dir / "MSFT.csv";
+    const auto dir = make_temp_dir("csv_outliers");
+    const auto path = dir / "MSFT.csv";
     write_file(path,
                "timestamp,open,high,low,close,volume\n"
                "2024-01-01 00:00:00,100,100,100,100,10\n"
@@ -66,8 +65,8 @@ TEST(DataValidation, CsvOutlierAddsWarning) {
     cfg.validation.outlier_warmup = 2;
 
     CSVDataSource source(cfg);
-    auto sym = SymbolRegistry::instance().intern("MSFT");
-    auto bars = source.get_bars(sym, {});
+    const auto sym = SymbolRegistry::instance().intern("MSFT");
+    const auto bars = source.get_bars(sym, {});
 
     EXPECT_EQ(bars.size(), 3u);
     EXPECT_GE(source.last_report().warning_count(), 1);
@@ -97,8 +96,8 @@ TEST(DataValidation, TickFutureTimestampIsRejected) {
 }
 
 TEST(DataValidation, CsvGapFillInsertsMissingBars) {
-    auto dir = make_temp_dir("csv_gap_fill");
-    auto path = dir / "AAPL.csv";
+    const auto dir = make_temp_dir("csv_gap_fill");
+    const auto path = dir / "AAPL.csv";
     write_file(path,
                "timestamp,open,high,low,close,volume\n"
                "2024-01-01 00:00:00,10,10,10,10,100\n"
@@ -111,8 +110,8 @@ TEST(DataValidation, CsvGapFillInsertsMissingBars) {
     cfg.validation.on_gap = ValidationAction::Fill;
 
     CSVDataSource source(cfg);
-    auto sym = SymbolRegistry::instance().intern("AAPL");
-    auto bars = source.get_bars(sym, {});
+    const auto sym = SymbolRegistry::instance().intern("AAPL");
+    const auto bars = source.get_bars(sym, {});
 
     EXPECT_EQ(bars.size(), 3u);
     EXPECT_EQ(bars[1].timestamp,

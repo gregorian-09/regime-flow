@@ -10,37 +10,36 @@
 
 #include <unordered_map>
 
-namespace regimeflow::metrics {
-
-/**
- * @brief Attribution snapshot by symbol.
- */
-struct AttributionSnapshot {
-    Timestamp timestamp;
-    std::unordered_map<SymbolId, double> pnl_by_symbol;
-    double total_pnl = 0.0;
-};
-
-/**
- * @brief Tracks PnL attribution across symbols.
- */
-class AttributionTracker {
-public:
+namespace regimeflow::metrics
+{
     /**
-     * @brief Update attribution based on portfolio snapshot.
-     * @param timestamp Update time.
-     * @param portfolio Portfolio state.
+     * @brief Attribution snapshot by symbol.
      */
-    void update(Timestamp timestamp, const engine::Portfolio& portfolio);
+    struct AttributionSnapshot {
+        Timestamp timestamp;
+        std::unordered_map<SymbolId, double> pnl_by_symbol;
+        double total_pnl = 0.0;
+    };
 
     /**
-     * @brief Last attribution snapshot.
+     * @brief Tracks PnL attribution across symbols.
      */
-    const AttributionSnapshot& last() const { return last_; }
+    class AttributionTracker {
+    public:
+        /**
+         * @brief Update attribution based on portfolio snapshot.
+         * @param timestamp Update time.
+         * @param portfolio Portfolio state.
+         */
+        void update(Timestamp timestamp, const engine::Portfolio& portfolio);
 
-private:
-    AttributionSnapshot last_;
-    std::unordered_map<SymbolId, double> last_values_;
-};
+        /**
+         * @brief Last attribution snapshot.
+         */
+        const AttributionSnapshot& last() const { return last_; }
 
+    private:
+        AttributionSnapshot last_;
+        std::unordered_map<SymbolId, double> last_values_;
+    };
 }  // namespace regimeflow::metrics
