@@ -1,0 +1,12 @@
+{
+  "name": "regimeflow",
+  "version": "1.0.1",
+  "description": "Regime-adaptive backtesting framework",
+  "homepage": "https://github.com/gregorian-09/regime-flow",
+  "license": "MIT",
+  "dependencies": [
+    "openssl",
+    "protobuf",
+    "curl"
+  ]
+}

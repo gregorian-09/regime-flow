@@ -1,0 +1,5 @@
+The package regimeflow provides RegimeFlow C++ libraries and headers.
+
+Usage:
+  find_package(RegimeFlow CONFIG REQUIRED)
+  target_link_libraries(your_target PRIVATE RegimeFlow::regimeflow_engine)

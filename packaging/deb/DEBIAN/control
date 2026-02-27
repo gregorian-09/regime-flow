@@ -1,0 +1,8 @@
+Package: regimeflow
+Version: 1.0.1
+Section: science
+Priority: optional
+Architecture: amd64
+Maintainer: RegimeFlow Team <team@regimeflow.io>
+Description: Regime-adaptive backtesting framework
+Depends: libc6, libstdc++6, libgcc-s1
