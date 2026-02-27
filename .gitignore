@@ -69,3 +69,7 @@ Docker_Output.txt
 # Local env
 .env
 .env.*
+# Local tooling and artifacts
+bin/act
+/dist/
+regimeflow_tests.exe_*.dmp
