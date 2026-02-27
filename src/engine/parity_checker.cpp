@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <ranges>
 #include <sstream>
 
 namespace regimeflow::engine
@@ -30,7 +31,7 @@ namespace regimeflow::engine
 
         std::optional<std::string> first_string(const Config& cfg,
                                                 const std::vector<std::string>& paths) {
-            for (const auto& path : paths) {
+            for (const auto& path : paths | std::views::all) {
                 if (auto value = get_string(cfg, path)) {
                     return value;
                 }
@@ -40,7 +41,7 @@ namespace regimeflow::engine
 
         std::optional<ConfigValue::Object> get_object(const Config& cfg,
                                                       const std::vector<std::string>& paths) {
-            for (const auto& path : paths) {
+            for (const auto& path : paths | std::views::all) {
                 if (auto obj = cfg.get_as<ConfigValue::Object>(path)) {
                     return *obj;
                 }
@@ -80,16 +81,16 @@ namespace regimeflow::engine
                 report.live_values[label] = *live_value;
             }
             if (required_live && !live_value) {
-                report.hard_errors.push_back("Missing live config: " + label);
+                report.hard_errors.emplace_back("Missing live config: " + label);
                 return;
             }
             if (backtest_value && live_value && strict_match && *backtest_value != *live_value) {
-                report.hard_errors.push_back("Mismatch for " + label + ": backtest=" + *backtest_value +
-                                             ", live=" + *live_value);
+                report.hard_errors.emplace_back("Mismatch for " + label + ": backtest=" + *backtest_value +
+                                                ", live=" + *live_value);
                 return;
             }
             if (!backtest_value && live_value && strict_match) {
-                report.warnings.push_back("Backtest config missing: " + label);
+                report.warnings.emplace_back("Backtest config missing: " + label);
             }
         }
 
@@ -129,7 +130,7 @@ namespace regimeflow::engine
             report.compat_matrix["execution"] = "unknown";
         } else if ((backtest_slippage && live_slippage && backtest_slippage != live_slippage) ||
                    (backtest_commission && live_commission && backtest_commission != live_commission)) {
-            report.warnings.push_back("Execution model differs between backtest and live configs");
+            report.warnings.emplace_back("Execution model differs between backtest and live configs");
             report.compat_matrix["execution"] = "warn";
         } else {
             report.compat_matrix["execution"] = "pass";
@@ -155,27 +156,27 @@ namespace regimeflow::engine
             auto live_map = object_to_string_map(*live_risk);
             bool mismatch = false;
             for (const auto& [key, value] : back_map) {
-                if (live_map.find(key) == live_map.end()) {
+                if (!live_map.contains(key)) {
                     mismatch = true;
-                    report.warnings.push_back("Live risk limits missing key: " + key);
+                    report.warnings.emplace_back("Live risk limits missing key: " + key);
                     continue;
                 }
                 if (live_map[key] != value) {
                     mismatch = true;
-                    report.warnings.push_back("Risk limit differs for " + key + ": backtest=" + value +
-                                              ", live=" + live_map[key]);
+                    report.warnings.emplace_back("Risk limit differs for " + key + ": backtest=" + value +
+                                                 ", live=" + live_map[key]);
                 }
             }
             for (const auto& [key, value] : live_map) {
-                if (back_map.find(key) == back_map.end()) {
+                if (!back_map.contains(key)) {
                     mismatch = true;
-                    report.warnings.push_back("Backtest risk limits missing key: " + key);
+                    report.warnings.emplace_back("Backtest risk limits missing key: " + key);
                 }
             }
             report.compat_matrix["risk"] = mismatch ? "warn" : "pass";
         } else {
             report.compat_matrix["risk"] = "unknown";
-            report.warnings.push_back("Risk limits not defined in both configs");
+            report.warnings.emplace_back("Risk limits not defined in both configs");
         }
 
         const auto backtest_data = first_string(backtest, {"data.type", "data_source"});
@@ -187,7 +188,7 @@ namespace regimeflow::engine
             report.live_values["data.type"] = *live_data;
         }
         if (backtest_data && live_data && backtest_data != live_data) {
-            report.warnings.push_back("Data source differs between backtest and live configs");
+            report.warnings.emplace_back("Data source differs between backtest and live configs");
             report.compat_matrix["data"] = "warn";
         } else if (backtest_data || live_data) {
             report.compat_matrix["data"] = "pass";

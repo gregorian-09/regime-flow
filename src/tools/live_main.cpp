@@ -181,7 +181,7 @@ namespace
             cfg.reconnect_max = regimeflow::Duration::milliseconds(*ms);
         }
 
-        if (bool heartbeat_enabled = get_bool(root, "live.heartbeat.enabled").value_or(false)) {
+        if (get_bool(root, "live.heartbeat.enabled").value_or(false)) {
             if (const auto interval_ms = get_int(root, "live.heartbeat.interval_ms").value_or(0); interval_ms > 0) {
                 cfg.heartbeat_timeout = regimeflow::Duration::milliseconds(interval_ms);
             }
