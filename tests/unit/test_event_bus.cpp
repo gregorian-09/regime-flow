@@ -18,8 +18,8 @@ namespace regimeflow::test
         std::condition_variable cv;
         std::atomic<int> received{0};
 
-        auto sub = bus.subscribe(regimeflow::live::LiveTopic::MarketData, [&](const regimeflow::live::LiveMessage& msg) {
-            if (auto payload = std::get_if<regimeflow::live::MarketDataUpdate>(&msg.payload)) {
+        const auto sub = bus.subscribe(regimeflow::live::LiveTopic::MarketData, [&](const regimeflow::live::LiveMessage& msg) {
+            if (std::get_if<regimeflow::live::MarketDataUpdate>(&msg.payload)) {
                 received.fetch_add(1);
                 std::lock_guard<std::mutex> lock(mutex);
                 cv.notify_one();

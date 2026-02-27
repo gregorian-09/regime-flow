@@ -459,7 +459,7 @@ namespace regimeflow::live
             strategy_->on_start();
         }
 
-        update_dashboard_snapshot("start");
+        update_dashboard_snapshot();
 
         if (audit_logger_) {
             AuditEvent event;
@@ -794,7 +794,7 @@ namespace regimeflow::live
             (void)updated_regime;
         }, update.data);
         if (snapshot_updated) {
-            update_dashboard_snapshot("market_data");
+            update_dashboard_snapshot();
         }
     }
 
@@ -872,7 +872,7 @@ namespace regimeflow::live
                 }
             }
             }
-        update_dashboard_snapshot("execution_report");
+        update_dashboard_snapshot();
     }
 
     void LiveTradingEngine::refresh_account_info() {
@@ -897,7 +897,7 @@ namespace regimeflow::live
         if (portfolio_) {
             portfolio_->record_snapshot(Timestamp::now());
         }
-        update_dashboard_snapshot("account_refresh");
+        update_dashboard_snapshot();
     }
 
     void LiveTradingEngine::refresh_positions() {
@@ -954,7 +954,7 @@ namespace regimeflow::live
         portfolio_->replace_positions(mapped, timestamp);
         enforce_portfolio_limits("position_reconcile");
         portfolio_->record_snapshot(timestamp);
-        update_dashboard_snapshot("position_reconcile");
+        update_dashboard_snapshot();
     }
 
     void LiveTradingEngine::apply_position_update(const Position& position, Timestamp timestamp) {
@@ -976,7 +976,7 @@ namespace regimeflow::live
                                  current_price, timestamp);
         enforce_portfolio_limits("position_update");
         portfolio_->record_snapshot(timestamp);
-        update_dashboard_snapshot("position_update");
+        update_dashboard_snapshot();
     }
 
     void LiveTradingEngine::check_daily_loss_limit() {
@@ -1039,8 +1039,8 @@ namespace regimeflow::live
         }
     }
 
-    void LiveTradingEngine::update_dashboard_snapshot(const std::string& context) {
-        auto snapshot = build_dashboard_snapshot(context);
+    void LiveTradingEngine::update_dashboard_snapshot() {
+        auto snapshot = build_dashboard_snapshot();
         {
             std::lock_guard<std::mutex> lock(dashboard_mutex_);
             last_dashboard_ = snapshot;
@@ -1050,8 +1050,7 @@ namespace regimeflow::live
         }
     }
 
-    LiveTradingEngine::DashboardSnapshot LiveTradingEngine::build_dashboard_snapshot(
-        const std::string& context) {
+    LiveTradingEngine::DashboardSnapshot LiveTradingEngine::build_dashboard_snapshot() {
         DashboardSnapshot snapshot;
         snapshot.timestamp = Timestamp::now();
         snapshot.current_regime = current_regime_;
@@ -1092,7 +1091,6 @@ namespace regimeflow::live
             snapshot.memory_mb = last_health_.memory_mb;
             snapshot.event_loop_latency_ms = last_health_.event_loop_latency_ms;
         }
-        (void)context;
         return snapshot;
     }
 
@@ -1310,7 +1308,7 @@ namespace regimeflow::live
             }
             refresh_account_info();
             refresh_positions();
-            update_dashboard_snapshot("reconnect");
+            update_dashboard_snapshot();
             return;
         }
         reconnect_attempts_ += 1;

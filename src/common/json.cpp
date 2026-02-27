@@ -109,7 +109,7 @@ namespace regimeflow::common
                         if (cur_ >= end_) {
                             return Result<std::string>(Error(Error::Code::ParseError, "Invalid JSON escape"));
                         }
-                        switch (char esc = *cur_++) {
+                        switch (*cur_++) {
                         case '"': out.push_back('"'); break;
                         case '\\': out.push_back('\\'); break;
                         case '/': out.push_back('/'); break;

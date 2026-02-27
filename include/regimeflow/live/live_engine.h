@@ -316,8 +316,8 @@ namespace regimeflow::live
         void apply_position_update(const Position& position, Timestamp timestamp);
         void check_daily_loss_limit();
         void enforce_portfolio_limits(const std::string& context);
-        void update_dashboard_snapshot(const std::string& context);
-        DashboardSnapshot build_dashboard_snapshot(const std::string& context);
+        void update_dashboard_snapshot();
+        DashboardSnapshot build_dashboard_snapshot();
         void add_alert(const std::string& message);
         void drain_pending_alerts();
         void sample_system_health();
