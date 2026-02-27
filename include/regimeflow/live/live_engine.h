@@ -16,6 +16,7 @@
 #include "regimeflow/live/live_order_manager.h"
 #include "regimeflow/live/mq_adapter.h"
 #include "regimeflow/live/types.h"
+#include "regimeflow/metrics/live_performance.h"
 #include "regimeflow/regime/regime_detector.h"
 #include "regimeflow/regime/features.h"
 #include "regimeflow/risk/risk_limits.h"
@@ -157,6 +158,11 @@ namespace regimeflow::live
          * @brief Log output directory.
          */
         std::string log_dir = "./logs";
+
+        /**
+         * @brief Live performance tracking configuration.
+         */
+        metrics::LivePerformanceConfig metrics_config;
     };
 
     /**
@@ -329,6 +335,7 @@ namespace regimeflow::live
         std::unique_ptr<LiveOrderManager> order_manager_;
         std::unique_ptr<MessageQueueAdapter> mq_adapter_;
         std::unique_ptr<AuditLogger> audit_logger_;
+        std::unique_ptr<metrics::LivePerformanceTracker> live_metrics_;
         engine::OrderManager strategy_order_manager_;
 
         std::atomic<bool> running_{false};

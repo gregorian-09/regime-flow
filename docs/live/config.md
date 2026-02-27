@@ -16,6 +16,7 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 - `live.heartbeat.interval_ms` heartbeat timeout in milliseconds.
 - `live.risk` risk configuration block. This is passed to the risk factory.
 - `live.broker_config` key/value map of broker-specific settings.
+- `live.log_dir` output directory for logs and metrics.
 
 ## Strategy
 
@@ -55,6 +56,13 @@ strategy:
   name: buy_and_hold
   params:
     warmup_bars: 1
+
+metrics:
+  live:
+    enable: true
+    baseline_report: out/report.json
+    output_dir: logs
+    sinks: [file]
 ```
 
 ## Notes

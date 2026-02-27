@@ -20,6 +20,7 @@ typedef SSIZE_T ssize_t;
 #include "regimeflow/data/data_source_factory.h"
 #include "regimeflow/engine/backtest_engine.h"
 #include "regimeflow/engine/backtest_results.h"
+#include "regimeflow/engine/parity_checker.h"
 #include "regimeflow/engine/portfolio.h"
 #include "regimeflow/metrics/performance_metrics.h"
 #include "regimeflow/metrics/report.h"
@@ -130,6 +131,17 @@ static py::object config_value_to_py(const ConfigValue& value) {
         return object_to_pydict(*v);
     }
     return py::none();
+}
+
+static py::dict parity_report_to_dict(const engine::ParityReport& report) {
+    py::dict out;
+    out["status"] = report.status_name();
+    out["hard_errors"] = report.hard_errors;
+    out["warnings"] = report.warnings;
+    out["backtest_values"] = report.backtest_values;
+    out["live_values"] = report.live_values;
+    out["compat_matrix"] = report.compat_matrix;
+    return out;
 }
 
 static Config config_from_dict(const py::dict& dict) {
@@ -1181,6 +1193,9 @@ PYBIND11_MODULE(_core, m) {
 
     m.def("load_config", [](const std::string& path) {
         return YamlConfigLoader::load_file(path);
+    });
+    m.def("parity_check", [](const Config& backtest, const Config& live) {
+        return parity_report_to_dict(engine::ParityChecker::check(backtest, live));
     });
 
     py::enum_<engine::OrderSide>(m, "OrderSide")

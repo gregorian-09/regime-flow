@@ -191,6 +191,29 @@ namespace
 
         cfg.broker_config["paper"] = cfg.paper_trading ? "true" : "false";
 
+        if (const auto log_dir = get_string(root, "live.log_dir")) {
+            cfg.log_dir = *log_dir;
+        }
+
+        cfg.metrics_config.enabled = get_bool(root, "metrics.live.enable").value_or(false);
+        if (cfg.metrics_config.enabled) {
+            cfg.metrics_config.baseline_report =
+                get_string(root, "metrics.live.baseline_report").value_or("");
+            cfg.metrics_config.output_dir =
+                get_string(root, "metrics.live.output_dir").value_or(cfg.log_dir);
+            cfg.metrics_config.sinks = get_string_array(root, "metrics.live.sinks");
+            if (cfg.metrics_config.sinks.empty()) {
+                cfg.metrics_config.sinks.push_back("file");
+            }
+            cfg.metrics_config.postgres_connection_string =
+                get_string(root, "metrics.live.postgres.connection_string").value_or("");
+            cfg.metrics_config.postgres_table =
+                get_string(root, "metrics.live.postgres.table").value_or(cfg.metrics_config.postgres_table);
+            if (const auto pool_size = get_int(root, "metrics.live.postgres.pool_size")) {
+                cfg.metrics_config.postgres_pool_size = static_cast<int>(*pool_size);
+            }
+        }
+
         if (cfg.broker_type == "alpaca") {
             set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");
             set_broker_config_from_env(cfg.broker_config, "secret_key", "ALPACA_API_SECRET");

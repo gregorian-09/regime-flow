@@ -19,6 +19,16 @@ The live CLI loads `.env` automatically if present and merges environment variab
 - Runs strategy callbacks on incoming events.
 - Applies risk limits and order throttling.
 - Emits audit logs and system health events.
+- Optionally tracks live performance drift vs a backtest baseline.
+
+## Live Performance Drift Tracking
+
+Enable live drift tracking by setting `metrics.live.enable: true`. When enabled, the engine writes:
+
+- `live_drift.csv` for time-series snapshots.
+- `live_performance.json` for a summary.
+
+You can also point the tracker at a backtest report JSON via `metrics.live.baseline_report`.
 
 ## Next Steps
 

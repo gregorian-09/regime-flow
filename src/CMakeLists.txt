@@ -203,6 +203,7 @@ add_library(regimeflow_engine
     engine/order_manager.cpp
     engine/portfolio.cpp
     engine/regime_tracker.cpp
+    engine/parity_checker.cpp
     engine/timer_service.cpp
 )
 
@@ -275,6 +276,7 @@ target_link_libraries(regimeflow_risk
 add_library(regimeflow_metrics
     metrics/attribution.cpp
     metrics/drawdown.cpp
+    metrics/live_performance.cpp
     metrics/metrics_tracker.cpp
     metrics/performance.cpp
     metrics/performance_calculator.cpp
@@ -361,6 +363,7 @@ target_link_libraries(regimeflow_live
     PUBLIC
         regimeflow_common
         regimeflow_engine
+        regimeflow_metrics
         regimeflow_strategy
         regimeflow_risk
         regimeflow_regime
@@ -521,3 +524,6 @@ endif()
 add_executable(regimeflow_live_cli tools/live_main.cpp)
 target_link_libraries(regimeflow_live_cli PRIVATE regimeflow_live)
 set_target_properties(regimeflow_live_cli PROPERTIES OUTPUT_NAME regimeflow_live)
+
+add_executable(regimeflow_parity_check tools/parity_check_main.cpp)
+target_link_libraries(regimeflow_parity_check PRIVATE regimeflow_engine regimeflow_common)

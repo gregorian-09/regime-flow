@@ -90,6 +90,16 @@ You can export reports and curves:
   --output-trades out/trades.csv
 ```
 
+## 5. Run A Parity Check Before Live
+
+Compare your backtest configuration to a live config to catch mismatches early:
+
+```bash
+regimeflow_parity_check \
+  --backtest-config quickstart.yaml \
+  --live-config examples/live_paper_alpaca/config.yaml
+```
+
 ## Next Steps
 
 - `guide/backtesting.md`

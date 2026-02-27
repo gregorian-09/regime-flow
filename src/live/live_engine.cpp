@@ -150,6 +150,9 @@ namespace regimeflow::live
         order_manager_ = std::make_unique<LiveOrderManager>(broker_.get());
         risk_manager_ = std::make_unique<risk::RiskManager>(risk::RiskFactory::create_risk_manager(
             config_.risk_config));
+        if (config_.metrics_config.enabled) {
+            live_metrics_ = std::make_unique<metrics::LivePerformanceTracker>(config_.metrics_config);
+        }
         if (config_.enable_message_queue) {
             mq_adapter_ = create_message_queue_adapter(config_.message_queue);
         }
@@ -434,6 +437,10 @@ namespace regimeflow::live
         daily_start_equity_ = account.equity;
         daily_pnl_ = 0.0;
         portfolio_->set_cash(account.cash, Timestamp::now());
+        if (live_metrics_) {
+            live_metrics_->start(account.equity);
+            live_metrics_->update(Timestamp::now(), account.equity, daily_pnl_);
+        }
 
         auto positions = broker_->get_positions();
         apply_positions(positions, Timestamp::now());
@@ -505,6 +512,9 @@ namespace regimeflow::live
             event.type = AuditEvent::Type::SystemStop;
             event.details = "Live engine stopped";
             audit_logger_->log(event);
+        }
+        if (live_metrics_) {
+            live_metrics_->flush();
         }
     }
 
@@ -879,6 +889,9 @@ namespace regimeflow::live
         }
         if (daily_start_equity_ > 0.0) {
             daily_pnl_ = info.equity - daily_start_equity_;
+        }
+        if (live_metrics_) {
+            live_metrics_->update(Timestamp::now(), info.equity, daily_pnl_);
         }
         check_daily_loss_limit();
         if (portfolio_) {

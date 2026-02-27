@@ -47,6 +47,9 @@ def __getattr__(name):
     if name == "config":
         from . import config as _config
         return _config
+    if name == "research":
+        from . import research as _research
+        return _research
     raise AttributeError(name)
 
 BacktestEngine = engine.BacktestEngine
@@ -108,6 +111,7 @@ __all__ = [
     "visualization",
     "analysis",
     "config",
+    "research",
     "metrics",
 ]
 

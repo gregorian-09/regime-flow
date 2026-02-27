@@ -56,3 +56,8 @@ Date: 2026-02-26
 ## Remaining (Optional)
 
 - Decide whether to keep legacy reference pages visible in nav.
+
+## In Progress
+
+- Implementing parity checker CLI + Python research session.
+- Adding live performance drift tracking with file outputs and optional Postgres sink.

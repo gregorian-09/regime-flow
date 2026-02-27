@@ -34,6 +34,7 @@ add_executable(regimeflow_tests
     unit/test_engine_factory_smoke.cpp
     unit/test_corporate_actions.cpp
     unit/test_report_writer.cpp
+    unit/test_parity_checker.cpp
     unit/test_corporate_actions_csv.cpp
     unit/test_corporate_actions_symbol_change_csv.cpp
     unit/test_corporate_actions_symbol_change_memory.cpp
@@ -60,6 +61,7 @@ add_executable(regimeflow_tests
     unit/test_performance_calculator.cpp
     unit/test_live_order_reconcile.cpp
     unit/test_live_engine_integration.cpp
+    unit/test_live_performance.cpp
     unit/test_event_bus.cpp
     unit/test_plugin_lifecycle.cpp
     unit/test_dynamic_plugin_loading.cpp

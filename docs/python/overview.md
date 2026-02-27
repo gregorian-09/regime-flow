@@ -51,6 +51,18 @@ results = engine.run("moving_average_cross")
 print(results.report_json())
 ```
 
+## Research Session And Parity
+
+`regimeflow.research` adds a notebook-friendly workflow and parity checks:
+
+```python
+import regimeflow as rf
+
+session = rf.research.ResearchSession(config_path="quickstart.yaml")
+report = session.parity_check(live_config_path="examples/live_paper_alpaca/config.yaml")
+print(report.status, report.warnings)
+```
+
 ## Next Steps
 
 - `python/cli.md`
