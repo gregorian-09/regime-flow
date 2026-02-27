@@ -10,8 +10,9 @@ live:
     enabled: true
     interval_ms: 10000
   risk:
-    max_notional: 50000
-    max_position_pct: 0.2
+    limits:
+      max_notional: 50000
+      max_position_pct: 0.2
 
 strategy:
   name: buy_and_hold

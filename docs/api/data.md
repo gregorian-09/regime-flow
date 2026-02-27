@@ -1288,6 +1288,5 @@ while (it->has_next()) {
 ## See Also
 
 - [Data Flow](../explanation/data-flow.md)
-- [Data Validation](../how-to/data-validation.md)
-- [Mmap Storage](../how-to/mmap-storage.md)
-- [Symbol Metadata](../how-to/symbol-metadata.md)
+- [Data Validation](../reference/data-validation.md)
+- [Data Sources](../guide/data-sources.md)

@@ -1,32 +1,32 @@
 # Backtest Methodology
 
-This section explains how RegimeFlow ensures fair backtests.
+RegimeFlow backtests are event-driven and model execution costs explicitly. The methodology mirrors live behavior wherever possible.
 
-## Symbols
-
-Let:
-- $P_f$ = final fill price
-- $P_0$ = reference price
-- $\delta$ = slippage
-- $I$ = market impact
-
-## Flow
+## Methodology Diagram
 
 ```mermaid
 flowchart LR
-  A[Historical Data] --> B[Validation]
-  B --> C[Event Generator]
-  C --> D[Strategy Decisions]
+  A[Historical Data] --> B[Data Source]
+  B --> C[Event Loop]
+  C --> D[Strategy]
   D --> E[Execution Models]
-  E --> F[Portfolio]
-  F --> G[Metrics]
+  E --> F[Portfolio + Metrics]
 ```
 
+## Key Principles
 
-## Fill Price (LaTeX)
+- **Event-driven**: bars, ticks, and order books drive strategy callbacks.
+- **Explicit costs**: slippage, commission, impact, and latency are modeled.
+- **Single pipeline**: the same strategy contract is used in backtest and live.
 
-$$
-P_f = P_0 + \delta + I
-$$
+## Fill Modeling
 
-Interpretation: fills incorporate both slippage and impact, not just mid‑price.
+Fills are produced by the execution pipeline and update portfolio state. Costs are applied before the fill is recorded.
+
+## Risk Enforcement
+
+Risk limits are checked before orders are accepted, and portfolio-level limits can prevent additional exposure.
+
+## Determinism
+
+CSV-based backtests are deterministic when the same data and config are used.

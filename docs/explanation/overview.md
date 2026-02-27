@@ -1,14 +1,14 @@
 # Overview
 
-RegimeFlow is a C++ core with Python bindings that provides:
-- Data ingestion, validation, and canonicalization
-- Backtesting and live trading engines
-- Regime detection (HMM + ensembles) and regime-aware analytics
-- Risk controls and execution models
-- Broker adapters and message bus integration
+RegimeFlow is a C++ core with Python bindings for regime-aware backtesting and live execution. The system is built around a single event pipeline that produces consistent behavior across backtest and live modes.
 
-The system is built around a consistent event pipeline that feeds data through
-feature extraction, regime detection, strategy logic, execution models, and risk.
+## What It Provides
+
+- Data ingestion, validation, and canonicalization.
+- Regime detection and regime-aware analytics.
+- Strategy execution with configurable costs and risk limits.
+- Live trading via broker adapters.
+- Plugin architecture for detectors, strategies, data sources, and execution models.
 
 ## System Map
 
@@ -43,18 +43,14 @@ flowchart LR
   end
 ```
 
+## Core Guarantees
 
-## Key Ideas
+- One strategy contract for both backtests and live trading.
+- One event pipeline for bars, ticks, and order books.
+- One configuration surface across C++ and Python formats.
 
-1. Data flow is consistent between backtest and live. The same event types and
-   execution logic are used for both, with adapters at the edges.
-2. Regime detection is a first-class signal that can influence strategy selection,
-   risk limits, and reporting.
-3. Execution models are pluggable. Users can extend the execution layer without
-   rewriting the rest of the system.
+## Where To Go Next
 
-
-## Interpretation
-
-Interpretation: the overview diagram shows the end‑to‑end flow from data ingestion through regime detection, strategy decisions, and execution.
-
+- `explanation/architecture.md`
+- `explanation/data-flow.md`
+- `explanation/event-model.md`

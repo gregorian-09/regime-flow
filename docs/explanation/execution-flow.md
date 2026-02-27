@@ -1,52 +1,36 @@
 # Execution Flow
 
-This document describes how orders are created, validated, executed, and tracked.
+Execution is modeled explicitly so backtests reflect realistic cost and fill behavior.
 
-## Order Lifecycle (Backtest)
-
-```mermaid
-sequenceDiagram
-  participant Strategy
-  participant OrderManager
-  participant ExecutionPipeline
-  participant ExecutionModel
-  participant Portfolio
-
-  Strategy->>OrderManager: submit_order(order)
-  OrderManager->>ExecutionPipeline: enqueue(order)
-  ExecutionPipeline->>ExecutionModel: simulate_fill(order)
-  ExecutionModel-->>ExecutionPipeline: fills
-  ExecutionPipeline->>Portfolio: apply_fills
-  Portfolio-->>OrderManager: update status
-```
-
-
-## Order Lifecycle (Live)
+## Execution Diagram
 
 ```mermaid
 sequenceDiagram
   participant Strategy
-  participant LiveOrderManager
-  participant BrokerAdapter
-  participant ExecutionPipeline
+  participant Engine
+  participant Execution
   participant Portfolio
 
-  Strategy->>LiveOrderManager: submit_order(order)
-  LiveOrderManager->>BrokerAdapter: send order
-  BrokerAdapter-->>LiveOrderManager: broker_order_id
-  BrokerAdapter-->>LiveOrderManager: execution report
-  LiveOrderManager->>ExecutionPipeline: fill update
-  ExecutionPipeline->>Portfolio: apply_fills
+  Strategy->>Engine: submit_order
+  Engine->>Execution: apply slippage/commission/impact
+  Execution->>Engine: fill
+  Engine->>Portfolio: update positions + cash
 ```
 
+## Steps
 
-## Execution Model Injection
+1. Strategy submits an order via `StrategyContext`.
+2. The execution pipeline applies slippage, commission, impact, and latency.
+3. Fills update the portfolio and metrics.
 
-Execution models are selected via `execution::ExecutionFactory` and can be extended
-without changing strategy or engine logic.
+## Execution Configuration
 
+Execution is configured under `execution.*` and implemented by `ExecutionFactory`:
 
-## Interpretation
+- Slippage models: `zero`, `fixed_bps`, `regime_bps`.
+- Commission models: `zero`, `fixed`.
+- Transaction cost models: `zero`, `fixed_bps`, `per_share`, `per_order`, `tiered`.
+- Market impact models: `zero`, `fixed_bps`, `order_book`.
+- Latency model: `latency.ms`.
 
-Interpretation: orders move from strategy into the execution pipeline, producing fills that update the portfolio.
-
+See `guide/execution-models.md` for full config details.

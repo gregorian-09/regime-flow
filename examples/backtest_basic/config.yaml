@@ -26,8 +26,9 @@ commission_params:
 
 # Optional risk parameters (used by RiskFactory)
 risk_params:
-  max_notional: 100000
-  max_position_pct: 0.2
+  limits:
+    max_notional: 100000
+    max_position_pct: 0.2
 
 strategy_params:
   # Harmonic pattern parameters

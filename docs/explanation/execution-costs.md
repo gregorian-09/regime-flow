@@ -1,50 +1,38 @@
 # Execution Costs
 
-Execution models simulate realistic trading costs in backtests.
+Execution costs are modeled explicitly to avoid overly optimistic backtests. Costs are configured under `execution.*`.
 
-## Symbols
-
-Let:
-- $Q$ = order quantity
-- $P_0$ = reference price
-- $c$ = commission per unit
-- $\delta$ = slippage amount
-- $I$ = market impact
-
-## Execution Model Flow
+## Cost Stack Diagram
 
 ```mermaid
 flowchart LR
-  A[Order] --> B[Latency]
-  B --> C[Slippage]
-  C --> D[Market Impact]
-  D --> E[Commission]
-  E --> F[Net Fill]
+  A[Reference Price] --> B[Slippage]
+  B --> C[Commission]
+  C --> D[Impact]
+  D --> E[Final Fill]
 ```
 
+## Commission
 
-## Formulas (LaTeX)
+Commission is modeled per fill and can be:
 
-**Commission Cost**
+- `zero`
+- `fixed` (fixed amount per fill)
 
-$$
-\text{Commission} = c \cdot |Q|
-$$
+## Transaction Costs
 
-Interpretation: commission is linear in the size of the order.
+Transaction costs model non-commission fees and can be:
 
-**Slippage**
+- `fixed_bps` (bps on notional)
+- `per_share`
+- `per_order`
+- `tiered` (bps tiers by notional)
 
-$$
-P_s = P_0 + \delta
-$$
+## Market Impact
 
-Interpretation: slippage moves the price away from the reference price.
+Market impact models price movement caused by trade size:
 
-**Market Impact**
+- `fixed_bps` adds a constant bps penalty.
+- `order_book` uses depth to cap impact.
 
-$$
-P_f = P_s + I
-$$
-
-Interpretation: impact adds a size‑dependent penalty to the fill price.
+See `guide/execution-models.md` for configuration examples.

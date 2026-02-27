@@ -1,39 +1,24 @@
-# Slippage & Impact
+# Slippage Math
 
-This section explains how slippage and impact are modeled.
+Slippage models the difference between the reference price and the executed fill price.
 
-## Symbols
-
-Let:
-- $P_0$ = reference price (e.g., mid or last)
-- $s$ = slippage adjustment
-- $I$ = market impact adjustment
-- $P_f$ = final fill price
-
-## Model Flow
+## Slippage Diagram
 
 ```mermaid
 flowchart LR
-  A[Order] --> B[Slippage Model]
-  B --> C[Market Impact]
-  C --> D[Adjusted Fill Price]
+  A[Reference Price] --> B[Slippage Model]
+  B --> C[Adjusted Fill Price]
 ```
 
+## Fixed BPS
 
-## Formulas (LaTeX)
+The fixed basis-point model applies a constant penalty based on notional:
 
-**Slippage‑Adjusted Price**
+- Buy: `fill = price * (1 + bps/10000)`
+- Sell: `fill = price * (1 - bps/10000)`
 
-$$
-P_s = P_0 + s
-$$
+## Regime BPS
 
-Interpretation: slippage shifts the price away from the ideal reference price.
+The regime model applies a regime-specific bps value using the current regime label. This is useful for widening costs in volatile regimes.
 
-**Impact‑Adjusted Price**
-
-$$
-P_f = P_s + I
-$$
-
-Interpretation: impact adds an additional penalty for large or aggressive trades.
+See `guide/execution-models.md` for configuration.

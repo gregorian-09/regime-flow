@@ -1,35 +1,24 @@
-# Walk‑Forward Optimization
+# Walk-Forward Optimization
 
-Walk‑forward splits data into rolling windows and re‑optimizes parameters.
+Walk-forward optimization evaluates parameter stability by training on one window and validating on the next. It reduces overfitting by emphasizing out-of-sample performance.
 
-## Symbols
-
-Let:
-- $T$ = total time span
-- $W$ = in‑sample window length
-- $O$ = out‑of‑sample window length
-
-## Flow
+## Window Diagram
 
 ```mermaid
 flowchart LR
-  A[Full Data] --> B[Split Windows]
-  B --> C[Optimize In-Sample]
-  C --> D[Test Out-of-Sample]
-  D --> E[Next Window]
+  A[In-Sample Window] --> B[Optimize Params]
+  B --> C[Out-of-Sample Test]
+  C --> D[Next Window]
 ```
 
+## Window Types
 
-## Windowing (LaTeX)
+- **Rolling**: sliding windows of fixed size.
+- **Anchored**: expanding in-sample windows with fixed out-of-sample windows.
+- **RegimeAware**: window segmentation based on regime boundaries.
 
-For each step $k$:
+## Overfitting Detection
 
-$$
-\text{InSample}_k = [t_k, t_k + W]
-$$
+The optimizer computes an efficiency ratio and flags potential overfitting when in-sample performance is disproportionately higher than out-of-sample performance.
 
-$$
-\text{OutSample}_k = [t_k + W, t_k + W + O]
-$$
-
-Interpretation: parameters are trained on one window and validated on the next.
+See `guide/walkforward.md` for configuration.

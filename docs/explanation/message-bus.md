@@ -1,30 +1,28 @@
-# Message Bus Resiliency
+# Message Bus
 
-RegimeFlow can broadcast live updates through message queues like Redis Streams or Kafka.
-This helps scale live trading across multiple processes.
+The live event bus provides in-process routing for market data, execution reports, and system messages. It is implemented in `live/event_bus.h`.
 
-## MQ Resiliency Flow
+## Bus Diagram
 
 ```mermaid
 flowchart TB
-  A[Live Engine] --> B[MQ Adapter]
-  B --> C{Connected?}
-  C -- Yes --> D[Publish/Consume]
-  C -- No --> E[Reconnect Backoff]
-  E --> C
-  D --> F[Decode Message]
-  F --> G[Event Bus]
+  A[Broker Adapter] --> B[Event Bus]
+  B --> C[Live Engine]
+  B --> D[Subscribers]
+  D --> E[Dashboards / Alerts]
 ```
 
+## Topics
 
-## What It Means
+- `MarketData`
+- `ExecutionReport`
+- `PositionUpdate`
+- `AccountUpdate`
+- `System`
 
-- If the queue is healthy, messages flow in real time.
-- If it drops, the adapter retries with backoff (wait longer each time).
-- When it reconnects, the stream resumes without restarting the engine.
+## Usage
 
+- Publishers send `LiveMessage` objects to the bus.
+- Subscribers register callbacks per topic.
 
-## Interpretation
-
-Interpretation: the adapter retries with exponential backoff and resumes once the queue is healthy.
-
+The event bus is used by the live engine and can be extended with external message queues via the MQ adapter.

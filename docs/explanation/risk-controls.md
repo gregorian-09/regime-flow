@@ -1,30 +1,38 @@
 # Risk Controls
 
-Risk limits can be global, per‑strategy, or regime‑specific.
+Risk controls are enforced by the `RiskManager` and optional stop-loss rules. They are applied in both backtest and live modes.
 
-## Risk Control Flow
+## Control Diagram
 
 ```mermaid
 flowchart LR
-  A[Order] --> B[Pre-Trade Checks]
-  B --> C{Pass?}
-  C -- No --> D[Reject]
-  C -- Yes --> E[Execution Pipeline]
-  E --> F[Portfolio]
-  F --> G[Portfolio Limits]
-  G --> H{Pass?}
-  H -- No --> I[Reduce / Close]
-  H -- Yes --> J[Continue Trading]
+  A[Strategy Order] --> B[Risk Manager]
+  B --> C{Limits OK?}
+  C -- Yes --> D[Execution]
+  C -- No --> E[Reject Order]
 ```
 
+## Limit Types
 
-## What It Means
+Configured under `limits.*`:
 
-- Every order is checked against limits before it is sent.
-- After fills, the portfolio is checked again for overall exposure.
-- If limits are violated, the system can reduce exposure automatically.
+- Notional limits
+- Position limits
+- Drawdown limits
+- Gross and net exposure
+- Leverage
+- Sector and industry exposure
+- Correlation exposure
 
+Regime-specific limits are supported via `limits_by_regime`.
 
-## Interpretation
+## Stop-Loss Rules
 
-Interpretation: orders are checked against limits before execution and again at the portfolio level.
+Configured under:
+
+- `stop_loss.*`
+- `trailing_stop.*`
+- `atr_stop.*`
+- `time_stop.*`
+
+See `guide/risk-management.md` for the full key list and examples.

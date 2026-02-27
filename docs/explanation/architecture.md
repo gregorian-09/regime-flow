@@ -1,88 +1,92 @@
 # Architecture
 
-This section maps the core components to the concrete code modules and shows
-how they interact in both backtest and live trading flows.
+RegimeFlow is layered to keep market data ingestion, strategy logic, execution modeling, and live integration decoupled. The core runtime is C++20 with optional Python bindings.
 
-## Component Diagram
+## Layering
+
+- **Common**: utilities, time, config, JSON/YAML helpers.
+- **Data**: data sources, validation, normalization, and iterators.
+- **Regime**: feature extraction and detectors.
+- **Strategy**: strategy contract and built-in strategies.
+- **Execution**: slippage, commission, impact, latency models.
+- **Risk**: limits and stop-loss logic.
+- **Engine**: orchestrates event loop and portfolio state.
+- **Live**: broker adapters, event bus, live engine.
+- **Plugins**: extension interfaces for data, regime, execution, strategy, risk, metrics.
+
+## Architecture Diagram
 
 ```mermaid
 flowchart TB
   subgraph Common
-    C1[common/*]
-    C2[result.h, json.h, time.h]
+    C1[Config + Result]
+    C2[Time + Types]
   end
 
   subgraph Data
-    D1[data/*]
-    D2[CSV, Tick, OrderBook]
-    D3[WebSocketFeed]
-    D4[Mmap + DB + API]
+    D1[Data Sources]
+    D2[Validation]
+    D3[Iterators]
   end
 
   subgraph Regime
-    R1[regime/*]
-    R2[FeatureExtractor]
-    R3[HMM + Ensemble]
+    R1[Feature Extractor]
+    R2[Regime Detectors]
   end
 
   subgraph Engine
-    E1[engine/*]
-    E2[EventLoop]
-    E3[ExecutionPipeline]
-    E4[Portfolio + Metrics]
+    E1[Event Loop]
+    E2[Strategy Context]
+    E3[Portfolio + Metrics]
   end
 
-  subgraph Strategy
-    S1[strategy/*]
-    S2[StrategyFactory]
+  subgraph Execution
+    X1[Execution Pipeline]
+    X2[Slippage/Commission/Impact]
   end
 
   subgraph Risk
-    K1[risk/*]
-    K2[RiskManager]
+    K1[Risk Manager]
+    K2[Stop-Loss]
   end
 
   subgraph Live
-    L1[live/*]
-    L2[BrokerAdapter]
-    L3[LiveOrderManager]
-    L4[MessageQueue]
+    L1[Broker Adapters]
+    L2[Event Bus]
   end
 
   Common --> Data
-  Common --> Engine
-  Common --> Live
-
+  Common --> Regime
   Data --> Engine
   Regime --> Engine
-  Strategy --> Engine
+  Engine --> Execution
+  Execution --> Engine
   Risk --> Engine
   Engine --> Live
-  Live --> Data
+  Live --> Engine
 ```
 
+## Module Map
 
-## Module-to-File Map
+- `include/regimeflow/common/*` foundational types and config.
+- `include/regimeflow/data/*` data sources and validation.
+- `include/regimeflow/regime/*` feature extraction and detectors.
+- `include/regimeflow/strategy/*` strategy contract and factory.
+- `include/regimeflow/execution/*` cost and execution models.
+- `include/regimeflow/risk/*` risk limits and stop-loss.
+- `include/regimeflow/engine/*` backtest engine and portfolio.
+- `include/regimeflow/live/*` live engine and adapters.
+- `include/regimeflow/plugins/*` plugin interfaces and registry.
 
-- `common/`: core utilities, results, time, JSON parsing
-- `data/`: sources, validation, CSV readers, mmap storage, websocket feeds
-- `regime/`: HMM, ensemble detection, features, state transitions
-- `engine/`: event loop, execution pipeline, portfolio, order management
-- `execution/`: execution models, slippage, market impact, latency models
-- `risk/`: risk limits, position sizing, stop-loss
-- `strategy/`: strategy interface, factories, built-ins
-- `live/`: broker adapters, live engine, MQ adapters
+## Extension Points
 
-## Key Interactions
+Plugins can extend:
 
-1. `data::DataSource` emits bars/ticks into `engine::EventLoop`.
-2. `regime::FeatureExtractor` computes features and updates `RegimeDetector`.
-3. `strategy::Strategy` consumes market events and regime state to create orders.
-4. `execution::ExecutionPipeline` simulates or routes orders and updates portfolio.
-5. `metrics::*` compute performance and regime attribution.
+- Data sources (`data_source`)
+- Regime detectors (`regime_detector`)
+- Execution models (`execution_model`)
+- Strategies (`strategy`)
+- Risk managers (`risk_manager`)
+- Metrics (`metrics`)
 
-
-## Interpretation
-
-Interpretation: the architecture diagram maps each code module to the system layers and shows the dependencies between them.
-
+See `reference/plugin-api.md` and `reference/plugins.md`.

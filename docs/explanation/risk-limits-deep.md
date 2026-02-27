@@ -1,54 +1,57 @@
-# Risk Limits
+# Risk Limits (Deep Dive)
 
-This section explains how risk rules are structured and evaluated.
+Risk limits are enforced by `RiskManager` and created by `RiskFactory`. Limits apply at order time and can also validate the portfolio state.
 
-## Symbols
-
-Let:
-- $q$ = order quantity
-- $P$ = order price
-- $E$ = current equity
-- $L_{max}$ = max leverage allowed
-- $G$ = gross exposure
-- $N$ = net exposure
-
-## Evaluation Path
+## Limit Evaluation Diagram
 
 ```mermaid
-flowchart TB
-  A[Order] --> B[RiskManager::validate]
-  B --> C{Regime-specific limits?}
-  C -- Yes --> D[Apply Regime Limits]
-  C -- No --> E[Apply Global Limits]
-  D --> F{Pass?}
-  E --> F
-  F -- No --> G[Reject]
-  F -- Yes --> H[Proceed]
+flowchart LR
+  A[Order] --> B[RiskManager]
+  B --> C[Limits]
+  C --> D{All Pass?}
+  D -- Yes --> E[Execute]
+  D -- No --> F[Reject]
 ```
 
+## Limit Types
 
-## Example Checks (LaTeX)
+- **MaxNotional**: `limits.max_notional` caps order notional.
+- **MaxPosition**: `limits.max_position` caps absolute position size.
+- **MaxPositionPct**: `limits.max_position_pct` caps position value as a fraction of equity.
+- **MaxDrawdown**: `limits.max_drawdown` caps portfolio drawdown fraction.
+- **MaxGrossExposure**: `limits.max_gross_exposure` caps total absolute exposure.
+- **MaxNetExposure**: `limits.max_net_exposure` caps directional exposure.
+- **MaxLeverage**: `limits.max_leverage` caps leverage ratio.
 
-**Gross Exposure Limit**
+## Sector And Industry Limits
 
-$$
-G = \sum_i |q_i P_i|
-$$
+- `limits.sector_limits` maps sector to max exposure pct.
+- `limits.sector_map` maps symbol to sector.
+- `limits.industry_limits` maps industry to max exposure pct.
+- `limits.industry_map` maps symbol to industry.
 
-$$
-G \le L_{max} \cdot E
-$$
+## Correlation Limit
 
-Interpretation: total absolute exposure cannot exceed leverage limit.
+- `limits.correlation.window` length of the rolling price window.
+- `limits.correlation.max_corr` correlation threshold.
+- `limits.correlation.max_pair_exposure_pct` cap for correlated pair exposure.
 
-**Net Exposure Limit**
+## Regime-Specific Limits
 
-$$
-N = \sum_i q_i P_i
-$$
+You can apply stricter limits in specific regimes:
 
-$$
-|N| \le N_{max}
-$$
+```yaml
+risk:
+  limits:
+    max_position_pct: 0.2
+  limits_by_regime:
+    crisis:
+      limits:
+        max_position_pct: 0.05
+        max_notional: 25000
+```
 
-Interpretation: portfolio directional exposure is capped.
+## How Limits Are Evaluated
+
+- Each limit produces `Ok` or a failure with `Error::Code::OutOfRange`.
+- The risk manager aggregates all configured limits and rejects orders that violate any limit.

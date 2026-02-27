@@ -140,6 +140,7 @@ export ALPACA_API_KEY=...
 export ALPACA_API_SECRET=...
 export ALPACA_PAPER_BASE_URL=https://paper-api.alpaca.markets
 ./build/bin/regimeflow_live --config examples/live_paper_alpaca/config.yaml
+```
 
 You can also store these values in a `.env` file in the project root; the live CLI
 will load it automatically if present.
@@ -187,7 +188,6 @@ data:
   data_base_url: https://data.alpaca.markets
   timeout_seconds: 10
   symbols: AAPL,MSFT
-```
 ```
 
 ## Live Paper IB

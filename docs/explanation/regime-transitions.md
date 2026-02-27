@@ -1,35 +1,26 @@
-# Regime Transitions (Detailed)
+# Regime Transitions
 
-This section explains how regimes are computed and how transitions are detected.
+A regime transition is emitted when the detector’s dominant regime changes. The transition carries the previous regime, the new regime, and timing metadata.
 
-## Regime Transition Flow
+## Transition Diagram
 
 ```mermaid
-flowchart LR
-  A[Feature Vector] --> B[Regime Model]
-  B --> C[Probability Vector]
-  C --> D[Kalman Smoothing]
-  D --> E[Current Regime]
-  E --> F{Regime Change?}
-  F -- Yes --> G[Transition Event]
-  F -- No --> H[Continue]
+stateDiagram-v2
+  [*] --> Bull
+  Bull --> Neutral
+  Neutral --> Bear
+  Bear --> Crisis
+  Crisis --> Neutral
 ```
 
+## Transition Fields
 
-## What the Model Does
+From `regime/types.h`:
 
-- The system builds a **feature vector** (volatility, momentum, etc.).
-- The regime model outputs **probabilities** for each possible regime.
-- A smoothing layer reduces noisy flips.
-- When the dominant regime changes, a **transition event** is emitted.
+- `from` previous regime.
+- `to` next regime.
+- `timestamp` time of transition.
+- `confidence` detector confidence.
+- `duration_in_from` how long the previous regime persisted.
 
-## How Strategies Use It
-
-- Strategies can change behavior depending on the regime.
-- Risk limits can be tightened for high‑risk regimes.
-
-
-## Interpretation
-
-Interpretation: transitions are emitted when the dominant regime changes after smoothing.
-
+Transitions are delivered to strategies via `on_regime_change`.

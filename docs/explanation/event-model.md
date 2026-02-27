@@ -1,23 +1,37 @@
 # Event Model
 
-The event model unifies backtest and live trading. Every update is normalized into
-well‑defined event types so strategy and execution logic remain consistent.
+The engine consumes a unified event stream of market data and system events. Strategies react via lifecycle callbacks.
 
-
-## Event Categories
+## Event Flow
 
 ```mermaid
 flowchart LR
-  A[MarketDataUpdate] --> B[Event Loop]
-  C[ExecutionReport] --> B
-  D[PositionUpdate] --> B
-  B --> E[Strategy]
-  B --> F[Execution Pipeline]
-  B --> G[Portfolio + Metrics]
+  A[Bars/Ticks/OrderBooks] --> B[Event Generator]
+  B --> C[Event Loop]
+  C --> D[Strategy Callbacks]
+  C --> E[Execution + Portfolio]
+  C --> F[Regime Updates]
 ```
 
+## Event Types
 
-## Interpretation
+- `Bar`, `Tick`, `OrderBook` from data sources.
+- Order updates and fills from the execution pipeline.
+- System events such as timer callbacks and end-of-day.
 
-Events are time‑ordered updates that carry prices, fills, and positions. The event
-loop guarantees consistent ordering for strategy logic.
+## Strategy Callbacks
+
+A strategy may implement:
+
+- `initialize(ctx)`
+- `on_start()` / `on_stop()`
+- `on_bar(bar)`
+- `on_tick(tick)`
+- `on_order_book(book)`
+- `on_order_update(order)`
+- `on_fill(fill)`
+- `on_regime_change(transition)`
+- `on_end_of_day(date)`
+- `on_timer(timer_id)`
+
+These callbacks are identical in C++ and Python strategies.

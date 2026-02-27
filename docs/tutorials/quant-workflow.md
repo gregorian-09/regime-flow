@@ -33,7 +33,7 @@ data:
 ```
 
 Related:
-- `reference/config-reference.md`
+- `reference/configuration.md`
 - `how-to/data-validation.md`
 - `how-to/mmap-storage.md`
 - `how-to/symbol-metadata.md`

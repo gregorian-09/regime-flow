@@ -1,18 +1,21 @@
-# Broker Streaming Flows
+# Broker Streaming
 
-This section shows how live market data and execution reports flow from each broker into RegimeFlow.
+Broker adapters can stream market data and execution updates. These are normalized into `MarketDataUpdate` and `ExecutionReport` messages and then dispatched through the live event bus.
 
-## Alpaca Streaming
+## Streaming Diagram
 
 ```mermaid
-sequenceDiagram
-  participant AlpacaWS as Alpaca Stream
-  participant WebSocketFeed
-  participant LiveEngine
-  participant EventBus
-
-  AlpacaWS-->>WebSocketFeed: raw JSON
-  WebSocketFeed-->>LiveEngine: validated Bar/Tick/Book
-  LiveEngine-->>EventBus: publish MarketDataUpdate
+flowchart LR
+  A[Broker Feed] --> B[Adapter]
+  B --> C[MarketDataUpdate]
+  B --> D[ExecutionReport]
+  C --> E[Event Bus]
+  D --> E
 ```
 
+## Streaming Modes
+
+- **Push**: broker delivers events over WebSocket or streaming HTTP.
+- **Poll**: broker requires periodic polling via adapter `poll()`.
+
+Adapters may use both, depending on the broker.

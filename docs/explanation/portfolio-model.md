@@ -1,64 +1,26 @@
 # Portfolio Model
 
-This section explains how positions, cash, and PnL are tracked.
+The portfolio tracks positions, cash, equity, and exposure. It is updated by fills from the execution pipeline.
 
-## Symbols
-
-Let:
-- $q_i$ = position quantity for symbol $i$
-- $P_i$ = current price for symbol $i$
-- $C$ = cash
-- $E$ = equity
-
-## Portfolio Flow
+## Portfolio Diagram
 
 ```mermaid
 flowchart LR
-  A[Fill] --> B[Update Position]
-  B --> C[Update Cash]
-  C --> D[Equity]
-  D --> E[Snapshots]
+  A[Fills] --> B[Positions]
+  A --> C[Cash]
+  B --> D[Exposure]
+  B --> E[Equity]
+  C --> E
 ```
 
+## Core Quantities
 
-## Formulas (LaTeX)
+- **Position value**: `quantity * current_price`.
+- **Equity**: `cash + sum(position values)`.
+- **Gross exposure**: sum of absolute position values.
+- **Net exposure**: sum of signed position values.
+- **Leverage**: `gross_exposure / equity`.
 
-**Market Value**
+## Portfolio Snapshots
 
-$$
-\text{MV}_i = q_i P_i
-$$
-
-Interpretation: value of a single position.
-
-**Equity**
-
-$$
-E = C + \sum_i \text{MV}_i
-$$
-
-Interpretation: total account value is cash plus all positions.
-
-**Gross Exposure**
-
-$$
-G = \sum_i |\text{MV}_i|
-$$
-
-Interpretation: total absolute exposure across positions.
-
-**Net Exposure**
-
-$$
-N = \sum_i \text{MV}_i
-$$
-
-Interpretation: directional exposure of the portfolio.
-
-**Leverage**
-
-$$
-\text{Leverage} = \frac{G}{E}
-$$
-
-Interpretation: how much exposure is taken per unit of equity.
+The engine emits snapshots for equity curves and performance metrics. These are used by `BacktestResults` and reporting utilities.

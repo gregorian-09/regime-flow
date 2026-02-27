@@ -1,44 +1,31 @@
 # Order State Machine
 
-This section describes how live orders move through states.
+Orders are represented by `engine::Order` and transition through a small set of statuses. Statuses are defined in `include/regimeflow/engine/order.h`.
 
+## Status Values
 
-## State Graph
+- `Created` order was constructed by a strategy.
+- `Pending` order submitted but not yet acknowledged.
+- `PartiallyFilled` order has partial fills.
+- `Filled` order is fully filled.
+- `Cancelled` order was cancelled.
+- `Rejected` order was rejected by execution or broker.
+- `Invalid` order failed validation before submission.
+
+## Typical Flow
 
 ```mermaid
 stateDiagram-v2
-  [*] --> PendingNew
-  PendingNew --> New
-  PendingNew --> PartiallyFilled
-  PendingNew --> Filled
-  PendingNew --> Rejected
-  PendingNew --> Cancelled
-  PendingNew --> Expired
-  PendingNew --> Error
-
-  New --> PartiallyFilled
-  New --> Filled
-  New --> Cancelled
-  New --> Rejected
-  New --> Expired
-  New --> Error
-
-  PartiallyFilled --> PartiallyFilled
+  [*] --> Created
+  Created --> Pending
+  Pending --> PartiallyFilled
   PartiallyFilled --> Filled
-  PartiallyFilled --> Cancelled
-  PartiallyFilled --> Rejected
-  PartiallyFilled --> Expired
-  PartiallyFilled --> Error
-
-  PendingCancel --> Cancelled
-  PendingCancel --> Rejected
-  PendingCancel --> Expired
-  PendingCancel --> Error
-
-  Cancelled --> [*]
-  Rejected --> [*]
-  Filled --> [*]
-  Expired --> [*]
-  Error --> [*]
+  Pending --> Cancelled
+  Pending --> Rejected
+  Created --> Invalid
 ```
 
+## Notes
+
+- Backtests use the execution pipeline to synthesize fills and update status.
+- Live trading maps broker updates into internal `ExecutionReport` messages, which update order state.

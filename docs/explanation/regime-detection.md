@@ -1,33 +1,28 @@
 # Regime Detection
 
-RegimeFlow uses market features to classify the market into regimes (e.g., trend, mean-revert, volatile).
+Regime detection maps market features to a regime label that can influence strategy selection, risk limits, and execution costs.
 
-## Regime Detection Pipeline
+## Detection Diagram
 
 ```mermaid
 flowchart LR
-  A[Market Data] --> B[Feature Extractor]
-  B --> C[HMM / Ensemble / Plugin Model]
-  C --> D[Kalman Smoothing]
-  D --> E[Regime State]
-  E --> F[Strategy + Risk]
+  A[Features] --> B[Detector]
+  B --> C[Regime Probabilities]
+  C --> D[Regime State]
+  D --> E[Strategy + Risk]
 ```
 
+## Detector Flow
 
-## What It Means
+1. Features are extracted from bars or ticks.
+2. The detector computes regime probabilities.
+3. A stable regime state is emitted to the engine.
 
-- The system **measures market behavior** (volatility, momentum, etc.).
-- A **regime model** classifies the market into categories.
-- A **smoother** reduces noisy regime flips.
-- Strategies can react differently depending on the regime.
+## Detector Types
 
-## Custom Models And Labels
+- `constant`
+- `hmm`
+- `ensemble`
+- Plugin detectors
 
-RegimeFlow also supports custom regime detectors via plugins (C++ or Python), including transformer-based models.
-These detectors can emit **custom regime labels** (for example `risk_on`, `risk_off`, `sideways`), and the
-strategies can map those labels to different behavior or strategy selection.
-
-
-## Interpretation
-
-Interpretation: features are mapped to regime probabilities, then smoothed into a stable state.
+See `guide/regime-detection.md` for configuration details.

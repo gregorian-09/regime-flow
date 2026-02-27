@@ -1,32 +1,22 @@
-# Live Order Reconciliation (Detailed)
+# Live Order Reconciliation
 
-This section describes how RegimeFlow keeps internal order state aligned with broker reality.
+The live engine compares broker truth to internal order state and resolves mismatches. This reduces drift between the system and broker state.
 
-## Reconciliation Sequence
+## Reconciliation Diagram
 
 ```mermaid
-sequenceDiagram
-  participant LiveEngine
-  participant BrokerAdapter
-  participant LiveOrderManager
-  participant Portfolio
-
-  LiveEngine->>BrokerAdapter: get_open_orders()
-  BrokerAdapter-->>LiveEngine: open orders list
-  LiveEngine->>LiveOrderManager: reconcile_with_broker()
-  LiveOrderManager->>LiveOrderManager: compare + update
-  LiveOrderManager-->>Portfolio: apply fills/updates
+flowchart LR
+  A[Broker Orders] --> B[Reconcile]
+  C[Internal Orders] --> B
+  B --> D[Resolved State]
 ```
 
+## What Is Reconciled
 
-## What It Means
+- Open orders and their statuses.
+- Positions and quantities.
+- Account equity and buying power.
 
-- The engine periodically asks the broker for open orders.
-- It compares broker state with internal state.
-- Differences are resolved so the system always reflects reality.
+## Why It Matters
 
-
-## Interpretation
-
-Interpretation: reconciliation compares broker truth to internal state and resolves mismatches.
-
+Broker callbacks can be delayed or dropped. Reconciliation ensures the engine converges to broker truth over time.

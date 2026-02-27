@@ -46,5 +46,6 @@ execution:
     amount: 0.005
 
 risk:
-  max_notional: 100000
-  max_position_pct: 0.2
+  limits:
+    max_notional: 100000
+    max_position_pct: 0.2

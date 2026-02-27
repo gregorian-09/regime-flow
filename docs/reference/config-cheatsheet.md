@@ -1,7 +1,6 @@
 # Configuration Cheat Sheet
 
-This page is a **quick, scan-friendly summary** of the most commonly used configuration keys. For full
-field-by-field documentation, see [Configuration Reference](config-reference.md).
+This page provides quick, scan-friendly config examples. For full details, see `reference/configuration.md`.
 
 ## Quick Start (C++ Engine Config)
 
@@ -87,7 +86,8 @@ commission_params:
   amount: 0.005
 
 risk_params:
-  max_position_pct: 0.1
+  limits:
+    max_position_pct: 0.1
 
 strategy_params:
   fast_period: 10
@@ -99,14 +99,11 @@ strategy_params:
 
 - `engine.initial_capital`
 - `engine.currency`
-- `engine.audit_log_path`
 - `plugins.search_paths`
 - `plugins.load`
-- `symbols`
 - `data.type`
 - `data.data_directory`
 - `data.file_pattern`
-- `data.has_header`
 - `strategy.name`
 - `strategy.params`
 - `regime.detector`
@@ -119,73 +116,10 @@ strategy_params:
 - `data_source`
 - `data` (object)
 - `symbols`
-- `start_date`, `end_date`
-- `bar_type`
+- `start_date`, `end_date`, `bar_type`
 - `initial_capital`, `currency`
 - `regime_detector`, `regime_params`
-- `plugins_search_paths`, `plugins_load`
 - `slippage_model`, `slippage_params`
 - `commission_model`, `commission_params`
-- `risk_params`
+- `risk_params.limits.*`
 - `strategy_params`
-
-## Live Trading (C++ live config)
-
-```yaml
-live:
-  broker: alpaca
-  symbols: [AAPL, MSFT]
-  paper: true
-  broker_config:
-    api_key: "${ALPACA_API_KEY}"
-    secret_key: "${ALPACA_API_SECRET}"
-    base_url: "${ALPACA_PAPER_BASE_URL}"
-  reconnect:
-    enabled: true
-    initial_ms: 1000
-    max_ms: 30000
-  heartbeat:
-    enabled: true
-    interval_ms: 30000
-
-strategy:
-  name: moving_average_cross
-  params:
-    fast_period: 10
-    slow_period: 30
-
-live:
-  risk:
-    limits:
-      max_drawdown: 0.1
-```
-
-## Data Validation (any data source that supports validation)
-
-```yaml
-data:
-  validation:
-    check_gap: true
-    max_gap_seconds: 3600
-    check_price_jump: true
-    max_jump_pct: 0.05
-    on_gap: fill
-    on_error: fail
-```
-
-## Symbol Metadata Overlay
-
-```yaml
-symbol_metadata_csv: "configs/symbols.csv"
-
-symbol_metadata:
-  AAPL:
-    exchange: "NASDAQ"
-    sector: "Technology"
-    industry: "Consumer Electronics"
-```
-
-## Related
-
-- Full reference: [Configuration Reference](config-reference.md)
-- Python interfaces: [Python Interfaces](python-interfaces.md)

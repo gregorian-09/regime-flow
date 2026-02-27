@@ -1,32 +1,30 @@
 # Execution Models
 
-Execution models control how orders are filled in backtests and how costs are modeled.
+Execution models are responsible for turning strategy intent into fills with realistic cost and latency. RegimeFlow wires execution through `ExecutionFactory`.
 
-## Symbols
-
-Let:
-- $Q$ = order quantity
-- $P_0$ = reference price
-- $\delta$ = slippage amount
-- $I$ = market impact
-- $c$ = commission per unit
-
-## Execution Model Flow
+## Model Diagram
 
 ```mermaid
 flowchart LR
-  A[Order] --> B[Latency Model]
+  A[Order] --> B[Execution Model]
   B --> C[Slippage]
-  C --> D[Market Impact]
-  D --> E[Fill Simulator]
-  E --> F[Portfolio Update]
+  B --> D[Commission]
+  B --> E[Impact]
+  B --> F[Latency]
+  B --> G[Fill]
 ```
 
+## Model Types
 
-## Formula Example (LaTeX)
+- **Basic**: default model that combines slippage, commission, impact, and latency.
+- **Plugin**: custom execution models via `execution_model` plugins.
 
-$$
-P_f = P_0 + \delta + I
-$$
+## Cost Components
 
-Interpretation: final fill price equals reference price plus slippage and impact.
+- Slippage models: `zero`, `fixed_bps`, `regime_bps`.
+- Commission models: `zero`, `fixed`.
+- Transaction cost models: `zero`, `fixed_bps`, `per_share`, `per_order`, `tiered`.
+- Market impact models: `zero`, `fixed_bps`, `order_book`.
+- Latency model: fixed latency in milliseconds.
+
+See `guide/execution-models.md` for configuration.

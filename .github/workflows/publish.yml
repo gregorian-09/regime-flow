@@ -90,3 +90,125 @@ jobs:
         uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3
         with:
           packages-dir: dist
+
+  build_linux_packages:
+    name: Build Linux packages (deb + rpm)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ make dpkg-dev rpm createrepo-c apt-utils gnupg
+
+      - name: Build and install to staging
+        run: |
+          cmake -S . -B build -DBUILD_TESTS=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_PYTHON_BINDINGS=OFF
+          cmake --build build
+          cmake --install build --prefix /tmp/regimeflow
+
+      - name: Build .deb package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PKGROOT="/tmp/regimeflow-deb"
+          mkdir -p "${PKGROOT}/DEBIAN"
+          cp -r /tmp/regimeflow/* "${PKGROOT}/"
+          sed "s/^Version:.*/Version: ${VERSION}/" packaging/deb/DEBIAN/control > "${PKGROOT}/DEBIAN/control"
+          dpkg-deb --build "${PKGROOT}"
+          mkdir -p dist
+          mv "${PKGROOT}.deb" "dist/regimeflow_${VERSION}_amd64.deb"
+
+      - name: Build .rpm package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          TOPDIR="$PWD/rpmbuild"
+          mkdir -p "$TOPDIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+          SPEC="$TOPDIR/SPECS/regimeflow.spec"
+          sed "s/^Version:.*/Version:        ${VERSION}/" packaging/rpm/regimeflow.spec > "$SPEC"
+          rpmbuild -ba "$SPEC" --define "_topdir ${TOPDIR}"
+          mkdir -p dist
+          find "$TOPDIR/RPMS" -name "*.rpm" -exec cp {} dist/ \\;
+
+      - name: Upload Linux packages to release
+        uses: softprops/action-gh-release@9d7c3b0e4c5bb44f8de8c4c7f71e9b8c1a4f1f8f
+        with:
+          files: dist/*
+
+      - name: Build apt/yum repos (unsigned)
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          REPO_ROOT="$PWD/repo"
+          APT_DIR="$REPO_ROOT/apt"
+          YUM_DIR="$REPO_ROOT/yum"
+          mkdir -p "$APT_DIR" "$YUM_DIR"
+          cp dist/*.deb "$APT_DIR/"
+          cp dist/*.rpm "$YUM_DIR/" || true
+
+          # APT repo metadata
+          pushd "$APT_DIR"
+          dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+          apt-ftparchive release . > Release
+          popd
+
+          # YUM repo metadata
+          createrepo_c "$YUM_DIR"
+
+      - name: Sign apt/yum repos
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+        run: |
+          REPO_ROOT="$PWD/repo"
+          APT_DIR="$REPO_ROOT/apt"
+          YUM_DIR="$REPO_ROOT/yum"
+
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+          # APT signing
+          pushd "$APT_DIR"
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+            --armor --detach-sign -o Release.gpg Release
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+            --clearsign -o InRelease Release
+          popd
+
+          # YUM signing
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+            --armor --detach-sign -o "$YUM_DIR/repodata/repomd.xml.asc" "$YUM_DIR/repodata/repomd.xml"
+
+      - name: Publish public key
+        run: |
+          echo "${GPG_PUBLIC_KEY}" > repo/apt/repo-signing-public.asc
+          echo "${GPG_PUBLIC_KEY}" > repo/yum/repo-signing-public.asc
+
+      - name: Upload repo artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: linux-repos
+          path: repo
+
+  publish_linux_repos:
+    name: Publish apt/yum repos (GitHub Pages)
+    needs: [build_linux_packages]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download repo artifact
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          name: linux-repos
+          path: repo
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: repo

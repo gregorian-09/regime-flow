@@ -1,52 +1,39 @@
 # Data Flow
 
-This document explains how market data moves through the system for both
-backtesting and live execution.
+Data moves through RegimeFlow in a predictable pipeline: ingestion, validation, normalization, then conversion into events for the engine.
 
-## Backtest Data Flow
+## Pipeline Diagram
 
 ```mermaid
 flowchart LR
-  A[CSV/Tick/OrderBook] --> B[CSV/Tick Readers]
-  A2[Alpaca REST (Assets/Bars/Trades)] --> B2[AlpacaDataClient + Pagination]
-  B --> C[Validation + Normalization]
-  B2 --> C
-  C --> D[Bar Builder]
-  C --> D2[Tick Stream]
+  A[Raw Data] --> B[Data Source]
+  B --> C[Validation]
+  C --> D[Normalization]
   D --> E[Event Generator]
-  D2 --> E
-  E --> F[Event Loop]
-  F --> G[Strategy Context]
-  G --> H[Strategy]
-  H --> I[Execution Pipeline]
-  I --> J[Portfolio + Metrics]
+  E --> F[Engine Loop]
+  F --> G[Strategy]
+  F --> H[Portfolio + Metrics]
 ```
 
+## Pipeline Stages
 
-## Live Data Flow
+1. **Ingestion** from CSV, API, DB, or mmap sources.
+2. **Validation** rules applied to timestamps, price bounds, gaps, and outliers.
+3. **Normalization** into canonical bars, ticks, and order books.
+4. **Event generation** for the engine loop.
 
-```mermaid
-flowchart LR
-  A[Broker Stream] --> B[WebSocketFeed]
-  B --> C[Schema Validation]
-  C --> D[Event Bus]
-  D --> E[Live Engine]
-  E --> F[Strategy]
-  F --> G[Execution Pipeline]
-  G --> H[Broker Adapter]
-  E --> I[Metrics + Risk]
-  E --> J[Message Queue]
-```
+## Data Source Factory
 
+The data source is built by `DataSourceFactory::create` from the `data` config. See `guide/data-sources.md` for supported types and fields.
 
-## How Components Interact
+## Validation Controls
 
-- **Validation** ensures schema and pricing sanity before data is used.
-- **Bar Builder** aggregates ticks into bars if needed.
-- **Event Loop** is the single ingestion point for strategy logic.
-- **Execution Pipeline** simulates fills in backtest or routes to broker in live.
+Validation behavior is configured under `validation.*` and applies to CSV, API, and DB sources.
 
+See:
+- `reference/data-validation.md`
+- `guide/data-sources.md`
 
-## Interpretation
+## Event Output
 
-Interpretation: raw data is validated, normalized, and transformed into events consumed by strategy and execution.
+The output of the data pipeline is a stream of `Bar`, `Tick`, `OrderBook`, and system events that feed the strategy context.

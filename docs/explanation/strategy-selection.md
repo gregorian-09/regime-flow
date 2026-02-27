@@ -1,30 +1,33 @@
 # Strategy Selection
 
-Strategies can be built‑in, plugin‑based, or Python‑defined.
+Strategies are created by `StrategyFactory` using either a built-in registry or plugin loading. In Python, strategies can also be provided as `module:Class`.
 
-## Strategy Registry Flow
+## Selection Diagram
 
 ```mermaid
 flowchart LR
-  A[Config] --> B[StrategyFactory]
-  B --> C{Builtin?}
-  C -- Yes --> D[Instantiate Builtin]
-  C -- No --> E{Plugin?}
-  E -- Yes --> F[Load Plugin]
-  E -- No --> G[Python Strategy]
-  D --> H[Strategy Manager]
-  F --> H
-  G --> H
+  A[Config: strategy.name] --> B[StrategyFactory]
+  B --> C{Built-in?}
+  C -- Yes --> D[Create Built-in]
+  C -- No --> E[Plugin Registry]
+  E --> F[Create Plugin Strategy]
 ```
 
+## Built-In Strategies
 
-## What It Means
+Built-ins include:
 
-- The system reads the config and chooses a strategy.
-- You can plug in your own strategies without changing the core.
+- `buy_and_hold`
+- `moving_average_cross`
+- `pairs_trading`
+- `harmonic_pattern`
 
+## Plugin Strategies
 
-## Interpretation
+If `strategy.name` is not a built-in, the factory searches registered plugins. Configure plugin loading in the `plugins` block.
 
-Interpretation: strategies can be built‑in, plugin‑based, or provided in Python.
+## Python Strategies
 
+Python strategies are loaded by the CLI if `--strategy` is in `module:Class` form and the class extends `regimeflow.Strategy`.
+
+See `guide/strategies.md` for parameter details and examples.

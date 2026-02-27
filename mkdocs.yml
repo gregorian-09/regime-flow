@@ -9,7 +9,11 @@ theme:
   features:
   - navigation.sections
   - navigation.top
+  - navigation.tracking
+  - navigation.indexes
   - content.code.copy
+  - content.code.annotate
+  - content.tabs.link
 markdown_extensions:
 - admonition
 - attr_list
@@ -25,38 +29,52 @@ markdown_extensions:
 - toc:
     permalink: true
 extra_javascript:
-  - https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js
+  - assets/mermaid-d733041c.js
   - assets/mermaid-init.js
-  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js
-  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js
+  - assets/katex.min.js
+  - assets/auto-render.min.js
   - assets/katex-init.js
 extra_css:
-  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css
+  - assets/katex.min.css
 plugins:
 - search
+exclude_docs: '_maintainer/*'
+extra:
+  version:
+    provider: mike
 nav:
-  - Home: README.md
-  - Tutorials:
-    - Examples: tutorials/examples.md
-    - Python Usage: tutorials/python-usage.md
-    - Quant Workflow: tutorials/quant-workflow.md
-    - Custom Regime Workflow: tutorials/quant-custom-regime-workflow.md
-  - How-to Guides:
-    - Live Trading: how-to/live-trading.md
-    - Data Validation: how-to/data-validation.md
-    - Database: how-to/database.md
-    - Mmap Storage: how-to/mmap-storage.md
-    - Symbol Metadata: how-to/symbol-metadata.md
-    - Audit Logging: how-to/audit-logging.md
-    - Dashboard Flow: how-to/dashboard-flow.md
+  - Home: index.md
+  - Getting Started:
+    - Overview: getting-started/overview.md
+    - Installation: getting-started/installation.md
+    - Quick Install: getting-started/quick-install.md
+    - Quickstart (Backtest): getting-started/quickstart.md
+    - Project Layout: getting-started/project-layout.md
+  - Quant Guide:
+    - Backtesting: guide/backtesting.md
+    - Data Sources: guide/data-sources.md
+    - Strategies: guide/strategies.md
+    - Regime Detection: guide/regime-detection.md
+    - Risk Management: guide/risk-management.md
+    - Execution Models: guide/execution-models.md
+    - Walk-Forward Optimization: guide/walkforward.md
+  - Python:
+    - Python Overview: python/overview.md
+    - Python CLI: python/cli.md
+    - Python Workflow: python/workflow.md
+  - Live Trading:
+    - Live Overview: live/overview.md
+    - Live Config: live/config.md
+    - Brokers: live/brokers.md
+    - Resilience: live/resilience.md
   - Reference:
-    - Config Reference: reference/config-reference.md
+    - Configuration: reference/configuration.md
+    - Data Validation: reference/data-validation.md
     - Config Cheat Sheet: reference/config-cheatsheet.md
     - Broker Message Types: reference/broker-message-types.md
-    - Python Interfaces: reference/python-interfaces.md
-    - Transformer Regime Plugin: reference/transformer_regime_plugin.md
     - Plugin API: reference/plugin-api.md
     - Plugins: reference/plugins.md
+    - Transformer Regime Plugin: reference/transformer_regime_plugin.md
     - API Design:
       - Overview: api/index.md
       - Common: api/common.md
@@ -74,6 +92,11 @@ nav:
       - Python: api/python.md
       - Metrics Validation: api/python-metrics-validation.md
       - Full File Index: api/file-index.md
+  - Tutorials:
+    - Examples: tutorials/examples.md
+    - Python Usage: tutorials/python-usage.md
+    - Quant Workflow: tutorials/quant-workflow.md
+    - Custom Regime Workflow: tutorials/quant-custom-regime-workflow.md
   - Reports:
     - Intraday Strategy Tradecheck: reports/intraday_strategy_tradecheck.md
     - Multi Intraday Report: reports/multi_intraday_report.md
