@@ -71,6 +71,7 @@ See `guide/risk-management.md`.
 - `live.risk` block.
 - `live.broker_config` map.
 - `live.log_dir` for output paths.
+- `live.broker_asset_class` for broker TIF support (`equity`, `crypto`).
 
 ### Live Metrics
 

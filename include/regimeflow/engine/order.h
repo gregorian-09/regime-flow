@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 
 namespace regimeflow::engine
@@ -83,6 +84,7 @@ namespace regimeflow::engine
         OrderStatus status = OrderStatus::Created;
         Timestamp created_at;
         Timestamp updated_at;
+        std::optional<Timestamp> expire_at;
         std::string strategy_id;
         std::map<std::string, std::string> metadata;
 

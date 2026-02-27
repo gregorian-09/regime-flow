@@ -82,6 +82,7 @@ namespace regimeflow::test
 
         int max_orders_per_second() const override { return 5; }
         int max_messages_per_second() const override { return 1000; }
+        bool supports_tif(engine::OrderType, engine::TimeInForce) const override { return true; }
 
         void poll() override {
             std::vector<live::ExecutionReport> pending;

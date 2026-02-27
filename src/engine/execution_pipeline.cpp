@@ -1,5 +1,7 @@
 #include "regimeflow/engine/execution_pipeline.h"
 
+#include <cmath>
+
 namespace regimeflow::engine
 {
     ExecutionPipeline::ExecutionPipeline(MarketDataCache* market_data,
@@ -45,6 +47,56 @@ namespace regimeflow::engine
             return;
         }
         Price ref_price = reference_price(order);
+        const auto emit_fills = [this](const std::vector<engine::Fill>& fills,
+                                       const Order& order_ref,
+                                       const data::OrderBook* book) {
+            for (const auto& fill : fills) {
+                engine::Fill enriched = fill;
+                if (market_impact_model_) {
+                    double impact = market_impact_model_->impact_bps(order_ref, book) / 10000.0;
+                    enriched.price *= (order_ref.side == engine::OrderSide::Buy) ? (1.0 + impact)
+                                                                                 : (1.0 - impact);
+                }
+                if (commission_model_) {
+                    enriched.commission = commission_model_->commission(order_ref, fill);
+                }
+                if (transaction_cost_model_) {
+                    enriched.commission += transaction_cost_model_->cost(order_ref, fill);
+                }
+                events::Event event = events::make_order_event(
+                    events::OrderEventKind::Fill,
+                    enriched.timestamp,
+                    enriched.order_id,
+                    enriched.id,
+                    enriched.quantity,
+                    enriched.price,
+                    enriched.symbol,
+                    enriched.commission);
+                event_queue_->push(std::move(event));
+            }
+        };
+        const auto emit_cancel = [this](const Order& order_ref, const Timestamp ts) {
+            events::Event cancel = events::make_order_event(
+                events::OrderEventKind::Cancel,
+                ts,
+                order_ref.id,
+                0,
+                0.0,
+                0.0,
+                order_ref.symbol);
+            event_queue_->push(std::move(cancel));
+        };
+        const auto emit_reject = [this](const Order& order_ref, const Timestamp ts) {
+            events::Event reject = events::make_order_event(
+                events::OrderEventKind::Reject,
+                ts,
+                order_ref.id,
+                0,
+                0.0,
+                0.0,
+                order_ref.symbol);
+            event_queue_->push(std::move(reject));
+        };
         if (order_books_) {
             if (auto book = order_books_->latest(order.symbol)) {
                 auto model = execution::OrderBookExecutionModel(
@@ -56,46 +108,34 @@ namespace regimeflow::engine
                     ts = ts + latency_model_->latency();
                 }
                 auto fills = model.execute(order, ref_price, ts);
-                for (const auto& fill : fills) {
-                    engine::Fill enriched = fill;
-                    if (market_impact_model_) {
-                        double impact = market_impact_model_->impact_bps(order, &(*book)) / 10000.0;
-                        enriched.price *= (order.side == engine::OrderSide::Buy) ? (1.0 + impact)
-                                                                                 : (1.0 - impact);
+                double filled = 0.0;
+                for (const auto& f : fills) {
+                    filled += std::abs(f.quantity);
+                }
+                if (order.tif == TimeInForce::FOK && filled < order.quantity) {
+                    emit_reject(order, ts);
+                    return;
+                }
+                if (order.tif == TimeInForce::IOC) {
+                    if (!fills.empty()) {
+                        emit_fills(fills, order, &(*book));
                     }
-                    if (commission_model_) {
-                        enriched.commission = commission_model_->commission(order, fill);
-                    }
-                    if (transaction_cost_model_) {
-                        enriched.commission += transaction_cost_model_->cost(order, fill);
-                    }
-                    events::Event event = events::make_order_event(
-                        events::OrderEventKind::Fill,
-                        enriched.timestamp,
-                        enriched.order_id,
-                        enriched.id,
-                        enriched.quantity,
-                        enriched.price,
-                        enriched.symbol,
-                        enriched.commission);
-                    event_queue_->push(std::move(event));
+                    emit_cancel(order, ts);
+                    return;
                 }
                 if (!fills.empty()) {
-                    double filled = 0.0;
-                    for (const auto& f : fills) {
-                        filled += std::abs(f.quantity);
-                    }
-                    if (filled < order.quantity) {
-                        events::Event update = events::make_order_event(
-                            events::OrderEventKind::Update,
-                            ts,
-                            order.id,
-                            0,
-                            filled,
-                            0.0,
-                            order.symbol);
-                        event_queue_->push(std::move(update));
-                    }
+                    emit_fills(fills, order, &(*book));
+                }
+                if (filled < order.quantity) {
+                    events::Event update = events::make_order_event(
+                        events::OrderEventKind::Update,
+                        ts,
+                        order.id,
+                        0,
+                        filled,
+                        0.0,
+                        order.symbol);
+                    event_queue_->push(std::move(update));
                 }
                 return;
             }
@@ -107,46 +147,34 @@ namespace regimeflow::engine
             ts = ts + latency_model_->latency();
         }
         auto fills = execution_model_->execute(order, ref_price, ts);
-        for (const auto& fill : fills) {
-            engine::Fill enriched = fill;
-            if (market_impact_model_) {
-                double impact = market_impact_model_->impact_bps(order, nullptr) / 10000.0;
-                enriched.price *= (order.side == engine::OrderSide::Buy) ? (1.0 + impact)
-                                                                         : (1.0 - impact);
+        double filled = 0.0;
+        for (const auto& f : fills) {
+            filled += std::abs(f.quantity);
+        }
+        if (order.tif == TimeInForce::FOK && filled < order.quantity) {
+            emit_reject(order, ts);
+            return;
+        }
+        if (order.tif == TimeInForce::IOC) {
+            if (!fills.empty()) {
+                emit_fills(fills, order, nullptr);
             }
-            if (commission_model_) {
-                enriched.commission = commission_model_->commission(order, fill);
-            }
-            if (transaction_cost_model_) {
-                enriched.commission += transaction_cost_model_->cost(order, fill);
-            }
-            events::Event event = events::make_order_event(
-                events::OrderEventKind::Fill,
-                enriched.timestamp,
-                enriched.order_id,
-                enriched.id,
-                enriched.quantity,
-                enriched.price,
-                enriched.symbol,
-                enriched.commission);
-            event_queue_->push(std::move(event));
+            emit_cancel(order, ts);
+            return;
         }
         if (!fills.empty()) {
-            double filled = 0.0;
-            for (const auto& f : fills) {
-                filled += std::abs(f.quantity);
-            }
-            if (filled < order.quantity) {
-                events::Event update = events::make_order_event(
-                    events::OrderEventKind::Update,
-                    ts,
-                    order.id,
-                    0,
-                    filled,
-                    0.0,
-                    order.symbol);
-                event_queue_->push(std::move(update));
-            }
+            emit_fills(fills, order, nullptr);
+        }
+        if (filled < order.quantity) {
+            events::Event update = events::make_order_event(
+                events::OrderEventKind::Update,
+                ts,
+                order.id,
+                0,
+                filled,
+                0.0,
+                order.symbol);
+            event_queue_->push(std::move(update));
         }
     }
 

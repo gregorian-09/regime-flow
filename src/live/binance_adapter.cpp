@@ -210,7 +210,15 @@ namespace regimeflow::live
         query << "&quantity=" << order.quantity;
         if (order.type == engine::OrderType::Limit && order.limit_price > 0.0) {
             query << "&price=" << order.limit_price;
-            query << "&timeInForce=GTC";
+            const auto tif = [&]() -> std::string {
+                switch (order.tif) {
+                case engine::TimeInForce::GTC: return "GTC";
+                case engine::TimeInForce::IOC: return "IOC";
+                case engine::TimeInForce::FOK: return "FOK";
+                default: return "GTC";
+                }
+            }();
+            query << "&timeInForce=" << tif;
         }
         query << "&timestamp=" << Timestamp::now().milliseconds();
         query << "&recvWindow=" << config_.recv_window_ms;
@@ -433,6 +441,21 @@ namespace regimeflow::live
 
     int BinanceAdapter::max_messages_per_second() const {
         return 50;
+    }
+
+    bool BinanceAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
+        if (tif == engine::TimeInForce::GTD) {
+            return false;
+        }
+        if (type == engine::OrderType::Limit) {
+            return tif == engine::TimeInForce::GTC
+                || tif == engine::TimeInForce::IOC
+                || tif == engine::TimeInForce::FOK;
+        }
+        if (type == engine::OrderType::Market) {
+            return tif == engine::TimeInForce::IOC;
+        }
+        return false;
     }
 
     void BinanceAdapter::poll() {

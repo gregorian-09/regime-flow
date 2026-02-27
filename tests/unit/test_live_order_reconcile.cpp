@@ -31,6 +31,10 @@ namespace regimeflow::test
 
         [[nodiscard]] int max_orders_per_second() const override { return 1; }
         [[nodiscard]] int max_messages_per_second() const override { return 1; }
+        [[nodiscard]] bool supports_tif(regimeflow::engine::OrderType,
+                                        regimeflow::engine::TimeInForce) const override {
+            return true;
+        }
 
         void poll() override {}
 

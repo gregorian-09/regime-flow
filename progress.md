@@ -62,3 +62,4 @@ Date: 2026-02-26
 - Implementing parity checker CLI + Python research session.
 - Adding live performance drift tracking with file outputs and optional Postgres sink.
 - Removed unused variables/parameters in core paths and tests.
+- Added GTD expiry tracking and TIF validation in engine order manager.

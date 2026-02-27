@@ -43,6 +43,10 @@ namespace regimeflow::live
          */
         std::string broker_type;
         /**
+         * @brief Broker asset class (e.g., equity, crypto).
+         */
+        std::string broker_asset_class = "equity";
+        /**
          * @brief Broker-specific configuration key/value pairs.
          */
         std::map<std::string, std::string> broker_config;

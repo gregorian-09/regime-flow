@@ -135,6 +135,12 @@ namespace regimeflow::live
         [[nodiscard]] virtual int max_messages_per_second() const = 0;
 
         /**
+         * @brief Check if a time-in-force is supported for the given order type.
+         */
+        [[nodiscard]] virtual bool supports_tif(engine::OrderType type,
+                                                engine::TimeInForce tif) const = 0;
+
+        /**
          * @brief Poll broker for updates (if required).
          */
         virtual void poll() = 0;

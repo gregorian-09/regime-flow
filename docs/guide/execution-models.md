@@ -46,6 +46,15 @@ Config keys:
 
 - `execution.latency.ms` adds a fixed latency model.
 
+## Time-In-Force Semantics
+
+Time-in-force is configured per order via `Order.tif`:
+
+- `DAY`: orders expire at the first market event of the next calendar day.
+- `IOC`: fill immediately and cancel any remaining quantity.
+- `FOK`: reject if the order cannot be filled in full.
+- `GTD`: requires `expire_at` and cancels when the timestamp is reached.
+
 ## Example
 
 ```yaml

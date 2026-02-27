@@ -17,6 +17,7 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 - `live.risk` risk configuration block. This is passed to the risk factory.
 - `live.broker_config` key/value map of broker-specific settings.
 - `live.log_dir` output directory for logs and metrics.
+- `live.broker_asset_class` default `equity`, used for TIF support.
 
 ## Strategy
 
@@ -37,6 +38,7 @@ Example:
 live:
   broker: alpaca
   paper: true
+  broker_asset_class: equity
   symbols: ["AAPL", "MSFT"]
   reconnect:
     enabled: true

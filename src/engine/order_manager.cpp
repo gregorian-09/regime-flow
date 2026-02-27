@@ -97,17 +97,20 @@ namespace regimeflow::engine
             if (mod.limit_price) {
                 it->second.limit_price = *mod.limit_price;
             }
-            if (mod.stop_price) {
-                it->second.stop_price = *mod.stop_price;
-            }
-            if (mod.tif) {
-                it->second.tif = *mod.tif;
-            }
-            if (auto validation = validate_order(it->second); validation.is_err()) {
-                const auto& err = validation.error();
-                Error copy(err.code, err.message, err.location);
-                copy.details = err.details;
-                return Result<void>(copy);
+        if (mod.stop_price) {
+            it->second.stop_price = *mod.stop_price;
+        }
+        if (mod.tif) {
+            it->second.tif = *mod.tif;
+        }
+        if (mod.expire_at) {
+            it->second.expire_at = *mod.expire_at;
+        }
+        if (auto validation = validate_order(it->second); validation.is_err()) {
+            const auto& err = validation.error();
+            Error copy(err.code, err.message, err.location);
+            copy.details = err.details;
+            return Result<void>(copy);
             }
             it->second.updated_at = Timestamp::now();
             updated = it->second;
@@ -201,6 +204,21 @@ namespace regimeflow::engine
         pre_submit_callbacks_.push_back(std::move(callback));
     }
 
+    std::vector<OrderId> OrderManager::expired_order_ids(const Timestamp now) const {
+        std::vector<OrderId> result;
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (const auto& order : orders_ | std::views::values) {
+            if (!is_open_status(order.status)) {
+                continue;
+            }
+            if (order.tif == TimeInForce::GTD && order.expire_at.has_value()
+                && order.expire_at.value() <= now) {
+                result.emplace_back(order.id);
+            }
+        }
+        return result;
+    }
+
     void OrderManager::process_fill(Fill fill) {
         Order updated;
         std::vector<std::function<void(const Order&)>> order_callbacks;
@@ -284,6 +302,9 @@ namespace regimeflow::engine
             if (order.limit_price <= 0 || order.stop_price <= 0) {
                 return Result<void>(Error(Error::Code::InvalidArgument, "Stop limit requires stop and limit price"));
             }
+        }
+        if (order.tif == TimeInForce::GTD && !order.expire_at.has_value()) {
+            return Result<void>(Error(Error::Code::InvalidArgument, "GTD requires expire_at timestamp"));
         }
         return Ok();
     }

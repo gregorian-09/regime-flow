@@ -233,6 +233,20 @@ namespace regimeflow::live
         return 100;
     }
 
+    bool IBAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
+        (void)type;
+        switch (tif) {
+        case engine::TimeInForce::Day:
+        case engine::TimeInForce::GTC:
+        case engine::TimeInForce::IOC:
+        case engine::TimeInForce::FOK:
+        case engine::TimeInForce::GTD:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     void IBAdapter::poll() {}
 
     ::Contract IBAdapter::build_stock_contract(const std::string& symbol) const {
@@ -265,6 +279,28 @@ namespace regimeflow::live
             break;
         default:
             ib_order.orderType = "MKT";
+            break;
+        }
+        switch (order.tif) {
+        case engine::TimeInForce::Day:
+            ib_order.tif = "DAY";
+            break;
+        case engine::TimeInForce::GTC:
+            ib_order.tif = "GTC";
+            break;
+        case engine::TimeInForce::IOC:
+            ib_order.tif = "IOC";
+            break;
+        case engine::TimeInForce::FOK:
+            ib_order.tif = "FOK";
+            break;
+        case engine::TimeInForce::GTD:
+            ib_order.tif = "GTD";
+            if (order.expire_at.has_value()) {
+                ib_order.goodTillDate = order.expire_at.value().to_string("%Y%m%d %H:%M:%S");
+            }
+            break;
+        default:
             break;
         }
         return ib_order;

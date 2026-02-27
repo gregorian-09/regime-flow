@@ -258,6 +258,9 @@ namespace regimeflow::engine
         void stop();
 
     private:
+        void cancel_day_orders_if_needed(Timestamp timestamp);
+        void cancel_expired_orders(Timestamp timestamp);
+        std::string current_day_stamp_;
         void install_default_handlers();
 
         events::EventQueue event_queue_;

@@ -91,6 +91,7 @@ namespace regimeflow::live
                 if (it != config.broker_config.end()) cfg.paper = (it->second == "true");
                 it = config.broker_config.find("timeout_seconds");
                 if (it != config.broker_config.end()) cfg.timeout_seconds = std::stoi(it->second);
+                cfg.asset_class = config.broker_asset_class;
                 return std::make_unique<AlpacaAdapter>(std::move(cfg));
             }
             if (config.broker_type == "binance") {
@@ -156,6 +157,16 @@ namespace regimeflow::live
         if (config_.enable_message_queue) {
             mq_adapter_ = create_message_queue_adapter(config_.message_queue);
         }
+
+        strategy_order_manager_.on_pre_submit([this](engine::Order& order) {
+            if (!broker_) {
+                return Ok();
+            }
+            if (!broker_->supports_tif(order.type, order.tif)) {
+                return Result<void>(Error(Error::Code::InvalidArgument, "Unsupported time-in-force for broker"));
+            }
+            return Ok();
+        });
 
         strategy_order_manager_.on_order_update([this](const engine::Order& order) {
             if (!broker_ || !trading_enabled_) {

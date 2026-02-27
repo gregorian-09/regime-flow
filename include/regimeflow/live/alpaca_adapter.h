@@ -74,6 +74,10 @@ namespace regimeflow::live
              * @brief Expected TLS hostname.
              */
             std::string stream_expected_hostname;
+            /**
+             * @brief Asset class (equity or crypto).
+             */
+            std::string asset_class = "equity";
         };
 
         /**
@@ -137,6 +141,8 @@ namespace regimeflow::live
          * @brief Broker message rate limit.
          */
         [[nodiscard]] int max_messages_per_second() const override;
+        [[nodiscard]] bool supports_tif(engine::OrderType type,
+                                        engine::TimeInForce tif) const override;
 
         /**
          * @brief Poll the adapter (for REST updates).

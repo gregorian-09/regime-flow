@@ -114,6 +114,8 @@ namespace regimeflow::live
          * @brief Broker message rate limit.
          */
         int max_messages_per_second() const override;
+        bool supports_tif(engine::OrderType type,
+                          engine::TimeInForce tif) const override;
 
         /**
          * @brief Poll the adapter (for IB message pump).

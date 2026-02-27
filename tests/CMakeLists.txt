@@ -35,6 +35,8 @@ add_executable(regimeflow_tests
     unit/test_corporate_actions.cpp
     unit/test_report_writer.cpp
     unit/test_parity_checker.cpp
+    unit/test_order_tif.cpp
+    unit/test_execution_tif.cpp
     unit/test_corporate_actions_csv.cpp
     unit/test_corporate_actions_symbol_change_csv.cpp
     unit/test_corporate_actions_symbol_change_memory.cpp

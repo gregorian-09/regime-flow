@@ -1373,7 +1373,9 @@ PYBIND11_MODULE(_core, m) {
                          const engine::OrderType type,
                          const double quantity,
                          const std::optional<double> limit_price,
-                         const std::optional<double> stop_price) {
+                         const std::optional<double> stop_price,
+                         const std::optional<engine::TimeInForce> tif,
+                         const py::object& expire_at) {
             engine::Order order;
             order.symbol = symbol_from_string(symbol);
             order.side = side;
@@ -1381,6 +1383,10 @@ PYBIND11_MODULE(_core, m) {
             order.quantity = quantity;
             if (limit_price) order.limit_price = *limit_price;
             if (stop_price) order.stop_price = *stop_price;
+            if (tif) order.tif = *tif;
+            if (!expire_at.is_none()) {
+                order.expire_at = timestamp_from_datetime(expire_at);
+            }
             return order;
         }),
             py::arg("symbol"),
@@ -1388,7 +1394,9 @@ PYBIND11_MODULE(_core, m) {
             py::arg("type"),
             py::arg("quantity"),
             py::arg("limit_price") = py::none(),
-            py::arg("stop_price") = py::none())
+            py::arg("stop_price") = py::none(),
+            py::arg("tif") = py::none(),
+            py::arg("expire_at") = py::none())
         .def_readwrite("id", &engine::Order::id)
         .def_property("symbol",
                       [](const engine::Order& order) { return symbol_to_string(order.symbol); },
@@ -1401,6 +1409,20 @@ PYBIND11_MODULE(_core, m) {
         .def_readwrite("quantity", &engine::Order::quantity)
         .def_readwrite("limit_price", &engine::Order::limit_price)
         .def_readwrite("stop_price", &engine::Order::stop_price)
+        .def_property("expire_at",
+                      [](const engine::Order& order) -> py::object {
+                          if (!order.expire_at.has_value()) {
+                              return py::none();
+                          }
+                          return timestamp_to_datetime(order.expire_at.value());
+                      },
+                      [](engine::Order& order, const py::object& value) {
+                          if (value.is_none()) {
+                              order.expire_at.reset();
+                              return;
+                          }
+                          order.expire_at = timestamp_from_datetime(value);
+                      })
         .def_readonly("filled_quantity", &engine::Order::filled_quantity)
         .def_readonly("avg_fill_price", &engine::Order::avg_fill_price)
         .def_readwrite("status", &engine::Order::status);

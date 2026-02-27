@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <filesystem>
 
 using regimeflow::metrics::LivePerformanceConfig;
@@ -9,7 +10,9 @@ using regimeflow::metrics::LivePerformanceTracker;
 using regimeflow::Timestamp;
 
 TEST(LivePerformanceTrackerTest, WritesFiles) {
-    auto tmp = std::filesystem::temp_directory_path() / "regimeflow_live_metrics_test";
+    auto tmp = std::filesystem::temp_directory_path()
+        / ("regimeflow_live_metrics_test_"
+           + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::remove_all(tmp);
 
     LivePerformanceConfig cfg;

@@ -37,6 +37,10 @@ namespace regimeflow::engine
          * @brief New time-in-force, if provided.
          */
         std::optional<TimeInForce> tif;
+        /**
+         * @brief New expiration timestamp, if provided.
+         */
+        std::optional<Timestamp> expire_at;
     };
 
     /**
@@ -117,6 +121,13 @@ namespace regimeflow::engine
          * @param callback Callback invoked before submission.
          */
         void on_pre_submit(std::function<Result<void>(Order&)> callback);
+
+        /**
+         * @brief Collect open orders that have expired by time-in-force rules.
+         * @param now Current time.
+         * @return Vector of expired order IDs.
+         */
+        std::vector<OrderId> expired_order_ids(Timestamp now) const;
 
         /**
          * @brief Process a fill and update the order.

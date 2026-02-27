@@ -20,6 +20,54 @@ namespace regimeflow::engine
         install_default_handlers();
     }
 
+    void BacktestEngine::cancel_day_orders_if_needed(const Timestamp timestamp) {
+        const std::string day_stamp = timestamp.to_string("%Y-%m-%d");
+        if (current_day_stamp_.empty()) {
+            current_day_stamp_ = day_stamp;
+            return;
+        }
+        if (day_stamp == current_day_stamp_) {
+            return;
+        }
+        current_day_stamp_ = day_stamp;
+        for (const auto& order : order_manager_.get_open_orders()) {
+            if (order.tif != TimeInForce::Day) {
+                continue;
+            }
+            events::Event cancel_event = events::make_order_event(
+                events::OrderEventKind::Cancel,
+                timestamp,
+                order.id,
+                0,
+                0.0,
+                0.0,
+                order.symbol);
+            event_queue_.push(std::move(cancel_event));
+        }
+    }
+
+    void BacktestEngine::cancel_expired_orders(const Timestamp timestamp) {
+        const auto expired = order_manager_.expired_order_ids(timestamp);
+        if (expired.empty()) {
+            return;
+        }
+        for (const auto id : expired) {
+            SymbolId symbol = 0;
+            if (const auto order = order_manager_.get_order(id)) {
+                symbol = order->symbol;
+            }
+            events::Event cancel_event = events::make_order_event(
+                events::OrderEventKind::Cancel,
+                timestamp,
+                id,
+                0,
+                0.0,
+                0.0,
+                symbol);
+            event_queue_.push(std::move(cancel_event));
+        }
+    }
+
     void BacktestEngine::register_hook(const plugins::HookType type,
                                        std::function<plugins::HookResult(plugins::HookContext&)> hook,
                                        const int priority) {
@@ -504,6 +552,8 @@ namespace regimeflow::engine
             if (!payload) {
                 return;
             }
+            cancel_day_orders_if_needed(event.timestamp);
+            cancel_expired_orders(event.timestamp);
             timer_service_.on_time_advance(event.timestamp);
             switch (payload->kind) {
                 case events::MarketEventKind::Bar: {

@@ -318,11 +318,22 @@ namespace regimeflow::live
         if (!connected_) {
             return Result<std::string>(Error(Error::Code::BrokerError, "Not connected"));
         }
+        const auto tif = [&]() -> std::string {
+            switch (order.tif) {
+            case engine::TimeInForce::Day: return "day";
+            case engine::TimeInForce::GTC: return "gtc";
+            case engine::TimeInForce::IOC: return "ioc";
+            case engine::TimeInForce::FOK: return "fok";
+            case engine::TimeInForce::GTD: return "gtd";
+            default: return "day";
+            }
+        }();
         std::ostringstream body;
         body << R"({"symbol":")" << SymbolRegistry::instance().lookup(order.symbol)
              << R"(","qty":)" << order.quantity
              << R"(,"side":")" << (order.side == engine::OrderSide::Buy ? "buy" : "sell")
              << R"(","type":")" << (order.type == engine::OrderType::Limit ? "limit" : "market")
+             << R"(","time_in_force":")" << tif
              << "\"}";
 
         auto res = rest_post("/v2/orders", body.str());
@@ -512,6 +523,24 @@ namespace regimeflow::live
 
     int AlpacaAdapter::max_messages_per_second() const {
         return 30;
+    }
+
+    bool AlpacaAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
+        const bool is_crypto = config_.asset_class == "crypto";
+        if (tif == engine::TimeInForce::GTD) {
+            return false;
+        }
+        if (is_crypto) {
+            return tif == engine::TimeInForce::GTC || tif == engine::TimeInForce::IOC;
+        }
+        if (type == engine::OrderType::Limit || type == engine::OrderType::Market
+            || type == engine::OrderType::Stop || type == engine::OrderType::StopLimit) {
+            return tif == engine::TimeInForce::Day
+                || tif == engine::TimeInForce::GTC
+                || tif == engine::TimeInForce::IOC
+                || tif == engine::TimeInForce::FOK;
+        }
+        return false;
     }
 
     void AlpacaAdapter::poll() {
