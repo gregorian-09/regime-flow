@@ -158,19 +158,28 @@ namespace regimeflow::engine
             for (const auto& [key, value] : back_map) {
                 if (!live_map.contains(key)) {
                     mismatch = true;
-                    report.warnings.emplace_back("Live risk limits missing key: " + key);
+                    std::string message = "Live risk limits missing key: ";
+                    message += key;
+                    report.warnings.emplace_back(std::move(message));
                     continue;
                 }
                 if (live_map[key] != value) {
                     mismatch = true;
-                    report.warnings.emplace_back("Risk limit differs for " + key + ": backtest=" + value +
-                                                 ", live=" + live_map[key]);
+                    std::string message = "Risk limit differs for ";
+                    message += key;
+                    message += ": backtest=";
+                    message += value;
+                    message += ", live=";
+                    message += live_map[key];
+                    report.warnings.emplace_back(std::move(message));
                 }
             }
-            for (const auto& [key, value] : live_map) {
+            for (const auto& key : live_map | std::views::keys) {
                 if (!back_map.contains(key)) {
                     mismatch = true;
-                    report.warnings.emplace_back("Backtest risk limits missing key: " + key);
+                    std::string message = "Backtest risk limits missing key: ";
+                    message += key;
+                    report.warnings.emplace_back(std::move(message));
                 }
             }
             report.compat_matrix["risk"] = mismatch ? "warn" : "pass";
@@ -209,8 +218,8 @@ namespace regimeflow::engine
 
     ParityReport ParityChecker::check_files(const std::string& backtest_path,
                                             const std::string& live_path) {
-        Config backtest = YamlConfigLoader::load_file(backtest_path);
-        Config live = YamlConfigLoader::load_file(live_path);
+        const Config backtest = YamlConfigLoader::load_file(backtest_path);
+        const Config live = YamlConfigLoader::load_file(live_path);
         return check(backtest, live);
     }
 }  // namespace regimeflow::engine
