@@ -77,6 +77,13 @@ Methods:
 | `calculate_attribution(equity_curve, regimes, factor_returns)` | Compute factor attribution. |
 | `regime_robustness_score(regime_metrics)` | Compute robustness score. |
 
+Notes:
+- `calculate_by_regime(...)` builds regime metrics from the regime active over each return interval.
+- Regime return is compounded within each regime-specific path.
+- `time_percentage` is duration-weighted.
+- `calculate_transitions(...)` reports compounded transition-window return averaged by transition pair.
+- `calculate_attribution(...)` now uses geometric regime contribution rather than arithmetic count-weighted contribution.
+
 ### `PerformanceMetric`
 
 Interface for custom metrics. Implementations register with `MetricsTracker`.
@@ -96,8 +103,13 @@ Methods:
 
 | Method | Description |
 | --- | --- |
-| `update(regime, equity_return)` | Update attribution state. |
+| `update(timestamp, regime, equity_return)` | Update attribution state. |
 | `results()` | Access computed results. |
+
+Notes:
+- tracker-side regime totals are compounded
+- tracker-side `time_pct` is duration-weighted
+- tracker-side Sharpe is annualized from the observed average regime interval
 
 ### `TransitionMetrics`
 
@@ -160,6 +172,13 @@ Includes best/worst return values and their corresponding dates:
 - `closed_trades`
 - `open_trades_unrealized_pnl` (sum of unrealized PnL across those open positions)
 - `open_trades_snapshot_date` (timestamp of the snapshot used to compute open-trade stats)
+
+Metric conventions:
+- `sharpe_ratio` uses excess return over the configured risk-free rate
+- `sortino_ratio` uses downside deviation over the full sample
+- `calmar_ratio` uses CAGR divided by maximum drawdown
+- `profit_factor` is gross profit divided by gross loss
+- `win_rate` is winning closed trades divided by total closed trades
 
 ### `RegimePerformance` / `RegimeMetrics`
 

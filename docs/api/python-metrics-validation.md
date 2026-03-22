@@ -20,12 +20,16 @@ print(ok, message)
 
 ## What It Checks
 
-- Sums equity returns by regime based on the engine’s `regime_history`.
-- Compares recomputed per‑regime total returns to `results.regime_metrics()`.
-- Compares per‑regime observation counts.
+- Rebuilds regime assignment from `results.regime_history()` over the equity-return intervals.
+- Recomputes per-regime total return using compounded returns, not arithmetic summation.
+- Recomputes regime participation using duration-weighted time share, not sample-count share.
+- Compares recomputed per-regime totals to `results.regime_metrics()`.
+- Compares per-regime observation counts.
 
 ## Notes
 
 - Uses a numeric tolerance of `1e-6` by default.
 - Requires `results.regime_history()` to be present (captured during the run).
+- This helper validates the regime-aware report conventions used by the engine:
+  compounded regime return, duration-weighted regime share, and interval-based regime assignment.
 ```

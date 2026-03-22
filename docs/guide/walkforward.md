@@ -41,6 +41,16 @@ Each parameter uses a `ParameterDef`:
 - Overfitting diagnostics and efficiency ratios.
 - Regime distribution and regime-aware performance.
 
+In Python, pass `WalkForwardResults` directly to the visualization layer:
+
+```python
+dashboard = rf.visualization.create_strategy_tester_dashboard(walkforward_results)
+app = rf.visualization.create_interactive_dashboard(walkforward_results)
+rf.visualization.export_dashboard_html(walkforward_results, "walkforward_report.html")
+```
+
+The dashboard will switch to an optimization-aware layout and add an `Optimization` tab.
+
 ## Next Steps
 
 - `python/overview.md`

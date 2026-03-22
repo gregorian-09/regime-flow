@@ -11,8 +11,11 @@ This section documents runnable examples intended for local testing and validati
 ## Example Index
 
 - **Backtest Basic**: deterministic backtest on local CSV data.
+- **Backtest Controls Demo**: compiled C++ demo for market closures and runtime halt/resume.
+- **Strategy Tester CLI**: compiled C++ terminal strategy tester with live dashboard refresh and JSON export.
 - **Custom Regime Ensemble**: custom regime detector + strategy (plugin example).
 - **Python Custom Regime Ensemble**: Python strategy with custom regime logic and signal ensemble.
+- **Python Execution Realism**: Python strategy covering synthetic ticks, queueing, routing, venue overrides, and account enforcement.
 - **Python Engine Regime**: Python strategy that uses `ctx.current_regime()` from engine detectors.
 - **Python Transformer Regime**: Python transformer-style model for regimes + CSV export.
 - **Transformer Regime Plugin**: C++ plugin reading transformer regime CSV output.
@@ -27,6 +30,49 @@ Path: `examples/backtest_basic/`
 ```bash
 ./build/bin/regimeflow_backtest --config examples/backtest_basic/config.yaml
 ```
+
+## Backtest Controls Demo
+
+Path: `examples/backtest_controls_demo/`
+
+```bash
+./build/bin/regimeflow_backtest_controls_demo
+```
+
+This compiled C++ example demonstrates:
+
+- a configured holiday via `execution.session.closed_dates`
+- a runtime symbol halt via `TradingHalt`
+- a runtime resume via `TradingResume`
+
+It prints the order status after each stage so users can see that the order remains live but non-executable until the control state is cleared.
+
+## Strategy Tester CLI
+
+Path: `examples/strategy_tester_cli/`
+
+```bash
+./build/bin/regimeflow_strategy_tester
+./build/bin/regimeflow_strategy_tester --tui
+./build/bin/regimeflow_strategy_tester --no-live --no-ansi --tab=venues
+./build/bin/regimeflow_strategy_tester --json
+./build/bin/regimeflow_strategy_tester --snapshot-file=/tmp/strategy_tester_snapshot.json
+```
+
+This compiled C++ tool demonstrates the native terminal strategy tester surface powered by:
+
+- `BacktestEngine::dashboard_snapshot()`
+- `BacktestEngine::dashboard_snapshot_json()`
+- `BacktestEngine::dashboard_terminal()`
+
+It also supports:
+
+- tab-specific terminal rendering via `--tab=...`
+- real-time split-pane TUI mode via `--interactive-tabs` or `--tui`
+- non-blocking key controls: `0-8`, `n`, `p`, `q`
+- continuous snapshot file export via `--snapshot-file=...`
+
+It uses injected quote events and a small built-in strategy, so it runs without external data files.
 
 ## Custom Regime Ensemble
 
@@ -68,6 +114,26 @@ Latest intraday report:
 - `docs/reports/multi_intraday_report.md`
 - `docs/reports/intraday_strategy_tradecheck.md`
 - `docs/reports/transformer_regime_report.md`
+
+## Python Execution Realism
+
+Path: `examples/python_execution_realism/`
+
+```bash
+PYTHONPATH=build/lib:build/python:python .venv/bin/python \
+  examples/python_execution_realism/run_python_execution_realism.py \
+  --config examples/python_execution_realism/config.yaml
+```
+
+This example is the direct reference for the advanced backtesting controls:
+
+- `execution.simulation.*`
+- `execution.policy.*`
+- `execution.queue.*`
+- `execution.routing.*`
+- `execution.account.*`
+
+It also prints `results.account_state()` and `results.venue_fill_summary()` so you can inspect the new diagnostics after the run.
 
 ## Python Engine Regime
 

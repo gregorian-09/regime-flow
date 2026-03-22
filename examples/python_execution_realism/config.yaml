@@ -1,0 +1,110 @@
+# Python BacktestConfig showing the full execution-realism surface.
+
+data_source: csv
+data:
+  data_directory: examples/python_custom_regime_ensemble/data_intraday
+  file_pattern: "{symbol}.csv"
+  has_header: true
+  datetime_format: "%Y-%m-%d %H:%M:%S"
+
+symbols:
+  - BTCUSDT
+
+start_date: "2024-01-01"
+end_date: "2024-01-04"
+bar_type: "1m"
+initial_capital: 100000.0
+currency: "USD"
+
+slippage_model: "fixed_bps"
+slippage_params:
+  bps: 0.5
+
+commission_model: "fixed"
+commission_params:
+  amount: 0.01
+
+risk_params:
+  limits:
+    max_notional: 500000
+    max_position_pct: 0.9
+
+execution_params:
+  latency:
+    ms: 15
+  simulation:
+    tick_mode: synthetic_ticks
+    synthetic_tick_profile: ohlc_4tick
+    bar_mode: intrabar_ohlc
+  policy:
+    fill: return
+    max_deviation_bps: 8.0
+    price_drift_action: requote
+  session:
+    enabled: true
+    start_hhmm: "00:00"
+    end_hhmm: "23:59"
+    open_auction_minutes: 1
+    close_auction_minutes: 2
+    weekdays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    closed_dates: ["2024-01-02"]
+    halted_symbols: []
+  transaction_cost:
+    type: maker_taker
+    maker_rebate_bps: 0.20
+    taker_fee_bps: 1.50
+  queue:
+    enabled: true
+    progress_fraction: 0.40
+    default_visible_qty: 3.0
+    depth_mode: full_depth
+    aging_fraction: 0.20
+    replenishment_fraction: 0.15
+  routing:
+    enabled: true
+    mode: smart
+    default_venue: lit_primary
+    max_spread_bps: 8.0
+    passive_offset_bps: 0.0
+    aggressive_offset_bps: 2.0
+    split:
+      enabled: true
+      mode: sequential
+      min_child_qty: 2.0
+      max_children: 2
+      parent_aggregation: partial
+    venues:
+      - name: lit_primary
+        weight: 0.65
+        maker_rebate_bps: 0.20
+        taker_fee_bps: 1.50
+        price_adjustment_bps: 0.00
+        latency_ms: 5
+        queue_enabled: true
+        queue_progress_fraction: 0.50
+        queue_default_visible_qty: 4.0
+        queue_depth_mode: full_depth
+      - name: dark_slow
+        weight: 0.35
+        maker_rebate_bps: 0.35
+        taker_fee_bps: 2.20
+        price_adjustment_bps: 3.50
+        latency_ms: 45
+        queue_enabled: true
+        queue_progress_fraction: 0.25
+        queue_default_visible_qty: 1.5
+        queue_depth_mode: price_level
+  account:
+    margin:
+      initial_margin_ratio: 0.35
+      maintenance_margin_ratio: 0.20
+      stop_out_margin_level: 0.10
+    enforcement:
+      enabled: true
+      margin_call_action: cancel_open_orders
+      stop_out_action: liquidate_worst_first
+      halt_after_stop_out: false
+    financing:
+      enabled: true
+      long_rate_bps_per_day: 1.25
+      short_borrow_bps_per_day: 6.00
