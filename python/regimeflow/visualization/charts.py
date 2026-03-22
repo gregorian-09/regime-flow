@@ -70,7 +70,12 @@ def create_dashboard(results: "BacktestResults", interactive: bool = True) -> Di
             return create_dash_app(results)
         except Exception:
             pass
-    return plot_results(results)
+    try:
+        from .dashboard import create_strategy_tester_dashboard
+
+        return create_strategy_tester_dashboard(results)
+    except Exception:
+        return plot_results(results)
 
 
 __all__ = ["plot_results", "create_dashboard"]

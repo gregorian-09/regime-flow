@@ -41,6 +41,9 @@ viz = [
     "matplotlib>=3.7",
     "plotly>=5.0",
     "dash>=2.0",
+    "flask-sock>=0.7",
+    "gunicorn>=22.0",
+    "python-dotenv>=1.0",
 ]
 full = [
     "regimeflow[dev,viz]",

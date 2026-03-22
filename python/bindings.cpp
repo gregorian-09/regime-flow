@@ -35,6 +35,7 @@ typedef SSIZE_T ssize_t;
 
 #include <cmath>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -154,6 +155,275 @@ static void merge_dict_into_config(Config& cfg, const py::dict& dict, const std:
         auto path = prefix.empty() ? key : prefix + "." + key;
         cfg.set_path(path, to_config_value(snd));
     }
+}
+
+static py::dict ensure_nested_dict(py::dict& root, std::initializer_list<const char*> path) {
+    py::dict current = root;
+    for (const auto* part : path) {
+        py::str key(part);
+        if (!current.contains(key) || !py::isinstance<py::dict>(current[key])) {
+            current[key] = py::dict();
+        }
+        current = current[key].cast<py::dict>();
+    }
+    return current;
+}
+
+static py::object timestamp_to_datetime(const Timestamp& ts);
+static py::object portfolio_equity_dataframe(const std::vector<engine::PortfolioSnapshot>& snapshots);
+static py::object fills_dataframe(const std::vector<engine::Fill>& fills);
+static std::string symbol_to_string(SymbolId symbol);
+
+static py::list dashboard_position_list(const std::vector<engine::Position>& positions) {
+    py::list out;
+    for (const auto& position : positions) {
+        py::dict row;
+        row["symbol"] = symbol_to_string(position.symbol);
+        row["quantity"] = position.quantity;
+        row["avg_cost"] = position.avg_cost;
+        row["current_price"] = position.current_price;
+        row["market_value"] = position.market_value();
+        row["unrealized_pnl"] = position.unrealized_pnl();
+        row["unrealized_pnl_pct"] = position.unrealized_pnl_pct();
+        row["last_update"] = position.last_update.microseconds() == 0
+            ? py::none()
+            : timestamp_to_datetime(position.last_update);
+        out.append(std::move(row));
+    }
+    return out;
+}
+
+static py::dict portfolio_snapshot_to_dict(const engine::PortfolioSnapshot& snapshot) {
+    py::dict out;
+    out["timestamp"] = snapshot.timestamp.microseconds() == 0
+        ? py::none()
+        : timestamp_to_datetime(snapshot.timestamp);
+    out["cash"] = snapshot.cash;
+    out["equity"] = snapshot.equity;
+    out["gross_exposure"] = snapshot.gross_exposure;
+    out["net_exposure"] = snapshot.net_exposure;
+    out["leverage"] = snapshot.leverage;
+    out["initial_margin"] = snapshot.initial_margin;
+    out["maintenance_margin"] = snapshot.maintenance_margin;
+    out["available_funds"] = snapshot.available_funds;
+    out["margin_excess"] = snapshot.margin_excess;
+    out["buying_power"] = snapshot.buying_power;
+    out["margin_call"] = snapshot.margin_call;
+    out["stop_out"] = snapshot.stop_out;
+    return out;
+}
+
+static py::object venue_fill_summary_dataframe(const std::vector<engine::VenueFillAnalytics>& stats) {
+    py::list venues;
+    py::list fill_count;
+    py::list order_count;
+    py::list parent_order_count;
+    py::list split_fill_count;
+    py::list signed_quantity;
+    py::list absolute_quantity;
+    py::list notional;
+    py::list commission;
+    py::list transaction_cost;
+    py::list total_cost;
+    py::list avg_slippage_bps;
+    py::list maker_fill_ratio;
+    for (const auto& entry : stats) {
+        venues.append(entry.venue);
+        fill_count.append(entry.fill_count);
+        order_count.append(entry.order_count);
+        parent_order_count.append(entry.parent_order_count);
+        split_fill_count.append(entry.split_fill_count);
+        signed_quantity.append(entry.signed_quantity);
+        absolute_quantity.append(entry.absolute_quantity);
+        notional.append(entry.notional);
+        commission.append(entry.commission);
+        transaction_cost.append(entry.transaction_cost);
+        total_cost.append(entry.total_cost);
+        avg_slippage_bps.append(entry.avg_slippage_bps);
+        maker_fill_ratio.append(entry.maker_fill_ratio);
+    }
+    const auto pandas = py::module_::import("pandas");
+    return pandas.attr("DataFrame")(py::dict(
+        py::arg("venue") = venues,
+        py::arg("fill_count") = fill_count,
+        py::arg("order_count") = order_count,
+        py::arg("parent_order_count") = parent_order_count,
+        py::arg("split_fill_count") = split_fill_count,
+        py::arg("signed_quantity") = signed_quantity,
+        py::arg("absolute_quantity") = absolute_quantity,
+        py::arg("notional") = notional,
+        py::arg("commission") = commission,
+        py::arg("transaction_cost") = transaction_cost,
+        py::arg("total_cost") = total_cost,
+        py::arg("avg_slippage_bps") = avg_slippage_bps,
+        py::arg("maker_fill_ratio") = maker_fill_ratio));
+}
+
+static py::list dashboard_order_list(const std::vector<engine::DashboardOrderSummary>& orders) {
+    py::list out;
+    for (const auto& order : orders) {
+        py::dict row;
+        row["id"] = order.id;
+        row["symbol"] = order.symbol;
+        row["side"] = order.side;
+        row["type"] = order.type;
+        row["quantity"] = order.quantity;
+        row["filled_quantity"] = order.filled_quantity;
+        row["limit_price"] = order.limit_price;
+        row["stop_price"] = order.stop_price;
+        row["avg_fill_price"] = order.avg_fill_price;
+        row["status"] = order.status;
+        row["updated_at"] = order.updated_at.microseconds() == 0
+            ? py::none()
+            : timestamp_to_datetime(order.updated_at);
+        out.append(std::move(row));
+    }
+    return out;
+}
+
+static py::list dashboard_quote_list(const std::vector<engine::DashboardQuoteSummary>& quotes) {
+    py::list out;
+    for (const auto& quote : quotes) {
+        py::dict row;
+        row["symbol"] = quote.symbol;
+        row["timestamp"] = quote.timestamp.microseconds() == 0
+            ? py::none()
+            : timestamp_to_datetime(quote.timestamp);
+        row["bid"] = quote.bid;
+        row["ask"] = quote.ask;
+        row["bid_size"] = quote.bid_size;
+        row["ask_size"] = quote.ask_size;
+        out.append(std::move(row));
+    }
+    return out;
+}
+
+static py::object dashboard_venue_summary_dataframe(
+    const std::vector<engine::DashboardVenueSummary>& stats) {
+    py::list venues;
+    py::list fill_count;
+    py::list order_count;
+    py::list parent_order_count;
+    py::list split_fill_count;
+    py::list signed_quantity;
+    py::list absolute_quantity;
+    py::list notional;
+    py::list commission;
+    py::list transaction_cost;
+    py::list total_cost;
+    py::list avg_slippage_bps;
+    py::list maker_fill_ratio;
+    for (const auto& entry : stats) {
+        venues.append(entry.venue);
+        fill_count.append(entry.fill_count);
+        order_count.append(entry.order_count);
+        parent_order_count.append(entry.parent_order_count);
+        split_fill_count.append(entry.split_fill_count);
+        signed_quantity.append(entry.signed_quantity);
+        absolute_quantity.append(entry.absolute_quantity);
+        notional.append(entry.notional);
+        commission.append(entry.commission);
+        transaction_cost.append(entry.transaction_cost);
+        total_cost.append(entry.total_cost);
+        avg_slippage_bps.append(entry.avg_slippage_bps);
+        maker_fill_ratio.append(entry.maker_fill_ratio);
+    }
+    const auto pandas = py::module_::import("pandas");
+    return pandas.attr("DataFrame")(py::dict(
+        py::arg("venue") = venues,
+        py::arg("fill_count") = fill_count,
+        py::arg("order_count") = order_count,
+        py::arg("parent_order_count") = parent_order_count,
+        py::arg("split_fill_count") = split_fill_count,
+        py::arg("signed_quantity") = signed_quantity,
+        py::arg("absolute_quantity") = absolute_quantity,
+        py::arg("notional") = notional,
+        py::arg("commission") = commission,
+        py::arg("transaction_cost") = transaction_cost,
+        py::arg("total_cost") = total_cost,
+        py::arg("avg_slippage_bps") = avg_slippage_bps,
+        py::arg("maker_fill_ratio") = maker_fill_ratio));
+}
+
+static py::dict dashboard_snapshot_to_dict(const engine::DashboardSnapshot& snapshot) {
+    py::dict setup;
+    setup["strategy_name"] = snapshot.setup.strategy_name;
+    setup["data_source"] = snapshot.setup.data_source;
+    setup["data_directory"] = snapshot.setup.data_directory;
+    setup["file_pattern"] = snapshot.setup.file_pattern;
+    setup["symbols"] = py::cast(snapshot.setup.symbols);
+    setup["start_date"] = snapshot.setup.start_date;
+    setup["end_date"] = snapshot.setup.end_date;
+    setup["bar_type"] = snapshot.setup.bar_type;
+    setup["execution_model"] = snapshot.setup.execution_model;
+    setup["tick_mode"] = snapshot.setup.tick_mode;
+    setup["synthetic_tick_profile"] = snapshot.setup.synthetic_tick_profile;
+    setup["bar_mode"] = snapshot.setup.bar_mode;
+    setup["fill_policy"] = snapshot.setup.fill_policy;
+    setup["price_drift_action"] = snapshot.setup.price_drift_action;
+    setup["routing_enabled"] = snapshot.setup.routing_enabled;
+    setup["queue_enabled"] = snapshot.setup.queue_enabled;
+    setup["session_enabled"] = snapshot.setup.session_enabled;
+    setup["margin_enabled"] = snapshot.setup.margin_enabled;
+    setup["financing_enabled"] = snapshot.setup.financing_enabled;
+    setup["optimization_enabled"] = snapshot.setup.optimization_enabled;
+
+    py::dict headline;
+    headline["equity"] = snapshot.equity;
+    headline["cash"] = snapshot.cash;
+    headline["buying_power"] = snapshot.buying_power;
+    headline["daily_pnl"] = snapshot.daily_pnl;
+    headline["total_return"] = snapshot.total_return;
+    headline["max_drawdown"] = snapshot.max_drawdown;
+    headline["sharpe_ratio"] = snapshot.sharpe_ratio;
+    headline["sortino_ratio"] = snapshot.sortino_ratio;
+    headline["win_rate"] = snapshot.win_rate;
+    headline["profit_factor"] = snapshot.profit_factor;
+
+    py::dict account;
+    account["initial_margin"] = snapshot.initial_margin;
+    account["maintenance_margin"] = snapshot.maintenance_margin;
+    account["available_funds"] = snapshot.available_funds;
+    account["margin_excess"] = snapshot.margin_excess;
+    account["margin_call"] = snapshot.margin_call;
+    account["stop_out"] = snapshot.stop_out;
+
+    py::dict execution;
+    execution["fill_count"] = snapshot.fill_count;
+    execution["open_order_count"] = snapshot.open_order_count;
+    execution["position_count"] = snapshot.position_count;
+    execution["total_commission"] = snapshot.total_commission;
+    execution["total_transaction_cost"] = snapshot.total_transaction_cost;
+    execution["total_cost"] = snapshot.total_cost;
+    execution["maker_fill_ratio"] = snapshot.maker_fill_ratio;
+
+    py::dict telemetry;
+    telemetry["cpu_usage_pct"] = snapshot.cpu_usage_pct;
+    telemetry["memory_mb"] = snapshot.memory_mb;
+    telemetry["event_loop_latency_ms"] = snapshot.event_loop_latency_ms;
+
+    py::dict regime;
+    regime["regime"] = static_cast<int>(snapshot.current_regime.regime);
+    regime["confidence"] = snapshot.current_regime.confidence;
+
+    py::dict out;
+    out["timestamp"] = snapshot.timestamp.microseconds() == 0
+        ? py::none()
+        : timestamp_to_datetime(snapshot.timestamp);
+    out["setup"] = std::move(setup);
+    out["headline"] = std::move(headline);
+    out["account"] = std::move(account);
+    out["execution"] = std::move(execution);
+    out["telemetry"] = std::move(telemetry);
+    out["regime"] = std::move(regime);
+    out["account_curve"] = portfolio_equity_dataframe(snapshot.equity_curve);
+    out["positions"] = dashboard_position_list(snapshot.positions);
+    out["open_orders"] = dashboard_order_list(snapshot.open_orders);
+    out["quote_summary"] = dashboard_quote_list(snapshot.quote_summary);
+    out["recent_fills"] = fills_dataframe(snapshot.recent_fills);
+    out["venue_summary"] = dashboard_venue_summary_dataframe(snapshot.venue_summary);
+    out["alerts"] = py::cast(snapshot.alerts);
+    return out;
 }
 
 static py::object timestamp_to_datetime(const Timestamp& ts) {
@@ -280,6 +550,130 @@ static py::dict transition_stats_to_dict(
         out[py::str(label)] = entry;
     }
     return out;
+}
+
+static py::dict tester_report_to_dict(const engine::BacktestResults& results) {
+    const auto snapshot = results.dashboard_snapshot();
+    const auto report = metrics::build_report(results.metrics, results.fills);
+
+    auto ordered_section = [](const std::vector<std::pair<const char*, py::object>>& items) {
+        py::dict section;
+        for (const auto& [key, value] : items) {
+            section[py::str(key)] = value;
+        }
+        return section;
+    };
+
+    py::dict headline = ordered_section({
+        {"Total Return", py::float_(snapshot.total_return)},
+        {"Max Drawdown", py::float_(snapshot.max_drawdown)},
+        {"Sharpe Ratio", py::float_(snapshot.sharpe_ratio)},
+        {"Sortino Ratio", py::float_(snapshot.sortino_ratio)},
+        {"Win Rate", py::float_(snapshot.win_rate)},
+        {"Profit Factor", py::float_(snapshot.profit_factor)},
+        {"Equity", py::float_(snapshot.equity)},
+        {"Cash", py::float_(snapshot.cash)},
+        {"Buying Power", py::float_(snapshot.buying_power)},
+    });
+
+    py::dict account = ordered_section({
+        {"Initial Margin", py::float_(snapshot.initial_margin)},
+        {"Maintenance Margin", py::float_(snapshot.maintenance_margin)},
+        {"Available Funds", py::float_(snapshot.available_funds)},
+        {"Margin Excess", py::float_(snapshot.margin_excess)},
+        {"Margin Call", py::bool_(snapshot.margin_call)},
+        {"Stop Out", py::bool_(snapshot.stop_out)},
+    });
+
+    py::dict execution = ordered_section({
+        {"Fill Count", py::int_(snapshot.fill_count)},
+        {"Open Order Count", py::int_(snapshot.open_order_count)},
+        {"Position Count", py::int_(snapshot.position_count)},
+        {"Total Commission", py::float_(snapshot.total_commission)},
+        {"Transaction Cost", py::float_(snapshot.total_transaction_cost)},
+        {"Total Cost", py::float_(snapshot.total_cost)},
+        {"Maker Fill Ratio", py::float_(snapshot.maker_fill_ratio)},
+    });
+
+    const auto summary = performance_summary_to_dict(report.performance_summary);
+    py::dict ordered_summary = ordered_section({
+        {"Total Return", summary["total_return"]},
+        {"CAGR", summary["cagr"]},
+        {"Max Drawdown", summary["max_drawdown"]},
+        {"Volatility", summary["volatility"]},
+        {"Downside Deviation", summary["downside_deviation"]},
+        {"Sharpe Ratio", summary["sharpe_ratio"]},
+        {"Sortino Ratio", summary["sortino_ratio"]},
+        {"Calmar Ratio", summary["calmar_ratio"]},
+        {"Profit Factor", summary["profit_factor"]},
+        {"Expectancy", summary["expectancy"]},
+        {"Annual Turnover", summary["annual_turnover"]},
+        {"Total Trades", summary["total_trades"]},
+        {"Winning Trades", summary["winning_trades"]},
+        {"Losing Trades", summary["losing_trades"]},
+        {"Open Trades", summary["open_trades"]},
+        {"Closed Trades", summary["closed_trades"]},
+        {"Average Win", summary["avg_win"]},
+        {"Average Loss", summary["avg_loss"]},
+        {"Average Trade Duration Days", summary["avg_trade_duration_days"]},
+    });
+
+    const auto statistics = performance_stats_to_dict(report.performance);
+    py::dict ordered_statistics = ordered_section({
+        {"Total Return", statistics["total_return"]},
+        {"CAGR", statistics["cagr"]},
+        {"Volatility", statistics["volatility"]},
+        {"Sharpe", statistics["sharpe"]},
+        {"Sortino", statistics["sortino"]},
+        {"Calmar", statistics["calmar"]},
+        {"Value at Risk 95", statistics["var_95"]},
+        {"Conditional VaR 95", statistics["cvar_95"]},
+        {"Best Return", statistics["best_return"]},
+        {"Worst Return", statistics["worst_return"]},
+    });
+
+    py::dict out;
+    out["headline"] = std::move(headline);
+    out["account"] = std::move(account);
+    out["execution"] = std::move(execution);
+    out["summary"] = std::move(ordered_summary);
+    out["statistics"] = std::move(ordered_statistics);
+    return out;
+}
+
+static py::object tester_journal_dataframe(const engine::BacktestResults& results) {
+    py::list rows;
+    const auto journal = results.tester_journal();
+    for (size_t index = 0; index < journal.size(); ++index) {
+        const auto& event = journal[index];
+        py::dict row;
+        row["time"] = event.timestamp.microseconds() == 0
+            ? py::none()
+            : timestamp_to_datetime(event.timestamp);
+        row["source"] = event.source;
+        row["category"] = event.category;
+        row["event"] = event.title;
+        row["message"] = event.detail;
+        if (index < results.journal_events.size()) {
+            for (const auto& [key, value] : results.journal_events[index].metadata) {
+                row[py::str(key)] = value;
+            }
+        }
+        rows.append(std::move(row));
+    }
+    if (py::len(rows) == 0) {
+        const auto snapshot = results.dashboard_snapshot();
+        py::dict row;
+        row["time"] = snapshot.timestamp.microseconds() == 0
+            ? py::none()
+            : timestamp_to_datetime(snapshot.timestamp);
+        row["source"] = "engine";
+        row["event"] = "status";
+        row["message"] = "No alerts or fills recorded";
+        rows.append(std::move(row));
+    }
+    const auto pandas = py::module_::import("pandas");
+    return pandas.attr("DataFrame")(rows);
 }
 
 static std::string symbol_to_string(SymbolId symbol) {
@@ -456,6 +850,8 @@ struct BacktestConfig {
     py::dict regime_params;
     std::vector<std::string> plugins_search_paths;
     std::vector<std::string> plugins_load;
+    std::string execution_model = "basic";
+    py::dict execution_params;
     std::string slippage_model = "zero";
     py::dict slippage_params;
     std::string commission_model = "zero";
@@ -487,6 +883,15 @@ struct BacktestConfig {
         } else if (dict.contains("plugins")) {
             if (const auto plugins = dict["plugins"].cast<py::dict>(); plugins.contains("load")) {
                 cfg.plugins_load = plugins["load"].cast<std::vector<std::string>>();
+            }
+        }
+        if (dict.contains("execution_model")) cfg.execution_model = dict["execution_model"].cast<std::string>();
+        if (dict.contains("execution_params")) cfg.execution_params = dict["execution_params"].cast<py::dict>();
+        if (dict.contains("execution")) {
+            const auto execution = dict["execution"].cast<py::dict>();
+            cfg.execution_params = execution;
+            if (execution.contains("model")) {
+                cfg.execution_model = execution["model"].cast<std::string>();
             }
         }
         if (dict.contains("slippage_model")) cfg.slippage_model = dict["slippage_model"].cast<std::string>();
@@ -552,6 +957,15 @@ struct BacktestConfig {
                 if (const auto* s = item.get_if<std::string>()) {
                     cfg.plugins_load.push_back(*s);
                 }
+            }
+        }
+        if (auto v = config.get_as<std::string>("execution_params.model")) cfg.execution_model = *v;
+        if (auto v = config.get_as<ConfigValue::Object>("execution_params")) {
+            cfg.execution_params = object_to_pydict(*v).cast<py::dict>();
+        } else {
+            if (auto model = config.get_as<std::string>("execution.model")) cfg.execution_model = *model;
+            if (auto execution = config.get_as<ConfigValue::Object>("execution")) {
+                cfg.execution_params = object_to_pydict(*execution).cast<py::dict>();
             }
         }
         if (auto v = config.get_as<std::string>("slippage_model")) cfg.slippage_model = *v;
@@ -710,6 +1124,9 @@ public:
           plugins_load_(config.plugins_load) {
         data_config_.set("type", config.data_source);
 
+        execution_config_.set("model", config.execution_model);
+        merge_dict_into_config(execution_config_, config.execution_params, "");
+        execution_config_.set("params", to_config_value(config.execution_params));
         execution_config_.set_path("slippage.type", config.slippage_model);
         merge_dict_into_config(execution_config_, config.slippage_params, "slippage");
         execution_config_.set_path("slippage.params", to_config_value(config.slippage_params));
@@ -736,7 +1153,7 @@ public:
         parallel_context_.bar_type = bar_type_;
     }
 
-    engine::BacktestResults run(const py::object& strategy_obj) {
+    void prepare(const py::object& strategy_obj) {
         auto engine = create_engine();
         ensure_data_source();
         if (!data_source_) {
@@ -751,25 +1168,48 @@ public:
         auto tick_it = data_source_->create_tick_iterator(symbol_ids, range_);
         auto book_it = data_source_->create_book_iterator(symbol_ids, range_);
         engine->load_data(std::move(bar_it), std::move(tick_it), std::move(book_it));
-
-        std::unique_ptr<strategy::Strategy> strategy;
-        if (py::isinstance<py::str>(strategy_obj)) {
-            const auto name = strategy_obj.cast<std::string>();
-            Config cfg = strategy_config_;
-            cfg.set("name", name);
-            strategy = strategy::StrategyFactory::instance().create(cfg);
-            if (!strategy) {
-                throw std::runtime_error("Failed to create strategy: " + name);
-            }
-        } else {
-            strategy = std::make_unique<PythonStrategyAdapter>(strategy_obj);
-        }
-
-        engine->set_strategy(std::move(strategy), strategy_config_);
-        py::gil_scoped_release release;
-        engine->run();
+        engine->set_dashboard_setup(build_dashboard_setup(
+            py::isinstance<py::str>(strategy_obj)
+                ? std::optional<std::string>(strategy_obj.cast<std::string>())
+                : std::nullopt));
+        engine->set_strategy(make_strategy(strategy_obj), strategy_config_);
         engine_ = std::move(engine);
+        prepared_ = true;
+        completed_ = false;
+    }
+
+    engine::BacktestResults run(const py::object& strategy_obj) {
+        prepare(strategy_obj);
+        py::gil_scoped_release release;
+        engine_->run();
+        completed_ = true;
         return engine_->results();
+    }
+
+    bool step() {
+        if (!engine_ || !prepared_) {
+            throw std::runtime_error("Backtest has not been prepared");
+        }
+        py::gil_scoped_release release;
+        const bool running = engine_->step();
+        completed_ = !running;
+        return running;
+    }
+
+    engine::BacktestResults results() const {
+        if (!engine_ || !prepared_) {
+            throw std::runtime_error("Backtest has not been prepared");
+        }
+        return engine_->results();
+    }
+
+    bool is_complete() const { return completed_; }
+
+    Timestamp current_time() const {
+        if (!engine_ || !prepared_) {
+            throw std::runtime_error("Backtest has not been prepared");
+        }
+        return engine_->current_time();
     }
 
     std::vector<engine::BacktestResults> run_parallel(const std::vector<py::dict>& param_sets,
@@ -822,6 +1262,27 @@ public:
             throw std::runtime_error("Backtest has not been run");
         }
         return engine_->current_regime();
+    }
+
+    py::dict dashboard_snapshot() const {
+        if (!engine_) {
+            throw std::runtime_error("Backtest has not been run");
+        }
+        return dashboard_snapshot_to_dict(engine_->dashboard_snapshot());
+    }
+
+    std::string dashboard_snapshot_json() const {
+        if (!engine_) {
+            throw std::runtime_error("Backtest has not been run");
+        }
+        return engine_->dashboard_snapshot_json();
+    }
+
+    std::string dashboard_terminal(const bool ansi_colors) const {
+        if (!engine_) {
+            throw std::runtime_error("Backtest has not been run");
+        }
+        return engine_->dashboard_terminal(engine::DashboardRenderOptions{ansi_colors, 5});
     }
 
     py::array get_close_prices(const std::string& symbol,
@@ -891,6 +1352,69 @@ public:
     }
 
 private:
+    std::unique_ptr<strategy::Strategy> make_strategy(const py::object& strategy_obj) const {
+        if (py::isinstance<py::str>(strategy_obj)) {
+            const auto name = strategy_obj.cast<std::string>();
+            Config cfg = strategy_config_;
+            cfg.set("name", name);
+            auto strategy = strategy::StrategyFactory::instance().create(cfg);
+            if (!strategy) {
+                throw std::runtime_error("Failed to create strategy: " + name);
+            }
+            return strategy;
+        }
+        return std::make_unique<PythonStrategyAdapter>(strategy_obj);
+    }
+
+    engine::DashboardSetup build_dashboard_setup(
+        const std::optional<std::string>& strategy_name = std::nullopt) const {
+        engine::DashboardSetup setup;
+        setup.strategy_name = strategy_name.value_or("custom");
+        setup.data_source = config_.data_source;
+        if (execution_config_.get_as<std::string>("model")) {
+            setup.execution_model = *execution_config_.get_as<std::string>("model");
+        }
+        if (config_.data_config.contains("data_directory")) {
+            setup.data_directory = py::cast<std::string>(config_.data_config["data_directory"]);
+        }
+        if (config_.data_config.contains("file_pattern")) {
+            setup.file_pattern = py::cast<std::string>(config_.data_config["file_pattern"]);
+        }
+        setup.symbols = config_.symbols;
+        setup.start_date = config_.start_date;
+        setup.end_date = config_.end_date;
+        setup.bar_type = config_.bar_type;
+        if (setup.execution_model.empty()) {
+            setup.execution_model = config_.execution_model;
+        }
+        if (const auto mode = execution_config_.get_as<std::string>("simulation.tick_mode")) {
+            setup.tick_mode = *mode;
+        }
+        if (const auto profile = execution_config_.get_as<std::string>("simulation.synthetic_tick_profile")) {
+            setup.synthetic_tick_profile = *profile;
+        }
+        if (const auto mode = execution_config_.get_as<std::string>("simulation.bar_mode")) {
+            setup.bar_mode = *mode;
+        }
+        if (const auto fill = execution_config_.get_as<std::string>("policy.fill")) {
+            setup.fill_policy = *fill;
+        }
+        if (const auto action = execution_config_.get_as<std::string>("policy.price_drift_action")) {
+            setup.price_drift_action = *action;
+        }
+        setup.routing_enabled = execution_config_.get_as<bool>("routing.enabled").value_or(false);
+        setup.queue_enabled = execution_config_.get_as<bool>("queue.enabled").value_or(false);
+        setup.session_enabled = execution_config_.get_as<bool>("session.enabled").value_or(false);
+        setup.margin_enabled =
+            execution_config_.get_as<double>("margin.initial_margin_ratio").has_value()
+            || execution_config_.get_as<double>("account.margin.initial_margin_ratio").has_value();
+        setup.financing_enabled =
+            execution_config_.get_as<bool>("financing.enabled").value_or(false)
+            || execution_config_.get_as<bool>("account.financing.enabled").value_or(false);
+        setup.optimization_enabled = false;
+        return setup;
+    }
+
     std::unique_ptr<engine::BacktestEngine> create_engine() const {
         configure_plugins();
         auto engine = std::make_unique<engine::BacktestEngine>(config_.initial_capital,
@@ -898,6 +1422,7 @@ private:
         engine->configure_execution(execution_config_);
         engine->configure_risk(risk_config_);
         engine->configure_regime(regime_config_);
+        engine->set_dashboard_setup(build_dashboard_setup());
         return engine;
     }
 
@@ -930,6 +1455,8 @@ private:
     std::vector<std::string> plugins_load_;
     std::unique_ptr<engine::BacktestEngine> engine_;
     std::unique_ptr<data::DataSource> data_source_;
+    bool prepared_ = false;
+    bool completed_ = false;
 };
 
 class PyWalkForwardOptimizer {
@@ -1053,6 +1580,13 @@ static py::object portfolio_equity_dataframe(const std::vector<engine::Portfolio
     py::list gross;
     py::list net;
     py::list leverage;
+    py::list initial_margin;
+    py::list maintenance_margin;
+    py::list available_funds;
+    py::list margin_excess;
+    py::list buying_power;
+    py::list margin_call;
+    py::list stop_out;
     for (const auto& snap : snapshots) {
         timestamps.append(timestamp_to_datetime(snap.timestamp));
         cash.append(snap.cash);
@@ -1060,6 +1594,13 @@ static py::object portfolio_equity_dataframe(const std::vector<engine::Portfolio
         gross.append(snap.gross_exposure);
         net.append(snap.net_exposure);
         leverage.append(snap.leverage);
+        initial_margin.append(snap.initial_margin);
+        maintenance_margin.append(snap.maintenance_margin);
+        available_funds.append(snap.available_funds);
+        margin_excess.append(snap.margin_excess);
+        buying_power.append(snap.buying_power);
+        margin_call.append(snap.margin_call);
+        stop_out.append(snap.stop_out);
     }
     const auto pandas = py::module_::import("pandas");
     const auto df = pandas.attr("DataFrame")(py::dict(
@@ -1068,7 +1609,14 @@ static py::object portfolio_equity_dataframe(const std::vector<engine::Portfolio
         py::arg("equity") = equity,
         py::arg("gross_exposure") = gross,
         py::arg("net_exposure") = net,
-        py::arg("leverage") = leverage));
+        py::arg("leverage") = leverage,
+        py::arg("initial_margin") = initial_margin,
+        py::arg("maintenance_margin") = maintenance_margin,
+        py::arg("available_funds") = available_funds,
+        py::arg("margin_excess") = margin_excess,
+        py::arg("buying_power") = buying_power,
+        py::arg("margin_call") = margin_call,
+        py::arg("stop_out") = stop_out));
     return df.attr("set_index")("timestamp");
 }
 
@@ -1078,20 +1626,26 @@ static py::object fills_dataframe(const std::vector<engine::Fill>& fills) {
     py::list quantities;
     py::list prices;
     py::list commissions;
+    py::list transaction_costs;
     py::list slippages;
     py::list order_ids;
+    py::list parent_order_ids;
     py::list fill_ids;
     py::list is_maker;
+    py::list venues;
     for (const auto& fill : fills) {
         timestamps.append(timestamp_to_datetime(fill.timestamp));
         symbols.append(symbol_to_string(fill.symbol));
         quantities.append(fill.quantity);
         prices.append(fill.price);
         commissions.append(fill.commission);
+        transaction_costs.append(fill.transaction_cost);
         slippages.append(fill.slippage);
         order_ids.append(fill.order_id);
+        parent_order_ids.append(fill.parent_order_id);
         fill_ids.append(fill.id);
         is_maker.append(fill.is_maker);
+        venues.append(fill.venue);
     }
     const auto pandas = py::module_::import("pandas");
     auto df = pandas.attr("DataFrame")(py::dict(
@@ -1100,10 +1654,13 @@ static py::object fills_dataframe(const std::vector<engine::Fill>& fills) {
         py::arg("quantity") = quantities,
         py::arg("price") = prices,
         py::arg("commission") = commissions,
+        py::arg("transaction_cost") = transaction_costs,
         py::arg("slippage") = slippages,
         py::arg("order_id") = order_ids,
+        py::arg("parent_order_id") = parent_order_ids,
         py::arg("fill_id") = fill_ids,
-        py::arg("is_maker") = is_maker));
+        py::arg("is_maker") = is_maker,
+        py::arg("venue") = venues));
     return df;
 }
 
@@ -1398,6 +1955,7 @@ PYBIND11_MODULE(_core, m) {
             py::arg("tif") = py::none(),
             py::arg("expire_at") = py::none())
         .def_readwrite("id", &engine::Order::id)
+        .def_readwrite("parent_id", &engine::Order::parent_id)
         .def_property("symbol",
                       [](const engine::Order& order) { return symbol_to_string(order.symbol); },
                       [](engine::Order& order, const std::string& symbol) {
@@ -1409,6 +1967,7 @@ PYBIND11_MODULE(_core, m) {
         .def_readwrite("quantity", &engine::Order::quantity)
         .def_readwrite("limit_price", &engine::Order::limit_price)
         .def_readwrite("stop_price", &engine::Order::stop_price)
+        .def_readwrite("is_parent", &engine::Order::is_parent)
         .def_property("expire_at",
                       [](const engine::Order& order) -> py::object {
                           if (!order.expire_at.has_value()) {
@@ -1431,6 +1990,7 @@ PYBIND11_MODULE(_core, m) {
         .def(py::init<>())
         .def_readwrite("id", &engine::Fill::id)
         .def_readwrite("order_id", &engine::Fill::order_id)
+        .def_readwrite("parent_order_id", &engine::Fill::parent_order_id)
         .def_property("symbol",
                       [](const engine::Fill& fill) { return symbol_to_string(fill.symbol); },
                       [](engine::Fill& fill, const std::string& symbol) {
@@ -1440,8 +2000,10 @@ PYBIND11_MODULE(_core, m) {
         .def_readwrite("price", &engine::Fill::price)
         .def_readwrite("timestamp", &engine::Fill::timestamp)
         .def_readwrite("commission", &engine::Fill::commission)
+        .def_readwrite("transaction_cost", &engine::Fill::transaction_cost)
         .def_readwrite("slippage", &engine::Fill::slippage)
-        .def_readwrite("is_maker", &engine::Fill::is_maker);
+        .def_readwrite("is_maker", &engine::Fill::is_maker)
+        .def_readwrite("venue", &engine::Fill::venue);
 
     py::class_<data::Bar>(m_data, "Bar")
         .def(py::init<>())
@@ -1622,6 +2184,18 @@ PYBIND11_MODULE(_core, m) {
         .def("get_all_positions", &engine::Portfolio::get_all_positions)
         .def("equity_curve", [](const engine::Portfolio& p) {
             return portfolio_equity_dataframe(p.equity_curve());
+        })
+        .def("margin_state", [](const engine::Portfolio& p) {
+            const auto margin = p.margin_snapshot();
+            py::dict out;
+            out["initial_margin"] = margin.initial_margin;
+            out["maintenance_margin"] = margin.maintenance_margin;
+            out["available_funds"] = margin.available_funds;
+            out["margin_excess"] = margin.margin_excess;
+            out["buying_power"] = margin.buying_power;
+            out["margin_call"] = margin.margin_call;
+            out["stop_out"] = margin.stop_out;
+            return out;
         });
 
     py::class_<BacktestConfig>(m_engine, "BacktestConfig")
@@ -1638,12 +2212,122 @@ PYBIND11_MODULE(_core, m) {
         .def_readwrite("regime_params", &BacktestConfig::regime_params)
         .def_readwrite("plugins_search_paths", &BacktestConfig::plugins_search_paths)
         .def_readwrite("plugins_load", &BacktestConfig::plugins_load)
+        .def_readwrite("execution_model", &BacktestConfig::execution_model)
+        .def_readwrite("execution_params", &BacktestConfig::execution_params)
         .def_readwrite("slippage_model", &BacktestConfig::slippage_model)
         .def_readwrite("slippage_params", &BacktestConfig::slippage_params)
         .def_readwrite("commission_model", &BacktestConfig::commission_model)
         .def_readwrite("commission_params", &BacktestConfig::commission_params)
         .def_readwrite("risk_params", &BacktestConfig::risk_params)
         .def_readwrite("strategy_params", &BacktestConfig::strategy_params)
+        .def("set_session_window", [](BacktestConfig& cfg,
+                                       const std::string& start_hhmm,
+                                       const std::string& end_hhmm,
+                                       const int open_auction_minutes,
+                                       const int close_auction_minutes) -> BacktestConfig& {
+            auto session = ensure_nested_dict(cfg.execution_params, {"session"});
+            session["enabled"] = true;
+            session["start_hhmm"] = start_hhmm;
+            session["end_hhmm"] = end_hhmm;
+            session["open_auction_minutes"] = open_auction_minutes;
+            session["close_auction_minutes"] = close_auction_minutes;
+            return cfg;
+        }, py::arg("start_hhmm"), py::arg("end_hhmm"),
+           py::arg("open_auction_minutes") = 1,
+           py::arg("close_auction_minutes") = 1,
+           py::return_value_policy::reference_internal)
+        .def("set_session_halts", [](BacktestConfig& cfg,
+                                      const std::vector<std::string>& halted_symbols,
+                                      const bool halt_all) -> BacktestConfig& {
+            auto session = ensure_nested_dict(cfg.execution_params, {"session"});
+            session["enabled"] = true;
+            session["halt"] = halt_all;
+            session["halted_symbols"] = py::cast(halted_symbols);
+            return cfg;
+        }, py::arg("halted_symbols") = std::vector<std::string>{},
+           py::arg("halt_all") = false,
+           py::return_value_policy::reference_internal)
+        .def("set_session_calendar", [](BacktestConfig& cfg,
+                                         const std::vector<std::string>& weekdays,
+                                         const std::vector<std::string>& closed_dates) -> BacktestConfig& {
+            auto session = ensure_nested_dict(cfg.execution_params, {"session"});
+            session["enabled"] = true;
+            session["weekdays"] = py::cast(weekdays);
+            session["closed_dates"] = py::cast(closed_dates);
+            return cfg;
+        }, py::arg("weekdays") = std::vector<std::string>{},
+           py::arg("closed_dates") = std::vector<std::string>{},
+           py::return_value_policy::reference_internal)
+        .def("set_queue_dynamics", [](BacktestConfig& cfg,
+                                       const bool enabled,
+                                       const std::optional<double> progress_fraction,
+                                       const std::optional<double> default_visible_qty,
+                                       const std::optional<std::string>& depth_mode,
+                                       const double aging_fraction,
+                                       const double replenishment_fraction) -> BacktestConfig& {
+            auto queue = ensure_nested_dict(cfg.execution_params, {"queue"});
+            queue["enabled"] = enabled;
+            if (progress_fraction.has_value()) {
+                queue["progress_fraction"] = *progress_fraction;
+            }
+            if (default_visible_qty.has_value()) {
+                queue["default_visible_qty"] = *default_visible_qty;
+            }
+            if (depth_mode.has_value()) {
+                queue["depth_mode"] = *depth_mode;
+            }
+            queue["aging_fraction"] = aging_fraction;
+            queue["replenishment_fraction"] = replenishment_fraction;
+            return cfg;
+        }, py::arg("enabled") = true,
+           py::arg("progress_fraction") = py::none(),
+           py::arg("default_visible_qty") = py::none(),
+           py::arg("depth_mode") = py::none(),
+           py::arg("aging_fraction") = 0.0,
+           py::arg("replenishment_fraction") = 0.0,
+           py::return_value_policy::reference_internal)
+        .def("set_account_margin", [](BacktestConfig& cfg,
+                                       const double initial_margin_ratio,
+                                       const double maintenance_margin_ratio,
+                                       const double stop_out_margin_level) -> BacktestConfig& {
+            auto margin = ensure_nested_dict(cfg.execution_params, {"account", "margin"});
+            margin["initial_margin_ratio"] = initial_margin_ratio;
+            margin["maintenance_margin_ratio"] = maintenance_margin_ratio;
+            margin["stop_out_margin_level"] = stop_out_margin_level;
+            return cfg;
+        }, py::arg("initial_margin_ratio"),
+           py::arg("maintenance_margin_ratio"),
+           py::arg("stop_out_margin_level"),
+           py::return_value_policy::reference_internal)
+        .def("set_account_enforcement", [](BacktestConfig& cfg,
+                                            const bool enabled,
+                                            const std::string& margin_call_action,
+                                            const std::string& stop_out_action,
+                                            const bool halt_after_stop_out) -> BacktestConfig& {
+            auto enforcement = ensure_nested_dict(cfg.execution_params, {"account", "enforcement"});
+            enforcement["enabled"] = enabled;
+            enforcement["margin_call_action"] = margin_call_action;
+            enforcement["stop_out_action"] = stop_out_action;
+            enforcement["halt_after_stop_out"] = halt_after_stop_out;
+            return cfg;
+        }, py::arg("enabled") = true,
+           py::arg("margin_call_action") = "ignore",
+           py::arg("stop_out_action") = "none",
+           py::arg("halt_after_stop_out") = true,
+           py::return_value_policy::reference_internal)
+        .def("set_account_financing", [](BacktestConfig& cfg,
+                                          const bool enabled,
+                                          const double long_rate_bps_per_day,
+                                          const double short_borrow_bps_per_day) -> BacktestConfig& {
+            auto financing = ensure_nested_dict(cfg.execution_params, {"account", "financing"});
+            financing["enabled"] = enabled;
+            financing["long_rate_bps_per_day"] = long_rate_bps_per_day;
+            financing["short_borrow_bps_per_day"] = short_borrow_bps_per_day;
+            return cfg;
+        }, py::arg("enabled") = true,
+           py::arg("long_rate_bps_per_day") = 0.0,
+           py::arg("short_borrow_bps_per_day") = 0.0,
+           py::return_value_policy::reference_internal)
         .def_static("from_dict", &BacktestConfig::from_dict)
         .def_static("from_yaml", &BacktestConfig::from_yaml_file);
 
@@ -1670,8 +2354,35 @@ PYBIND11_MODULE(_core, m) {
         .def("equity_curve", [](const engine::BacktestResults& r) {
             return equity_curve_dataframe(r.metrics.equity_curve());
         })
+        .def("account_curve", [](const engine::BacktestResults& r) {
+            return portfolio_equity_dataframe(r.metrics.portfolio_snapshots());
+        })
         .def("trades", [](const engine::BacktestResults& r) {
             return fills_dataframe(r.fills);
+        })
+        .def("account_state", [](const engine::BacktestResults& r) {
+            if (const auto snapshot = r.latest_account_snapshot()) {
+                return portfolio_snapshot_to_dict(*snapshot);
+            }
+            return py::dict();
+        })
+        .def("venue_fill_summary", [](const engine::BacktestResults& r) {
+            return venue_fill_summary_dataframe(r.venue_analytics());
+        })
+        .def("dashboard_snapshot", [](const engine::BacktestResults& r) {
+            return dashboard_snapshot_to_dict(r.dashboard_snapshot());
+        })
+        .def("dashboard_snapshot_json", [](const engine::BacktestResults& r) {
+            return r.dashboard_snapshot_json();
+        })
+        .def("dashboard_terminal", [](const engine::BacktestResults& r, const bool ansi_colors) {
+            return r.dashboard_terminal(engine::DashboardRenderOptions{ansi_colors, 5});
+        }, py::arg("ansi_colors") = true)
+        .def("tester_report", [](const engine::BacktestResults& r) {
+            return tester_report_to_dict(r);
+        })
+        .def("tester_journal", [](const engine::BacktestResults& r) {
+            return tester_journal_dataframe(r);
         })
         .def("report_csv", [](const engine::BacktestResults& r) {
             const auto report = metrics::build_report(r.metrics, r.fills);
@@ -1716,9 +2427,14 @@ PYBIND11_MODULE(_core, m) {
 
     py::class_<PyBacktestEngine>(m_engine, "BacktestEngine")
         .def(py::init<const BacktestConfig&>())
+        .def("prepare", &PyBacktestEngine::prepare)
         .def("run", [](PyBacktestEngine& engine, const py::object& strategy) {
             return engine.run(strategy);
         })
+        .def("step", &PyBacktestEngine::step)
+        .def("results", &PyBacktestEngine::results)
+        .def("is_complete", &PyBacktestEngine::is_complete)
+        .def("current_time", &PyBacktestEngine::current_time)
         .def("run_parallel", [](const PyBacktestEngine& engine,
                                  const std::vector<py::dict>& param_sets,
                                  const py::object& factory,
@@ -1729,6 +2445,10 @@ PYBIND11_MODULE(_core, m) {
                                 py::return_value_policy::reference_internal)
         .def_property_readonly("current_regime", &PyBacktestEngine::current_regime,
                                 py::return_value_policy::reference_internal)
+        .def("dashboard_snapshot", &PyBacktestEngine::dashboard_snapshot)
+        .def("dashboard_snapshot_json", &PyBacktestEngine::dashboard_snapshot_json)
+        .def("dashboard_terminal", &PyBacktestEngine::dashboard_terminal,
+             py::arg("ansi_colors") = true)
         .def("get_close_prices", &PyBacktestEngine::get_close_prices,
              py::arg("symbol"),
              py::arg("start") = py::none(),

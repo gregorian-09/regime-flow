@@ -1,8 +1,15 @@
 import os
+from types import SimpleNamespace
+import warnings
 
 import pytest
 
 import regimeflow as rf
+
+
+pytestmark = pytest.mark.filterwarnings(
+    "ignore::DeprecationWarning:dash\\.development\\.base_component"
+)
 
 
 def _build_results():
@@ -116,3 +123,165 @@ def test_dashboard_snapshot_helper():
     assert "orders" in output
     assert "regime_state" in output
     assert "alerts" in output
+
+
+def test_strategy_tester_dashboard_helper():
+    try:
+        import plotly  # noqa: F401
+    except Exception:
+        try:
+            import matplotlib  # noqa: F401
+        except Exception:
+            pytest.skip("plotly/matplotlib not installed")
+
+    results = _build_results()
+
+    from regimeflow.visualization import create_strategy_tester_dashboard
+
+    output = create_strategy_tester_dashboard(results)
+    assert "figure" in output
+    assert "drawdown" in output
+    assert "setup" in output
+    assert "headline" in output
+    assert "account_curve" in output
+    assert "tabs" in output
+    assert "report_sections" in output
+    assert "journal" in output
+    assert "market_bars" in output
+    assert "replay_figure" in output
+    assert "Report" in output["tabs"]
+    assert output["setup"]["symbols"] == ["TEST"]
+    assert "summary" in output["report_sections"]
+    assert not output["journal"].empty
+    assert "category" in output["journal"].columns
+    assert not output["market_bars"].empty
+
+
+def test_strategy_tester_dashboard_walkforward_helper():
+    try:
+        import plotly  # noqa: F401
+    except Exception:
+        try:
+            import matplotlib  # noqa: F401
+        except Exception:
+            pytest.skip("plotly/matplotlib not installed")
+
+    results = _build_results()
+    window = SimpleNamespace(
+        in_sample_range=("2020-01-01", "2020-01-02"),
+        out_of_sample_range=("2020-01-02", "2020-01-03"),
+        optimal_params={"lookback": 10, "threshold": 1.5},
+        is_fitness=1.2,
+        oos_fitness=0.9,
+        oos_results=results,
+        efficiency_ratio=0.75,
+    )
+    walkforward = SimpleNamespace(
+        windows=[window],
+        stitched_oos_results=results,
+        param_evolution={"lookback": [10.0], "threshold": [1.5]},
+        param_stability_score={"lookback": 0.0, "threshold": 0.0},
+        avg_is_sharpe=1.2,
+        avg_oos_sharpe=0.9,
+        overall_oos_sharpe=0.85,
+        avg_efficiency_ratio=0.75,
+        potential_overfit=False,
+        overfit_diagnosis="",
+        regime_consistency_score=0.8,
+    )
+
+    from regimeflow.visualization import create_strategy_tester_dashboard
+
+    output = create_strategy_tester_dashboard(walkforward)
+    assert output["optimization"]["enabled"] is True
+    assert "Optimization" in output["tabs"]
+    assert not output["optimization"]["windows"].empty
+    assert not output["optimization"]["params"].empty
+
+
+def test_export_dashboard_html(tmp_path):
+    try:
+        import plotly  # noqa: F401
+    except Exception:
+        pytest.skip("plotly not installed")
+
+    results = _build_results()
+    output_path = tmp_path / "dashboard.html"
+
+    from regimeflow.visualization import export_dashboard_html
+
+    export_dashboard_html(results, str(output_path))
+    html = output_path.read_text(encoding="utf-8")
+    assert "RegimeFlow Strategy Tester" in html
+    assert "Plotly.newPlot" in html
+
+
+def test_interactive_dashboard_layout_shell():
+    try:
+        import dash  # noqa: F401
+        import plotly  # noqa: F401
+    except Exception:
+        pytest.skip("dash/plotly not installed")
+
+    results = _build_results()
+
+    from regimeflow.visualization import create_interactive_dashboard
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"The dash_table\.DataTable will be removed from the builtin dash components in a future major version\.",
+            category=DeprecationWarning,
+        )
+        app = create_interactive_dashboard(results)
+    layout_text = str(app.layout)
+    assert "Strategy Tester" in layout_text
+    assert "Tester Results" in layout_text
+    assert "Settings" in layout_text
+    assert "replay-slider" in layout_text
+
+
+def test_live_dashboard_layout_controls():
+    try:
+        import dash  # noqa: F401
+        import plotly  # noqa: F401
+        from dash._utils import to_json
+    except Exception:
+        pytest.skip("dash/plotly not installed")
+
+    results = _build_results()
+
+    def snapshot_provider():
+        return {
+            "dashboard_snapshot": results.dashboard_snapshot(),
+            "trades": results.trades().to_dict("records"),
+        }
+
+    from regimeflow.visualization.dashboard_app import create_live_dash_app
+
+    app = create_live_dash_app(snapshot_provider, advance_step=lambda: False)
+    layout_text = str(app.layout)
+    assert "Toggle Rail" in layout_text
+    assert "Toggle Console" in layout_text
+    assert "Balanced" in layout_text
+    assert "Low Latency" in layout_text
+    assert "High History" in layout_text
+    assert "live-profile" in layout_text
+    assert "live-cb-latency" in layout_text
+    assert "live-zoom-1h" in layout_text
+    assert "live-window" in layout_text
+    to_json(app.layout)
+
+
+def test_live_dashboard_entry_factory():
+    try:
+        import dash  # noqa: F401
+        import plotly  # noqa: F401
+        from dash._utils import to_json
+    except Exception:
+        pytest.skip("dash/plotly not installed")
+
+    from regimeflow.visualization.live_dashboard_entry import create_intraday_live_dashboard_app
+
+    app = create_intraday_live_dashboard_app()
+    to_json(app.layout)

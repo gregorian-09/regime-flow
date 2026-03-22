@@ -7,7 +7,28 @@ Quick example:
     csv_text = results.report_csv()
 """
 
-from . import _core as _core
+import importlib
+import os
+import sys
+import importlib.util
+
+_LOCAL_PACKAGE_DIR = os.path.dirname(__file__)
+if "__path__" in globals():
+    _normalized_path = [_LOCAL_PACKAGE_DIR]
+    for _entry in list(__path__):
+        if os.path.abspath(_entry) != os.path.abspath(_LOCAL_PACKAGE_DIR):
+            _normalized_path.append(_entry)
+    __path__ = _normalized_path
+
+_CORE_MODULE_NAME = f"{__name__}._core"
+_core_spec = importlib.util.spec_from_file_location(
+    _CORE_MODULE_NAME, os.path.join(_LOCAL_PACKAGE_DIR, "_core.py")
+)
+if _core_spec is None or _core_spec.loader is None:
+    raise ImportError("Failed to load regimeflow._core wrapper")
+_core = importlib.util.module_from_spec(_core_spec)
+sys.modules[_CORE_MODULE_NAME] = _core
+_core_spec.loader.exec_module(_core)
 
 from ._core import (
     Config,
@@ -33,23 +54,17 @@ walkforward = _core.walkforward
 
 def __getattr__(name):
     if name == "visualization":
-        from . import visualization as _visualization
-        return _visualization
+        return importlib.import_module(f"{__name__}.visualization")
     if name == "analysis":
-        from . import analysis as _analysis
-        return _analysis
+        return importlib.import_module(f"{__name__}.analysis")
     if name == "strategy_module":
-        from . import strategy as _strategy
-        return _strategy
+        return importlib.import_module(f"{__name__}.strategy")
     if name == "metrics":
-        from . import metrics as _metrics
-        return _metrics
+        return importlib.import_module(f"{__name__}.metrics")
     if name == "config":
-        from . import config as _config
-        return _config
+        return importlib.import_module(f"{__name__}.config")
     if name == "research":
-        from . import research as _research
-        return _research
+        return importlib.import_module(f"{__name__}.research")
     raise AttributeError(name)
 
 BacktestEngine = engine.BacktestEngine
