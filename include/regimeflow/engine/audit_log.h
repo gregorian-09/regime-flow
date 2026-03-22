@@ -28,6 +28,7 @@ namespace regimeflow::engine
             OrderFilled,
             OrderCancelled,
             OrderRejected,
+            AccountUpdate,
             RegimeChange,
             SystemStart,
             SystemStop,
@@ -71,6 +72,12 @@ namespace regimeflow::engine
          * @return Ok on success, IoError on failure.
          */
         Result<void> log_regime_change(const regime::RegimeTransition& transition);
+        /**
+         * @brief Convert an audit event type to a stable display name.
+         * @param type Audit event type.
+         * @return Canonical event name.
+         */
+        static std::string type_to_string(AuditEvent::Type type);
 
     private:
         std::string path_;
@@ -78,6 +85,5 @@ namespace regimeflow::engine
         std::ofstream stream_;
 
         void open_if_needed();
-        static std::string type_to_string(AuditEvent::Type type);
     };
 }  // namespace regimeflow::engine

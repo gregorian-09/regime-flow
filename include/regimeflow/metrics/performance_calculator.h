@@ -75,6 +75,8 @@ namespace regimeflow::metrics
     struct RegimeMetrics {
         regime::RegimeType regime = regime::RegimeType::Neutral;
         double time_percentage = 0.0;
+        double avg_period_return = 0.0;
+        int observations = 0;
         PerformanceSummary summary;
         int trade_count = 0;
     };

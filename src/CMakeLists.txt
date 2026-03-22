@@ -192,7 +192,9 @@ target_link_libraries(regimeflow_alpaca_fetch PRIVATE regimeflow_data)
 add_library(regimeflow_engine
     engine/audit_log.cpp
     engine/backtest_engine.cpp
+    engine/backtest_results.cpp
     engine/backtest_runner.cpp
+    engine/dashboard_snapshot.cpp
     engine/engine_factory.cpp
     engine/execution_pipeline.cpp
     engine/event_generator.cpp
@@ -201,6 +203,7 @@ add_library(regimeflow_engine
     engine/order_book_cache.cpp
     engine/order.cpp
     engine/order_manager.cpp
+    engine/order_routing.cpp
     engine/portfolio.cpp
     engine/regime_tracker.cpp
     engine/parity_checker.cpp
@@ -527,3 +530,29 @@ set_target_properties(regimeflow_live_cli PROPERTIES OUTPUT_NAME regimeflow_live
 
 add_executable(regimeflow_parity_check tools/parity_check_main.cpp)
 target_link_libraries(regimeflow_parity_check PRIVATE regimeflow_engine regimeflow_common)
+
+add_executable(regimeflow_backtest_controls_demo tools/backtest_controls_demo.cpp)
+target_link_libraries(regimeflow_backtest_controls_demo PRIVATE
+    regimeflow_engine
+    regimeflow_strategy
+    regimeflow_execution
+    regimeflow_data
+    regimeflow_risk
+    regimeflow_metrics
+    regimeflow_regime
+    regimeflow_plugins
+    regimeflow_common
+)
+
+add_executable(regimeflow_strategy_tester tools/strategy_tester_main.cpp)
+target_link_libraries(regimeflow_strategy_tester PRIVATE
+    regimeflow_engine
+    regimeflow_strategy
+    regimeflow_execution
+    regimeflow_data
+    regimeflow_risk
+    regimeflow_metrics
+    regimeflow_regime
+    regimeflow_plugins
+    regimeflow_common
+)

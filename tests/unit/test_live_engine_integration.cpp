@@ -424,6 +424,9 @@ namespace regimeflow::test
         }
 
         EXPECT_GT(updates.load(), 0);
+        const auto dashboard_json = engine->dashboard_snapshot_json();
+        EXPECT_NE(dashboard_json.find("\"buying_power\""), std::string::npos);
+        EXPECT_NE(dashboard_json.find("\"initial_margin\""), std::string::npos);
         engine->stop();
     }
 }  // namespace regimeflow::test

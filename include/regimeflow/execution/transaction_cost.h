@@ -7,6 +7,7 @@
 
 #include "regimeflow/engine/order.h"
 
+#include <cstdlib>
 #include <cmath>
 #include <mutex>
 #include <unordered_set>
@@ -152,5 +153,49 @@ namespace regimeflow::execution
 
     private:
         std::vector<TieredTransactionCostTier> tiers_;
+    };
+
+    /**
+     * @brief Maker rebate / taker fee transaction cost model.
+     */
+    class MakerTakerTransactionCostModel final : public TransactionCostModel {
+    public:
+        /**
+         * @brief Construct with maker rebate and taker fee in basis points.
+         * @param maker_rebate_bps Rebate in basis points (reduces cost).
+         * @param taker_fee_bps Fee in basis points.
+         */
+        MakerTakerTransactionCostModel(double maker_rebate_bps, double taker_fee_bps)
+            : maker_rebate_bps_(maker_rebate_bps),
+              taker_fee_bps_(taker_fee_bps) {}
+
+        /**
+         * @brief Apply maker rebate or taker fee based on fill flags.
+         */
+        [[nodiscard]] double cost(const engine::Order& order, const engine::Fill& fill) const override {
+            const double notional = std::abs(fill.price * fill.quantity);
+            double maker_rebate_bps = maker_rebate_bps_;
+            double taker_fee_bps = taker_fee_bps_;
+            const auto parse_override = [](const engine::Order& order,
+                                           const char* key,
+                                           double fallback) {
+                if (const auto it = order.metadata.find(key); it != order.metadata.end()) {
+                    char* end = nullptr;
+                    const double value = std::strtod(it->second.c_str(), &end);
+                    if (end != it->second.c_str()) {
+                        return value;
+                    }
+                }
+                return fallback;
+            };
+            maker_rebate_bps = parse_override(order, "venue_maker_rebate_bps", maker_rebate_bps);
+            taker_fee_bps = parse_override(order, "venue_taker_fee_bps", taker_fee_bps);
+            const double bps = fill.is_maker ? -maker_rebate_bps : taker_fee_bps;
+            return notional * (bps / 10000.0);
+        }
+
+    private:
+        double maker_rebate_bps_ = 0.0;
+        double taker_fee_bps_ = 0.0;
     };
 }  // namespace regimeflow::execution

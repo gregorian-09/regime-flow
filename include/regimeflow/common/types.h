@@ -62,7 +62,7 @@ namespace regimeflow
         /**
          * @brief Intern a symbol string and return its ID.
          * @param symbol Symbol string (e.g., "AAPL").
-         * @return Stable SymbolId for the symbol.
+         * @return Stable SymbolId for the symbol. Zero is reserved as invalid.
          */
         SymbolId intern(std::string_view symbol);
         /**

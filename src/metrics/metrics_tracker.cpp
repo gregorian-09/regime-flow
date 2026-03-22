@@ -26,7 +26,7 @@ namespace regimeflow::metrics
             state.regime = *regime;
             state.timestamp = timestamp;
             regime_history_.push_back(state);
-            regime_attribution_.update(*regime, ret);
+            regime_attribution_.update(timestamp, *regime, ret);
             if (last_regime_ && *last_regime_ != *regime) {
                 transition_metrics_.update(*last_regime_, *regime, ret);
             }
@@ -49,7 +49,7 @@ namespace regimeflow::metrics
         portfolio_snapshots_.push_back(portfolio.snapshot(timestamp));
         regime_history_.push_back(regime);
 
-        regime_attribution_.update(regime.regime, ret);
+        regime_attribution_.update(timestamp, regime.regime, ret);
         if (last_regime_ && *last_regime_ != regime.regime) {
             transition_metrics_.update(*last_regime_, regime.regime, ret);
         }

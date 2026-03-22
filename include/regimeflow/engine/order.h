@@ -72,6 +72,7 @@ namespace regimeflow::engine
      */
     struct Order {
         OrderId id = 0;
+        OrderId parent_id = 0;
         SymbolId symbol = 0;
         OrderSide side = OrderSide::Buy;
         OrderType type = OrderType::Market;
@@ -85,6 +86,7 @@ namespace regimeflow::engine
         Timestamp created_at;
         Timestamp updated_at;
         std::optional<Timestamp> expire_at;
+        bool is_parent = false;
         std::string strategy_id;
         std::map<std::string, std::string> metadata;
 
@@ -122,12 +124,15 @@ namespace regimeflow::engine
     struct Fill {
         FillId id = 0;
         OrderId order_id = 0;
+        OrderId parent_order_id = 0;
         SymbolId symbol = 0;
         Quantity quantity = 0;
         Price price = 0;
         Timestamp timestamp;
         double commission = 0;
+        double transaction_cost = 0;
         double slippage = 0;
         bool is_maker = false;
+        std::string venue;
     };
 }  // namespace regimeflow::engine

@@ -54,7 +54,9 @@ namespace regimeflow::events
         DayStart,
         EndOfDay,
         Timer,
-        RegimeChange
+        RegimeChange,
+        TradingHalt,
+        TradingResume
     };
 
     /**
@@ -80,10 +82,14 @@ namespace regimeflow::events
     struct OrderEventPayload {
         OrderEventKind kind;
         OrderId order_id = 0;
+        OrderId parent_order_id = 0;
         FillId fill_id = 0;
         Quantity quantity = 0;
         Price price = 0;
         double commission = 0.0;
+        double transaction_cost = 0.0;
+        bool is_maker = false;
+        std::string venue;
     };
 
     /**
@@ -231,13 +237,24 @@ namespace regimeflow::events
      */
     inline Event make_order_event(OrderEventKind kind, Timestamp timestamp, OrderId order_id,
                                   FillId fill_id = 0, Quantity quantity = 0, Price price = 0,
-                                  SymbolId symbol = 0, double commission = 0.0) {
+                                  SymbolId symbol = 0, double commission = 0.0,
+                                  bool is_maker = false, double transaction_cost = 0.0,
+                                  OrderId parent_order_id = 0, std::string venue = {}) {
         Event event;
         event.timestamp = timestamp;
         event.type = EventType::Order;
         event.priority = kOrderPriority;
         event.symbol = symbol;
-        event.payload = OrderEventPayload{kind, order_id, fill_id, quantity, price, commission};
+        event.payload = OrderEventPayload{kind,
+                                          order_id,
+                                          parent_order_id,
+                                          fill_id,
+                                          quantity,
+                                          price,
+                                          commission,
+                                          transaction_cost,
+                                          is_maker,
+                                          std::move(venue)};
         return event;
     }
 }  // namespace regimeflow::events

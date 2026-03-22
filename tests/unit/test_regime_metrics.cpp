@@ -28,6 +28,8 @@ namespace regimeflow::test
         ASSERT_TRUE(regimes.contains(regime::RegimeType::Bear));
         EXPECT_EQ(regimes.at(regime::RegimeType::Bull).observations, 2);
         EXPECT_EQ(regimes.at(regime::RegimeType::Bear).observations, 1);
+        EXPECT_NEAR(regimes.at(regime::RegimeType::Bull).time_pct, 0.5, 1e-9);
+        EXPECT_NEAR(regimes.at(regime::RegimeType::Bear).time_pct, 0.5, 1e-9);
 
         const auto& transitions = tracker.transition_metrics().results();
         auto key = std::make_pair(regime::RegimeType::Bull, regime::RegimeType::Bear);

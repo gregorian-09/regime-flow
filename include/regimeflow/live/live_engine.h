@@ -9,7 +9,9 @@
 #include "regimeflow/common/result.h"
 #include "regimeflow/common/mpsc_queue.h"
 #include "regimeflow/common/spsc_queue.h"
+#include "regimeflow/engine/dashboard_snapshot.h"
 #include "regimeflow/engine/portfolio.h"
+#include "regimeflow/engine/order_routing.h"
 #include "regimeflow/live/audit_log.h"
 #include "regimeflow/live/broker_adapter.h"
 #include "regimeflow/live/event_bus.h"
@@ -167,6 +169,15 @@ namespace regimeflow::live
          * @brief Live performance tracking configuration.
          */
         metrics::LivePerformanceConfig metrics_config;
+
+        /**
+         * @brief Routing configuration for smart order routing.
+         */
+        engine::RoutingConfig routing_config;
+        /**
+         * @brief Account-level margin simulation profile used for internal portfolio state.
+         */
+        engine::MarginProfile account_margin;
     };
 
     /**
@@ -220,37 +231,12 @@ namespace regimeflow::live
         /**
          * @brief Summary of an open live order for dashboards.
          */
-        struct LiveOrderSummary {
-            engine::OrderId id = 0;
-            std::string symbol;
-            engine::OrderSide side = engine::OrderSide::Buy;
-            engine::OrderType type = engine::OrderType::Market;
-            double quantity = 0.0;
-            double filled_quantity = 0.0;
-            double limit_price = 0.0;
-            double stop_price = 0.0;
-            double avg_fill_price = 0.0;
-            std::string status;
-            Timestamp updated_at;
-        };
+        using LiveOrderSummary = engine::DashboardOrderSummary;
 
         /**
          * @brief Dashboard snapshot for UI/monitoring.
          */
-        struct DashboardSnapshot {
-            Timestamp timestamp;
-            double equity = 0.0;
-            double cash = 0.0;
-            double daily_pnl = 0.0;
-            regime::RegimeState current_regime;
-            std::vector<engine::PortfolioSnapshot> equity_curve;
-            std::vector<engine::Position> positions;
-            std::vector<LiveOrderSummary> open_orders;
-            std::vector<std::string> alerts;
-            double cpu_usage_pct = 0.0;
-            double memory_mb = 0.0;
-            double event_loop_latency_ms = 0.0;
-        };
+        using DashboardSnapshot = engine::DashboardSnapshot;
 
         /**
          * @brief System health telemetry snapshot.
@@ -273,6 +259,15 @@ namespace regimeflow::live
          * @brief Get the latest dashboard snapshot.
          */
         DashboardSnapshot get_dashboard_snapshot() const;
+        /**
+         * @brief Export the latest dashboard snapshot as JSON for UIs or ops tooling.
+         */
+        std::string dashboard_snapshot_json() const;
+        /**
+         * @brief Render the latest strategy tester dashboard in a terminal-friendly format.
+         */
+        std::string dashboard_terminal(
+            const engine::DashboardRenderOptions& options = {}) const;
         /**
          * @brief Get the latest system health snapshot.
          */
@@ -363,6 +358,7 @@ namespace regimeflow::live
         std::unordered_map<engine::OrderId, std::string> broker_order_ids_;
         std::unordered_map<std::string, engine::OrderId> broker_to_order_ids_;
         std::unordered_map<SymbolId, Price> last_prices_;
+        std::unordered_map<SymbolId, data::Quote> last_quotes_;
 
         std::mutex rate_mutex_;
         std::deque<Timestamp> order_timestamps_;

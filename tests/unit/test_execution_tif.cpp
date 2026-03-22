@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 using regimeflow::Timestamp;
+using regimeflow::data::Quote;
 using regimeflow::engine::Order;
 using regimeflow::engine::OrderSide;
 using regimeflow::engine::OrderType;
@@ -42,6 +43,12 @@ TEST(ExecutionTifTest, IocCancelsRemainder) {
                                 10.0);
     order.tif = TimeInForce::IOC;
     order.created_at = Timestamp::now();
+    Quote quote;
+    quote.symbol = order.symbol;
+    quote.timestamp = order.created_at;
+    quote.bid = 99.9;
+    quote.ask = 100.1;
+    market_data.update(quote);
 
     pipeline.on_order_submitted(order);
 
@@ -74,6 +81,12 @@ TEST(ExecutionTifTest, FokRejectsPartial) {
                                 10.0);
     order.tif = TimeInForce::FOK;
     order.created_at = Timestamp::now();
+    Quote quote;
+    quote.symbol = order.symbol;
+    quote.timestamp = order.created_at;
+    quote.bid = 99.9;
+    quote.ask = 100.1;
+    market_data.update(quote);
 
     pipeline.on_order_submitted(order);
 
@@ -92,4 +105,43 @@ TEST(ExecutionTifTest, FokRejectsPartial) {
     }
     EXPECT_EQ(fills, 0);
     EXPECT_EQ(rejects, 1);
+}
+
+TEST(ExecutionTifTest, DefaultIocPolicyAppliesToDayOrders) {
+    regimeflow::events::EventQueue queue;
+    regimeflow::engine::MarketDataCache market_data;
+    regimeflow::engine::OrderBookCache order_books;
+    regimeflow::engine::ExecutionPipeline pipeline(&market_data, &order_books, &queue);
+    pipeline.set_execution_model(std::make_unique<PartialExecutionModel>());
+    pipeline.set_default_fill_policy(regimeflow::engine::ExecutionPipeline::FillPolicy::IOC);
+
+    Order order = Order::market(regimeflow::SymbolRegistry::instance().intern("DAY"),
+                                OrderSide::Buy,
+                                8.0);
+    order.tif = TimeInForce::Day;
+    order.created_at = Timestamp::now();
+    Quote quote;
+    quote.symbol = order.symbol;
+    quote.timestamp = order.created_at;
+    quote.bid = 49.9;
+    quote.ask = 50.1;
+    market_data.update(quote);
+
+    pipeline.on_order_submitted(order);
+
+    int fills = 0;
+    int cancels = 0;
+    while (auto event = queue.pop()) {
+        const auto* payload = std::get_if<regimeflow::events::OrderEventPayload>(&event->payload);
+        if (!payload) {
+            continue;
+        }
+        if (payload->kind == regimeflow::events::OrderEventKind::Fill) {
+            fills++;
+        } else if (payload->kind == regimeflow::events::OrderEventKind::Cancel) {
+            cancels++;
+        }
+    }
+    EXPECT_EQ(fills, 1);
+    EXPECT_EQ(cancels, 1);
 }

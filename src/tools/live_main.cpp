@@ -1,6 +1,7 @@
 #include "regimeflow/common/config.h"
 #include "regimeflow/common/result.h"
 #include "regimeflow/common/yaml_config.h"
+#include "regimeflow/engine/order_routing.h"
 #include "regimeflow/live/live_engine.h"
 
 #include <atomic>
@@ -229,6 +230,19 @@ namespace
                     "Missing Alpaca base URL (ALPACA_PAPER_BASE_URL)"));
             }
         }
+
+        cfg.routing_config = regimeflow::engine::RoutingConfig::from_config(root, "live.execution.routing");
+        if (!cfg.routing_config.enabled) {
+            cfg.routing_config = regimeflow::engine::RoutingConfig::from_config(root, "live.routing");
+        }
+        if (!cfg.routing_config.enabled) {
+            cfg.routing_config = regimeflow::engine::RoutingConfig::from_config(root, "execution.routing");
+        }
+
+        auto margin_profile = regimeflow::engine::MarginProfile::from_config(root, "account.margin");
+        cfg.account_margin = regimeflow::engine::MarginProfile::from_config(root,
+                                                                            "live.account.margin",
+                                                                            margin_profile);
 
         return regimeflow::Result<regimeflow::live::LiveConfig>(cfg);
     }

@@ -6,6 +6,33 @@
 
 namespace regimeflow::engine
 {
+    MarginProfile MarginProfile::from_config(const Config& config,
+                                             const std::string& prefix) {
+        return from_config(config, prefix, MarginProfile{});
+    }
+
+    MarginProfile MarginProfile::from_config(const Config& config,
+                                             const std::string& prefix,
+                                             const MarginProfile& defaults) {
+        MarginProfile merged = defaults;
+        const auto key = [&prefix](const std::string& suffix) {
+            if (prefix.empty()) {
+                return suffix;
+            }
+            return prefix + "." + suffix;
+        };
+        if (const auto configured = config.get_as<double>(key("initial_margin_ratio"))) {
+            merged.initial_margin_ratio = *configured;
+        }
+        if (const auto configured = config.get_as<double>(key("maintenance_margin_ratio"))) {
+            merged.maintenance_margin_ratio = *configured;
+        }
+        if (const auto configured = config.get_as<double>(key("stop_out_margin_level"))) {
+            merged.stop_out_margin_level = *configured;
+        }
+        return merged;
+    }
+
     Portfolio::Portfolio(const double initial_capital, std::string currency)
         : initial_capital_(initial_capital), cash_(initial_capital), currency_(std::move(currency)) {}
 
@@ -15,6 +42,7 @@ namespace regimeflow::engine
         }
         cash_ -= fill.price * fill.quantity;
         cash_ -= fill.commission;
+        cash_ -= fill.transaction_cost;
 
         auto& position = positions_[fill.symbol];
         if (position.symbol == 0) {
@@ -60,10 +88,14 @@ namespace regimeflow::engine
         cash_ = cash;
         notify_equity(equity());
         if (!snapshots_.empty()) {
-            snapshots_.back().timestamp = timestamp;
-            snapshots_.back().cash = cash_;
-            snapshots_.back().equity = equity();
+            auto& snapshot = snapshots_.back();
+            snapshot.timestamp = timestamp;
+            apply_snapshot_fields(snapshot);
         }
+    }
+
+    void Portfolio::adjust_cash(const double delta, const Timestamp timestamp) {
+        set_cash(cash_ + delta, timestamp);
     }
 
     void Portfolio::set_position(const SymbolId symbol, const Quantity quantity, const Price avg_cost,
@@ -163,39 +195,41 @@ namespace regimeflow::engine
         return total;
     }
 
+    void Portfolio::configure_margin(MarginProfile profile) {
+        if (profile.initial_margin_ratio < 0.0) {
+            profile.initial_margin_ratio = 0.0;
+        }
+        if (profile.maintenance_margin_ratio < 0.0) {
+            profile.maintenance_margin_ratio = 0.0;
+        }
+        if (profile.stop_out_margin_level < 0.0) {
+            profile.stop_out_margin_level = 0.0;
+        }
+        margin_profile_ = profile;
+    }
+
+    MarginSnapshot Portfolio::margin_snapshot() const {
+        return build_margin_snapshot(equity(), gross_exposure());
+    }
+
     PortfolioSnapshot Portfolio::snapshot() const {
         PortfolioSnapshot snap;
         snap.timestamp = Timestamp::now();
-        snap.cash = cash_;
-        snap.equity = equity();
-        snap.gross_exposure = gross_exposure();
-        snap.net_exposure = net_exposure();
-        snap.leverage = snap.equity != 0 ? snap.gross_exposure / snap.equity : 0;
-        snap.positions = positions_;
+        apply_snapshot_fields(snap);
         return snap;
     }
 
     PortfolioSnapshot Portfolio::snapshot(const Timestamp timestamp) const {
         PortfolioSnapshot snap;
         snap.timestamp = timestamp;
-        snap.cash = cash_;
-        snap.equity = equity();
-        snap.gross_exposure = gross_exposure();
-        snap.net_exposure = net_exposure();
-        snap.leverage = snap.equity != 0 ? snap.gross_exposure / snap.equity : 0;
-        snap.positions = positions_;
+        apply_snapshot_fields(snap);
         return snap;
     }
 
     void Portfolio::record_snapshot(const Timestamp timestamp) {
         PortfolioSnapshot snap;
         snap.timestamp = timestamp;
-        snap.cash = cash_;
-        snap.equity = equity();
-        snap.gross_exposure = gross_exposure();
-        snap.net_exposure = net_exposure();
-        snap.leverage = snap.equity != 0 ? snap.gross_exposure / snap.equity : 0;
-        snap.positions = positions_;
+        apply_snapshot_fields(snap);
         snapshots_.push_back(std::move(snap));
     }
 
@@ -249,6 +283,44 @@ namespace regimeflow::engine
         } else if ((old_qty > 0 && new_qty < 0) || (old_qty < 0 && new_qty > 0)) {
             position.avg_cost = fill.price;
         }
+    }
+
+    MarginSnapshot Portfolio::build_margin_snapshot(const double equity_value,
+                                                    const double gross_exposure_value) const {
+        MarginSnapshot snapshot;
+        snapshot.initial_margin = gross_exposure_value * margin_profile_.initial_margin_ratio;
+        snapshot.maintenance_margin = gross_exposure_value * margin_profile_.maintenance_margin_ratio;
+        snapshot.available_funds = equity_value - snapshot.initial_margin;
+        snapshot.margin_excess = equity_value - snapshot.maintenance_margin;
+        if (margin_profile_.initial_margin_ratio > 0.0) {
+            snapshot.buying_power =
+                std::max(snapshot.available_funds / margin_profile_.initial_margin_ratio, 0.0);
+        } else {
+            snapshot.buying_power = std::max(snapshot.available_funds, 0.0);
+        }
+        snapshot.margin_call = snapshot.margin_excess < 0.0;
+        if (snapshot.maintenance_margin > 0.0) {
+            const double margin_level = equity_value / snapshot.maintenance_margin;
+            snapshot.stop_out = margin_level <= margin_profile_.stop_out_margin_level;
+        }
+        return snapshot;
+    }
+
+    void Portfolio::apply_snapshot_fields(PortfolioSnapshot& snapshot) const {
+        snapshot.cash = cash_;
+        snapshot.equity = equity();
+        snapshot.gross_exposure = gross_exposure();
+        snapshot.net_exposure = net_exposure();
+        snapshot.leverage = snapshot.equity != 0 ? snapshot.gross_exposure / snapshot.equity : 0.0;
+        const MarginSnapshot margin = build_margin_snapshot(snapshot.equity, snapshot.gross_exposure);
+        snapshot.initial_margin = margin.initial_margin;
+        snapshot.maintenance_margin = margin.maintenance_margin;
+        snapshot.available_funds = margin.available_funds;
+        snapshot.margin_excess = margin.margin_excess;
+        snapshot.buying_power = margin.buying_power;
+        snapshot.margin_call = margin.margin_call;
+        snapshot.stop_out = margin.stop_out;
+        snapshot.positions = positions_;
     }
 
     void Portfolio::notify_position(const Position& position) const

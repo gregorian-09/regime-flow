@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "regimeflow/common/time.h"
 #include "regimeflow/regime/types.h"
 
 #include <map>
@@ -30,10 +31,11 @@ namespace regimeflow::metrics
     public:
         /**
          * @brief Update statistics with an equity return in a regime.
+         * @param timestamp Interval end timestamp.
          * @param regime Regime type.
          * @param equity_return Return for the period.
          */
-        void update(regime::RegimeType regime, double equity_return);
+        void update(Timestamp timestamp, regime::RegimeType regime, double equity_return);
 
         /**
          * @brief Access computed results per regime.
@@ -45,13 +47,16 @@ namespace regimeflow::metrics
          * @brief Accumulators for per-regime statistics.
          */
         struct RegimeStats {
-            double total_return = 0.0;
             double sum = 0.0;
             double sum_sq = 0.0;
             double equity = 1.0;
             double peak = 1.0;
             double max_dd = 0.0;
             int observations = 0;
+            int64_t active_duration_us = 0;
+            Timestamp first_timestamp;
+            Timestamp last_timestamp;
+            bool has_timestamp = false;
         };
 
         void rebuild_results();
@@ -59,5 +64,8 @@ namespace regimeflow::metrics
         std::map<regime::RegimeType, RegimeStats> stats_;
         std::map<regime::RegimeType, RegimePerformance> results_;
         int total_obs_ = 0;
+        Timestamp last_timestamp_;
+        bool has_last_timestamp_ = false;
+        int64_t total_duration_us_ = 0;
     };
 }  // namespace regimeflow::metrics

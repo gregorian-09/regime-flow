@@ -31,6 +31,7 @@
 #include <string>
 #include <optional>
 #include <map>
+#include <unordered_set>
 
 namespace regimeflow::engine
 {
@@ -64,6 +65,41 @@ namespace regimeflow::engine
      */
     class BacktestEngine {
     public:
+        /**
+         * @brief Action to take when maintenance margin is breached but stop-out has not triggered.
+         */
+        enum class MarginCallAction : uint8_t {
+            Ignore,
+            CancelOpenOrders,
+            HaltTrading
+        };
+
+        /**
+         * @brief Liquidation policy used when stop-out triggers.
+         */
+        enum class StopOutAction : uint8_t {
+            None,
+            LiquidateAll,
+            LiquidateWorstFirst
+        };
+
+        /**
+         * @brief Market-data mode used by the execution simulator.
+         */
+        enum class TickSimulationMode : uint8_t {
+            SyntheticTicks,
+            RealTicks
+        };
+
+        /**
+         * @brief Synthetic execution-tick profile generated from OHLC bars.
+         */
+        enum class SyntheticTickProfile : uint8_t {
+            BarClose,
+            BarOpen,
+            Ohlc4Tick
+        };
+
         /**
          * @brief Construct a backtest engine.
          * @param initial_capital Starting cash.
@@ -203,6 +239,11 @@ namespace regimeflow::engine
          */
         void set_parallel_context(ParallelContext context);
         /**
+         * @brief Configure explicit tester metadata for dashboard surfaces.
+         * @param setup Setup metadata captured from the caller.
+         */
+        void set_dashboard_setup(DashboardSetup setup);
+        /**
          * @brief Run parallel parameter sweeps.
          * @param param_sets Parameter sets to evaluate.
          * @param strategy_factory Factory to build strategies for each set.
@@ -239,6 +280,23 @@ namespace regimeflow::engine
          */
         BacktestResults results() const;
         /**
+         * @brief Current dashboard snapshot for native tester UIs.
+         * @return Shared dashboard snapshot reflecting the current engine state.
+         */
+        [[nodiscard]] DashboardSnapshot dashboard_snapshot() const;
+        /**
+         * @brief Current dashboard snapshot serialized as JSON.
+         * @return JSON payload for the current engine state.
+         */
+        [[nodiscard]] std::string dashboard_snapshot_json() const;
+        /**
+         * @brief Render the current strategy tester state for terminal UIs.
+         * @param options Terminal rendering options.
+         * @return ANSI-capable terminal string.
+         */
+        [[nodiscard]] std::string dashboard_terminal(
+            const DashboardRenderOptions& options = {}) const;
+        /**
          * @brief Advance the event loop by one step.
          * @return True if more events remain.
          */
@@ -258,8 +316,30 @@ namespace regimeflow::engine
         void stop();
 
     private:
+        struct AccountEnforcementPolicy {
+            bool enabled = false;
+            MarginCallAction margin_call_action = MarginCallAction::Ignore;
+            StopOutAction stop_out_action = StopOutAction::None;
+            bool halt_after_stop_out = true;
+        };
+
+        struct FinancingPolicy {
+            bool enabled = false;
+            double long_rate_bps_per_day = 0.0;
+            double short_borrow_bps_per_day = 0.0;
+        };
+
         void cancel_day_orders_if_needed(Timestamp timestamp);
         void cancel_expired_orders(Timestamp timestamp);
+        void apply_daily_financing(Timestamp timestamp);
+        void evaluate_account_state(Timestamp timestamp, const char* source);
+        void liquidate_for_stop_out(Timestamp timestamp);
+        void record_audit_event(AuditEvent event);
+        void log_account_event(Timestamp timestamp,
+                               const std::string& details,
+                               const std::map<std::string, std::string>& metadata = {});
+        [[nodiscard]] std::vector<data::Tick> build_execution_ticks(const data::Bar& bar) const;
+        void replay_execution_ticks(const data::Bar& bar);
         std::string current_day_stamp_;
         void install_default_handlers();
 
@@ -285,10 +365,21 @@ namespace regimeflow::engine
         std::function<void(double, const std::string&)> progress_callback_;
         size_t progress_total_estimate_ = 0;
         bool started_ = false;
+        TickSimulationMode tick_simulation_mode_ = TickSimulationMode::SyntheticTicks;
+        SyntheticTickProfile synthetic_tick_profile_ = SyntheticTickProfile::BarClose;
+        std::unordered_set<SymbolId> symbols_with_real_ticks_;
         std::optional<Config> execution_config_;
         std::optional<Config> risk_config_;
         std::optional<Config> regime_config_;
         std::optional<ParallelContext> parallel_context_;
+        DashboardSetup dashboard_setup_;
         std::unique_ptr<AuditLogger> audit_logger_;
+        std::vector<AuditEvent> journal_events_;
+        std::unordered_set<OrderId> journal_submitted_order_ids_;
+        AccountEnforcementPolicy account_enforcement_;
+        FinancingPolicy financing_policy_;
+        bool account_trading_halted_ = false;
+        bool margin_call_state_ = false;
+        bool stop_out_state_ = false;
     };
 }  // namespace regimeflow::engine

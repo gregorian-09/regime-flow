@@ -177,4 +177,178 @@ namespace regimeflow::test
         EXPECT_EQ(strategy_ptr->tick_count(), 1);
         EXPECT_EQ(strategy_ptr->timer_count(), 1);
     }
+
+    TEST(BacktestHooks, RealTickModeSkipsSyntheticBarExecutionAfterTickSeen) {
+        engine::BacktestEngine engine(100000.0);
+
+        Config exec_cfg;
+        exec_cfg.set_path("simulation.tick_mode", "real_ticks");
+        exec_cfg.set_path("simulation.bar_mode", "intrabar_ohlc");
+        engine.configure_execution(exec_cfg);
+
+        const SymbolId symbol = SymbolRegistry::instance().intern("REALTICK");
+
+        data::Tick first_tick;
+        first_tick.symbol = symbol;
+        first_tick.price = 100.0;
+        first_tick.quantity = 1.0;
+        first_tick.timestamp = Timestamp(0);
+        engine.enqueue(events::make_market_event(first_tick));
+        ASSERT_TRUE(engine.step());
+
+        auto order = engine::Order::limit(symbol, engine::OrderSide::Buy, 1.0, 99.0);
+        order.created_at = Timestamp(1);
+        const auto result = engine.order_manager().submit_order(order);
+        ASSERT_TRUE(result.is_ok());
+        const auto order_id = result.value();
+
+        data::Bar bar;
+        bar.symbol = symbol;
+        bar.open = 100.0;
+        bar.high = 101.0;
+        bar.low = 98.0;
+        bar.close = 100.0;
+        bar.volume = 100;
+        bar.timestamp = Timestamp(2);
+        engine.enqueue(events::make_market_event(bar));
+        ASSERT_TRUE(engine.step());
+
+        const auto after_bar = engine.order_manager().get_order(order_id);
+        ASSERT_TRUE(after_bar.has_value());
+        EXPECT_EQ(after_bar->status, engine::OrderStatus::Pending);
+
+        data::Tick fill_tick = first_tick;
+        fill_tick.price = 98.5;
+        fill_tick.timestamp = Timestamp(3);
+        engine.enqueue(events::make_market_event(fill_tick));
+        ASSERT_TRUE(engine.step());
+        ASSERT_TRUE(engine.step());
+
+        const auto after_tick = engine.order_manager().get_order(order_id);
+        ASSERT_TRUE(after_tick.has_value());
+        EXPECT_EQ(after_tick->status, engine::OrderStatus::Filled);
+    }
+
+    TEST(BacktestHooks, SyntheticOhlcTickProfileFillsFromBarRange) {
+        engine::BacktestEngine engine(100000.0);
+
+        Config exec_cfg;
+        exec_cfg.set_path("simulation.tick_mode", "synthetic_ticks");
+        exec_cfg.set_path("simulation.synthetic_tick_profile", "ohlc_4tick");
+        engine.configure_execution(exec_cfg);
+
+        const SymbolId symbol = SymbolRegistry::instance().intern("SYNTH");
+        auto order = engine::Order::limit(symbol, engine::OrderSide::Buy, 1.0, 99.0);
+        order.created_at = Timestamp(1);
+        const auto result = engine.order_manager().submit_order(order);
+        ASSERT_TRUE(result.is_ok());
+        const auto order_id = result.value();
+
+        data::Bar bar;
+        bar.symbol = symbol;
+        bar.open = 100.0;
+        bar.high = 101.0;
+        bar.low = 98.0;
+        bar.close = 100.0;
+        bar.volume = 100;
+        bar.timestamp = Timestamp(2);
+        engine.enqueue(events::make_market_event(bar));
+        ASSERT_TRUE(engine.step());
+        ASSERT_TRUE(engine.step());
+
+        const auto filled_order = engine.order_manager().get_order(order_id);
+        ASSERT_TRUE(filled_order.has_value());
+        EXPECT_EQ(filled_order->status, engine::OrderStatus::Filled);
+    }
+
+    TEST(BacktestHooks, TradingHaltAndResumeSystemEventsGateExecution) {
+        engine::BacktestEngine engine(100000.0);
+
+        const SymbolId symbol = SymbolRegistry::instance().intern("HALT_EVT");
+        data::Quote quote;
+        quote.symbol = symbol;
+        quote.bid = 99.0;
+        quote.ask = 100.0;
+        quote.timestamp = Timestamp(1);
+        engine.enqueue(events::make_market_event(quote));
+        ASSERT_TRUE(engine.step());
+
+        auto order = engine::Order::limit(symbol, engine::OrderSide::Buy, 1.0, 99.0);
+        order.created_at = Timestamp(2);
+        const auto result = engine.order_manager().submit_order(order);
+        ASSERT_TRUE(result.is_ok());
+        const auto order_id = result.value();
+
+        engine.enqueue(events::make_system_event(events::SystemEventKind::TradingHalt,
+                                                 Timestamp(3),
+                                                 0,
+                                                 "HALT_EVT"));
+        ASSERT_TRUE(engine.step());
+
+        auto live_quote = quote;
+        live_quote.timestamp = Timestamp(4);
+        live_quote.ask = 99.0;
+        engine.enqueue(events::make_market_event(live_quote));
+        ASSERT_TRUE(engine.step());
+        const auto halted_order = engine.order_manager().get_order(order_id);
+        ASSERT_TRUE(halted_order.has_value());
+        EXPECT_EQ(halted_order->status, engine::OrderStatus::Pending);
+
+        engine.enqueue(events::make_system_event(events::SystemEventKind::TradingResume,
+                                                 Timestamp(5),
+                                                 0,
+                                                 "HALT_EVT"));
+        ASSERT_TRUE(engine.step());
+
+        live_quote.timestamp = Timestamp(6);
+        engine.enqueue(events::make_market_event(live_quote));
+        ASSERT_TRUE(engine.step());
+        ASSERT_TRUE(engine.step());
+
+        const auto resumed_order = engine.order_manager().get_order(order_id);
+        ASSERT_TRUE(resumed_order.has_value());
+        EXPECT_EQ(resumed_order->status, engine::OrderStatus::Filled);
+    }
+
+    TEST(BacktestHooks, SessionCalendarConfigBlocksClosedDates) {
+        engine::BacktestEngine engine(100000.0);
+
+        Config exec_cfg;
+        exec_cfg.set_path("session.enabled", true);
+        exec_cfg.set_path("session.weekdays",
+                          ConfigValue::Array{ConfigValue("mon"),
+                                             ConfigValue("tue"),
+                                             ConfigValue("wed"),
+                                             ConfigValue("thu"),
+                                             ConfigValue("fri")});
+        exec_cfg.set_path("session.closed_dates",
+                          ConfigValue::Array{ConfigValue("2020-01-01")});
+        engine.configure_execution(exec_cfg);
+
+        const SymbolId symbol = SymbolRegistry::instance().intern("HOLIDAY_CFG");
+        data::Quote holiday_quote;
+        holiday_quote.symbol = symbol;
+        holiday_quote.bid = 99.0;
+        holiday_quote.ask = 100.0;
+        holiday_quote.timestamp = Timestamp::from_string("2020-01-01 10:00:00", "%Y-%m-%d %H:%M:%S");
+        engine.enqueue(events::make_market_event(holiday_quote));
+        ASSERT_TRUE(engine.step());
+
+        auto order = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        order.created_at = Timestamp::from_string("2020-01-01 10:00:01", "%Y-%m-%d %H:%M:%S");
+        order.tif = engine::TimeInForce::GTC;
+        const auto result = engine.order_manager().submit_order(order);
+        ASSERT_TRUE(result.is_ok());
+        const auto order_id = result.value();
+
+        auto trading_quote = holiday_quote;
+        trading_quote.timestamp = Timestamp::from_string("2020-01-02 10:00:00", "%Y-%m-%d %H:%M:%S");
+        engine.enqueue(events::make_market_event(trading_quote));
+        ASSERT_TRUE(engine.step());
+        ASSERT_TRUE(engine.step());
+
+        const auto filled_order = engine.order_manager().get_order(order_id);
+        ASSERT_TRUE(filled_order.has_value());
+        EXPECT_EQ(filled_order->status, engine::OrderStatus::Filled);
+    }
 }  // namespace regimeflow::test

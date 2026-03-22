@@ -20,6 +20,14 @@ namespace regimeflow::execution
             if (level.quantity <= 0 || remaining <= 0) {
                 return;
             }
+            if (order.type == engine::OrderType::Limit || order.type == engine::OrderType::StopLimit) {
+                if (order.side == engine::OrderSide::Buy && level.price > order.limit_price) {
+                    return;
+                }
+                if (order.side == engine::OrderSide::Sell && level.price < order.limit_price) {
+                    return;
+                }
+            }
             const double qty = std::min(remaining, level.quantity);
             engine::Fill fill;
             fill.order_id = order.id;
@@ -33,11 +41,19 @@ namespace regimeflow::execution
 
         if (order.side == engine::OrderSide::Buy) {
             for (const auto& level : book_->asks) {
+                if ((order.type == engine::OrderType::Limit || order.type == engine::OrderType::StopLimit)
+                    && level.price > order.limit_price) {
+                    break;
+                }
                 consume_level(level);
                 if (remaining <= 0) break;
             }
         } else {
             for (const auto& level : book_->bids) {
+                if ((order.type == engine::OrderType::Limit || order.type == engine::OrderType::StopLimit)
+                    && level.price < order.limit_price) {
+                    break;
+                }
                 consume_level(level);
                 if (remaining <= 0) break;
             }

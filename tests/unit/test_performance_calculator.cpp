@@ -103,8 +103,8 @@ namespace regimeflow::test
         regimes.push_back({regime::RegimeType::Bear, 0.8, {}, {}, 0, curve[2].timestamp});
 
         auto by_regime = calculator.calculate_by_regime(curve, fills, regimes);
-        EXPECT_NEAR(by_regime[regime::RegimeType::Bull].time_percentage, 0.5, 1e-6);
-        EXPECT_NEAR(by_regime[regime::RegimeType::Bear].time_percentage, 0.5, 1e-6);
+        EXPECT_NEAR(by_regime[regime::RegimeType::Bull].time_percentage, 2.0 / 3.0, 1e-6);
+        EXPECT_NEAR(by_regime[regime::RegimeType::Bear].time_percentage, 1.0 / 3.0, 1e-6);
 
         std::vector<regime::RegimeTransition> transitions;
         transitions.push_back({regime::RegimeType::Bull, regime::RegimeType::Bear, curve[1].timestamp});
@@ -120,5 +120,32 @@ namespace regimeflow::test
             }
         }
         EXPECT_TRUE(found_bull_bear);
+    }
+
+    TEST(PerformanceCalculator, CompoundsRegimeReturnsAndWeightsTimeByDuration) {
+        metrics::PerformanceCalculator calculator;
+
+        std::vector<engine::PortfolioSnapshot> curve;
+        curve.push_back(make_snapshot(Timestamp(0), 100.0));
+        curve.push_back(make_snapshot(Timestamp(Duration::days(1).total_microseconds()), 110.0));
+        curve.push_back(make_snapshot(Timestamp(Duration::days(4).total_microseconds()), 99.0));
+        curve.push_back(make_snapshot(Timestamp(Duration::days(5).total_microseconds()), 108.9));
+
+        std::vector<regime::RegimeState> regimes;
+        regimes.push_back({regime::RegimeType::Bull, 0.9, {}, {}, 0, curve[0].timestamp});
+        regimes.push_back({regime::RegimeType::Bear, 0.8, {}, {}, 0, curve[1].timestamp});
+        regimes.push_back({regime::RegimeType::Bull, 0.7, {}, {}, 0, curve[2].timestamp});
+
+        const auto by_regime = calculator.calculate_by_regime(curve, {}, regimes);
+        const auto bull = by_regime.at(regime::RegimeType::Bull);
+        const auto bear = by_regime.at(regime::RegimeType::Bear);
+
+        EXPECT_NEAR(bull.summary.total_return, 0.21, 1e-6);
+        EXPECT_NEAR(bull.avg_period_return, 0.10, 1e-6);
+        EXPECT_EQ(bull.observations, 2);
+        EXPECT_NEAR(bull.time_percentage, 0.4, 1e-6);
+
+        EXPECT_NEAR(bear.summary.total_return, -0.10, 1e-6);
+        EXPECT_NEAR(bear.time_percentage, 0.6, 1e-6);
     }
 }  // namespace regimeflow::test

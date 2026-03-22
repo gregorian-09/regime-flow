@@ -111,6 +111,15 @@ namespace regimeflow::execution
             double cost = config.get_as<double>("transaction_cost.per_order").value_or(0.0);
             return std::make_unique<PerOrderTransactionCostModel>(cost);
         }
+        if (type == "maker_taker") {
+            const double maker_rebate_bps =
+                config.get_as<double>("transaction_cost.maker_rebate_bps").value_or(0.0);
+            const double taker_fee_bps =
+                config.get_as<double>("transaction_cost.taker_fee_bps").value_or(0.0);
+            return std::make_unique<MakerTakerTransactionCostModel>(
+                maker_rebate_bps,
+                taker_fee_bps);
+        }
         if (type == "tiered") {
             std::vector<TieredTransactionCostTier> tiers;
             if (const auto arr = config.get_as<ConfigValue::Array>("transaction_cost.tiers")) {

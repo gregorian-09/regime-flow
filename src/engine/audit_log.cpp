@@ -54,6 +54,7 @@ namespace regimeflow::engine
         case AuditEvent::Type::OrderFilled: return "OrderFilled";
         case AuditEvent::Type::OrderCancelled: return "OrderCancelled";
         case AuditEvent::Type::OrderRejected: return "OrderRejected";
+        case AuditEvent::Type::AccountUpdate: return "AccountUpdate";
         case AuditEvent::Type::RegimeChange: return "RegimeChange";
         case AuditEvent::Type::SystemStart: return "SystemStart";
         case AuditEvent::Type::SystemStop: return "SystemStop";

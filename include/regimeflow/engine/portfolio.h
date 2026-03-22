@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "regimeflow/common/config.h"
 #include "regimeflow/common/types.h"
 #include "regimeflow/engine/order.h"
 
@@ -15,6 +16,47 @@
 
 namespace regimeflow::engine
 {
+    /**
+     * @brief Margin-model parameters for account-level simulation.
+     */
+    struct MarginProfile {
+        double initial_margin_ratio = 1.0;
+        double maintenance_margin_ratio = 1.0;
+        double stop_out_margin_level = 0.5;
+
+        /**
+         * @brief Overlay margin settings from config onto an existing profile.
+         * @param config Configuration root.
+         * @param prefix Prefix containing the margin keys.
+         * @return Parsed margin profile.
+         */
+        [[nodiscard]] static MarginProfile from_config(const Config& config,
+                                                       const std::string& prefix = "account.margin");
+        /**
+         * @brief Overlay margin settings from config onto an existing profile.
+         * @param config Configuration root.
+         * @param prefix Prefix containing the margin keys.
+         * @param defaults Existing defaults to preserve when keys are absent.
+         * @return Parsed margin profile.
+         */
+        [[nodiscard]] static MarginProfile from_config(const Config& config,
+                                                       const std::string& prefix,
+                                                       const MarginProfile& defaults);
+    };
+
+    /**
+     * @brief Derived account-level margin state.
+     */
+    struct MarginSnapshot {
+        double initial_margin = 0.0;
+        double maintenance_margin = 0.0;
+        double available_funds = 0.0;
+        double margin_excess = 0.0;
+        double buying_power = 0.0;
+        bool margin_call = false;
+        bool stop_out = false;
+    };
+
     /**
      * @brief Position state for a single symbol.
      */
@@ -54,6 +96,13 @@ namespace regimeflow::engine
         double gross_exposure = 0;
         double net_exposure = 0;
         double leverage = 0;
+        double initial_margin = 0;
+        double maintenance_margin = 0;
+        double available_funds = 0;
+        double margin_excess = 0;
+        double buying_power = 0;
+        bool margin_call = false;
+        bool stop_out = false;
         std::unordered_map<SymbolId, Position> positions;
     };
 
@@ -93,6 +142,12 @@ namespace regimeflow::engine
          * @param timestamp Timestamp for update.
          */
         void set_cash(double cash, Timestamp timestamp);
+        /**
+         * @brief Apply a cash adjustment without altering positions.
+         * @param delta Cash delta (positive credits, negative debits).
+         * @param timestamp Timestamp for update.
+         */
+        void adjust_cash(double delta, Timestamp timestamp);
         /**
          * @brief Set a position explicitly.
          * @param symbol Symbol ID.
@@ -141,6 +196,10 @@ namespace regimeflow::engine
          */
         const std::string& currency() const { return currency_; }
         /**
+         * @brief Current configured margin profile.
+         */
+        const MarginProfile& margin_profile() const { return margin_profile_; }
+        /**
          * @brief Total equity (cash + market value).
          */
         double equity() const;
@@ -164,6 +223,16 @@ namespace regimeflow::engine
          * @brief Total realized PnL across closed trades.
          */
         double total_realized_pnl() const { return realized_pnl_; }
+        /**
+         * @brief Configure account-level margin rules.
+         * @param profile Margin profile to apply.
+         */
+        void configure_margin(MarginProfile profile);
+        /**
+         * @brief Compute the current derived margin state.
+         * @return Margin snapshot.
+         */
+        [[nodiscard]] MarginSnapshot margin_snapshot() const;
 
         /**
          * @brief Snapshot the current portfolio state.
@@ -218,6 +287,9 @@ namespace regimeflow::engine
 
     private:
         void apply_fill(Position& position, const Fill& fill);
+        [[nodiscard]] MarginSnapshot build_margin_snapshot(double equity_value,
+                                                          double gross_exposure_value) const;
+        void apply_snapshot_fields(PortfolioSnapshot& snapshot) const;
         void notify_position(const Position& position) const;
         void notify_equity(double equity_value) const;
 
@@ -230,6 +302,7 @@ namespace regimeflow::engine
         std::vector<PortfolioSnapshot> snapshots_;
 
         double realized_pnl_ = 0;
+        MarginProfile margin_profile_;
 
         std::vector<std::function<void(const Position&)>> position_callbacks_;
         std::vector<std::function<void(double)>> equity_callbacks_;

@@ -1,5 +1,7 @@
 #include "regimeflow/metrics/performance_metrics.h"
 
+#include "regimeflow/engine/portfolio.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -44,10 +46,26 @@ namespace regimeflow::metrics
             return values.back();
         }
 
+        std::vector<engine::PortfolioSnapshot> to_snapshots(const EquityCurve& curve) {
+            std::vector<engine::PortfolioSnapshot> snapshots;
+            const auto& timestamps = curve.timestamps();
+            const auto& equities = curve.equities();
+            const size_t count = std::min(timestamps.size(), equities.size());
+            snapshots.reserve(count);
+            for (size_t index = 0; index < count; ++index) {
+                engine::PortfolioSnapshot snapshot;
+                snapshot.timestamp = timestamps[index];
+                snapshot.equity = equities[index];
+                snapshots.emplace_back(snapshot);
+            }
+            return snapshots;
+        }
+
     }  // namespace
 
     PerformanceStats compute_stats(const EquityCurve& curve, const double periods_per_year) {
         PerformanceStats stats;
+        const auto snapshots = to_snapshots(curve);
         const auto& equity = curve.equities();
         const auto& timestamps = curve.timestamps();
 
@@ -91,15 +109,16 @@ namespace regimeflow::metrics
             stats.sharpe = (avg / vol) * std::sqrt(periods_per_year);
         }
 
-        std::vector<double> downside;
-        downside.reserve(returns.size());
+        double downside_sum = 0.0;
         for (double r : returns) {
-            if (r < 0) {
-                downside.push_back(r);
+            if (r < 0.0) {
+                downside_sum += r * r;
             }
         }
-        const double down_mean = mean(downside);
-        if (const double down_vol = stddev(downside, down_mean); down_vol > 0) {
+        const double down_vol = returns.empty()
+            ? 0.0
+            : std::sqrt(downside_sum / static_cast<double>(returns.size()));
+        if (down_vol > 0.0) {
             stats.sortino = (avg / down_vol) * std::sqrt(periods_per_year);
         }
 
@@ -111,6 +130,26 @@ namespace regimeflow::metrics
 
         if (stats.max_drawdown > 0) {
             stats.calmar = stats.cagr / stats.max_drawdown;
+        }
+
+        if (!snapshots.empty()) {
+            Timestamp drawdown_start = snapshots.front().timestamp;
+            Timestamp drawdown_end = snapshots.front().timestamp;
+            double peak_equity = snapshots.front().equity;
+            for (const auto& snapshot : snapshots) {
+                if (snapshot.equity > peak_equity) {
+                    peak_equity = snapshot.equity;
+                }
+                const double drawdown = peak_equity > 0.0
+                    ? (peak_equity - snapshot.equity) / peak_equity
+                    : 0.0;
+                if (drawdown > stats.max_drawdown) {
+                    stats.max_drawdown = drawdown;
+                    drawdown_end = snapshot.timestamp;
+                }
+            }
+            (void) drawdown_start;
+            (void) drawdown_end;
         }
 
         if (!returns.empty()) {

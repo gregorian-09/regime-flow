@@ -8,11 +8,13 @@
 #include "regimeflow/common/result.h"
 #include "regimeflow/common/types.h"
 #include "regimeflow/engine/order.h"
+#include "regimeflow/engine/order_routing.h"
 
 #include <functional>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace regimeflow::engine
@@ -48,6 +50,8 @@ namespace regimeflow::engine
      */
     class OrderManager {
     public:
+        using RoutingContextProvider = std::function<RoutingContext(const Order&)>;
+
         /**
          * @brief Submit a new order.
          * @param order Order to submit.
@@ -123,6 +127,34 @@ namespace regimeflow::engine
         void on_pre_submit(std::function<Result<void>(Order&)> callback);
 
         /**
+         * @brief Configure an order router for smart routing/splitting.
+         * @param router Router implementation.
+         * @param provider Context provider for routing decisions.
+         */
+        void set_router(std::unique_ptr<OrderRouter> router,
+                        RoutingContextProvider provider);
+        /**
+         * @brief Clear any configured router.
+         */
+        void clear_router();
+
+        /**
+         * @brief Activate a routed parent order (submit children).
+         * @param id Parent order ID.
+         * @return Ok on success.
+         */
+        Result<void> activate_routed_order(OrderId id);
+
+        /**
+         * @brief Check if an order is a routing parent.
+         */
+        [[nodiscard]] bool is_routing_parent(OrderId id) const;
+        /**
+         * @brief Check if an order is a routing child.
+         */
+        [[nodiscard]] bool is_routing_child(OrderId id) const;
+
+        /**
          * @brief Collect open orders that have expired by time-in-force rules.
          * @param now Current time.
          * @return Vector of expired order IDs.
@@ -143,6 +175,34 @@ namespace regimeflow::engine
         Result<void> update_order_status(OrderId id, OrderStatus status);
 
     private:
+        struct RoutingState {
+            SplitMode split_mode = SplitMode::None;
+            ParentAggregation aggregation = ParentAggregation::Partial;
+            bool activated = false;
+            double filled_quantity = 0.0;
+            double avg_fill_price = 0.0;
+            bool had_reject = false;
+            bool had_cancel = false;
+            std::vector<Order> pending_children;
+            std::vector<OrderId> submitted_children;
+            std::unordered_set<OrderId> terminal_children;
+        };
+
+        Result<OrderId> submit_order_internal(Order order, bool apply_routing);
+        Result<void> submit_child_order(Order order, OrderId parent_id);
+        void handle_child_terminal(OrderId parent_id,
+                                   OrderId child_id,
+                                   OrderStatus status,
+                                   Timestamp timestamp,
+                                   std::vector<Order>& parent_updates,
+                                   std::vector<Order>& next_children);
+        void handle_child_fill(OrderId parent_id,
+                               const Fill& fill,
+                               std::vector<Order>& parent_updates);
+        void finalize_parent_if_complete(OrderId parent_id,
+                                         Timestamp timestamp,
+                                         std::vector<Order>& parent_updates);
+
         Result<void> validate_order(const Order& order) const;
         bool is_open_status(OrderStatus status) const;
 
@@ -152,6 +212,11 @@ namespace regimeflow::engine
         std::vector<std::function<void(const Order&)>> order_callbacks_;
         std::vector<std::function<void(const Fill&)>> fill_callbacks_;
         std::vector<std::function<Result<void>(Order&)>> pre_submit_callbacks_;
+
+        std::unique_ptr<OrderRouter> router_;
+        RoutingContextProvider routing_context_provider_;
+        std::unordered_map<OrderId, RoutingState> routing_states_;
+        std::unordered_map<OrderId, OrderId> parent_by_child_;
 
         OrderId next_order_id_ = 1;
         FillId next_fill_id_ = 1;

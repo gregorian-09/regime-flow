@@ -8,6 +8,15 @@
 
 namespace regimeflow::metrics
 {
+    namespace {
+        struct RegimeAggregate {
+            std::vector<engine::PortfolioSnapshot> synthetic_curve;
+            std::vector<engine::Fill> fills;
+            std::vector<double> returns;
+            int64_t active_duration_us = 0;
+        };
+    }  // namespace
+
     double PerformanceCalculator::mean(const std::vector<double>& values) const {
         if (values.empty()) {
             return 0.0;
@@ -137,6 +146,7 @@ namespace regimeflow::metrics
             const double qty = fill.quantity;
             double remaining = qty;
             const double fill_qty_abs = std::abs(fill.quantity);
+            const double fill_total_fees = fill.commission + fill.transaction_cost;
             double used_close_commission = 0.0;
             while (!lots.empty() && (remaining * lots.front().quantity) < 0.0) {
                 auto [quantity, price, timestamp, commission] = lots.front();
@@ -145,7 +155,7 @@ namespace regimeflow::metrics
                 const double sign = quantity > 0 ? 1.0 : -1.0;
                 const double open_commission = commission * (close_qty / std::abs(quantity));
                 const double close_commission = fill_qty_abs > 0.0
-                    ? fill.commission * (close_qty / fill_qty_abs)
+                    ? fill_total_fees * (close_qty / fill_qty_abs)
                     : 0.0;
                 used_close_commission += close_commission;
                 const double pnl = close_qty * (fill.price - price) * sign - open_commission
@@ -162,7 +172,7 @@ namespace regimeflow::metrics
                 remaining += close_qty * (quantity > 0 ? 1.0 : -1.0);
             }
             if (remaining != 0.0) {
-                const double remaining_commission = std::max(0.0, fill.commission - used_close_commission);
+                const double remaining_commission = std::max(0.0, fill_total_fees - used_close_commission);
                 lots.push_back({remaining, fill.price, fill.timestamp, remaining_commission});
             }
         }
@@ -198,7 +208,7 @@ namespace regimeflow::metrics
         double best_day = 0.0;
         double worst_day = 0.0;
         bool has_day = false;
-        for (const auto& [_, vals] : daily) {
+        for (const auto& [key, vals] : daily) {
             double compounded = 1.0;
             for (double r : vals) {
                 compounded *= (1.0 + r);
@@ -207,11 +217,11 @@ namespace regimeflow::metrics
             daily_returns.push_back(daily_return);
             if (!has_day || daily_return > best_day) {
                 best_day = daily_return;
-                summary.best_day_date = Timestamp::from_string(_, "%Y-%m-%d");
+                summary.best_day_date = Timestamp::from_string(key, "%Y-%m-%d");
             }
             if (!has_day || daily_return < worst_day) {
                 worst_day = daily_return;
-                summary.worst_day_date = Timestamp::from_string(_, "%Y-%m-%d");
+                summary.worst_day_date = Timestamp::from_string(key, "%Y-%m-%d");
             }
             has_day = true;
         }
@@ -226,14 +236,14 @@ namespace regimeflow::metrics
         double best_month = 0.0;
         double worst_month = 0.0;
         bool has_month = false;
-        for (const auto& [_, vals] : monthly) {
+        for (const auto& [key, vals] : monthly) {
             double compounded = 1.0;
             for (double r : vals) {
                 compounded *= (1.0 + r);
             }
             double monthly_return = compounded - 1.0;
             monthly_returns.push_back(monthly_return);
-            std::string month_key = _ + "-01";
+            std::string month_key = key + "-01";
             if (!has_month || monthly_return > best_month) {
                 best_month = monthly_return;
                 summary.best_month_date = Timestamp::from_string(month_key, "%Y-%m-%d");
@@ -429,14 +439,40 @@ namespace regimeflow::metrics
         if (equity_curve.size() < 2 || regimes.empty()) {
             return out;
         }
+        std::map<regime::RegimeType, RegimeAggregate> aggregates;
         size_t regime_idx = 0;
-        std::map<regime::RegimeType, std::vector<engine::PortfolioSnapshot>> curves;
-        for (const auto& snap : equity_curve) {
+        int64_t total_duration_us = 0;
+        for (size_t i = 1; i < equity_curve.size(); ++i) {
             while (regime_idx + 1 < regimes.size()
-                   && regimes[regime_idx + 1].timestamp <= snap.timestamp) {
+                   && regimes[regime_idx + 1].timestamp <= equity_curve[i - 1].timestamp) {
                 regime_idx++;
-                   }
-            curves[regimes[regime_idx].regime].push_back(snap);
+            }
+            const auto active_regime = regimes[regime_idx].regime;
+            const auto duration = equity_curve[i].timestamp - equity_curve[i - 1].timestamp;
+            const int64_t duration_us = std::max<int64_t>(0, duration.total_microseconds());
+            total_duration_us += duration_us;
+
+            const double prev_equity = equity_curve[i - 1].equity;
+            const double ret = prev_equity == 0.0
+                ? 0.0
+                : (equity_curve[i].equity - prev_equity) / prev_equity;
+
+            auto& aggregate = aggregates[active_regime];
+            aggregate.returns.emplace_back(ret);
+            aggregate.active_duration_us += duration_us;
+
+            if (aggregate.synthetic_curve.empty()) {
+                engine::PortfolioSnapshot origin;
+                origin.timestamp = Timestamp(0);
+                origin.equity = 1.0;
+                aggregate.synthetic_curve.emplace_back(origin);
+            }
+
+            engine::PortfolioSnapshot next_snapshot = aggregate.synthetic_curve.back();
+            next_snapshot.timestamp = Timestamp(
+                aggregate.synthetic_curve.back().timestamp.microseconds() + duration_us);
+            next_snapshot.equity *= (1.0 + ret);
+            aggregate.synthetic_curve.emplace_back(next_snapshot);
         }
 
         std::map<regime::RegimeType, std::vector<engine::Fill>> fills_by_regime;
@@ -445,12 +481,12 @@ namespace regimeflow::metrics
             while (regime_idx + 1 < regimes.size()
                    && regimes[regime_idx + 1].timestamp <= fill.timestamp) {
                 regime_idx++;
-                   }
+            }
             fills_by_regime[regimes[regime_idx].regime].push_back(fill);
         }
 
-        for (const auto& [regime, curve] : curves) {
-            if (curve.size() < 2) {
+        for (auto& [regime, aggregate] : aggregates) {
+            if (aggregate.synthetic_curve.size() < 2) {
                 continue;
             }
             RegimeMetrics metrics;
@@ -458,9 +494,12 @@ namespace regimeflow::metrics
             auto it = fills_by_regime.find(regime);
             std::vector<engine::Fill> empty_fills;
             const auto& regime_fills = (it != fills_by_regime.end()) ? it->second : empty_fills;
-            metrics.summary = calculate(curve, regime_fills, risk_free_rate);
-            metrics.time_percentage = static_cast<double>(curve.size())
-                / static_cast<double>(equity_curve.size());
+            metrics.summary = calculate(aggregate.synthetic_curve, regime_fills, risk_free_rate);
+            metrics.time_percentage = total_duration_us > 0
+                ? static_cast<double>(aggregate.active_duration_us) / static_cast<double>(total_duration_us)
+                : 0.0;
+            metrics.avg_period_return = mean(aggregate.returns);
+            metrics.observations = static_cast<int>(aggregate.returns.size());
             metrics.trade_count = metrics.summary.total_trades;
             out[regime] = metrics;
         }
@@ -496,12 +535,16 @@ namespace regimeflow::metrics
                 double ret = prev == 0.0 ? 0.0 : (equity_curve[j].equity - prev) / prev;
                 window_returns.push_back(ret);
             }
+            double compounded = 1.0;
+            for (const double ret : window_returns) {
+                compounded *= (1.0 + ret);
+            }
             double avg = mean(window_returns);
             double vol = stddev(window_returns, avg);
             auto key = std::make_pair(transitions[i].from, transitions[i].to);
             auto& agg = aggregates[key];
             agg.occurrences += 1;
-            agg.sum_return += avg;
+            agg.sum_return += compounded - 1.0;
             agg.sum_volatility += vol;
             agg.sum_duration_us += duration.total_microseconds();
         }
@@ -533,22 +576,21 @@ namespace regimeflow::metrics
         }
         if (!regimes.empty()) {
             size_t idx = 0;
-            std::map<regime::RegimeType, double> sums;
-            std::map<regime::RegimeType, int> counts;
+            std::map<regime::RegimeType, double> log_sums;
             for (size_t i = 1; i < equity_curve.size(); ++i) {
                 while (idx + 1 < regimes.size()
-                       && regimes[idx + 1].timestamp <= equity_curve[i].timestamp) {
+                       && regimes[idx + 1].timestamp <= equity_curve[i - 1].timestamp) {
                     idx++;
-                       }
-                sums[regimes[idx].regime] += returns[i - 1];
-                counts[regimes[idx].regime] += 1;
+                }
+                const double interval_return = returns[i - 1];
+                if (interval_return <= -1.0) {
+                    continue;
+                }
+                log_sums[regimes[idx].regime] += std::log1p(interval_return);
             }
             std::map<regime::RegimeType, double> contributions;
-            for (const auto& [regime, sum] : sums) {
-                const double time_pct = static_cast<double>(counts[regime])
-                    / static_cast<double>(returns.size());
-                const double avg_return = counts[regime] > 0 ? sum / counts[regime] : 0.0;
-                contributions[regime] = time_pct * avg_return;
+            for (const auto& [regime, log_sum] : log_sums) {
+                contributions[regime] = std::expm1(log_sum);
             }
             result.regime_contribution = contributions;
         }

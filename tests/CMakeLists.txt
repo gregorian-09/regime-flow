@@ -26,6 +26,8 @@ add_executable(regimeflow_tests
     unit/test_ensemble_detector.cpp
     unit/test_regime_ensemble.cpp
     unit/test_backtest_parallel.cpp
+    unit/test_backtest_accounting.cpp
+    unit/test_backtest_results.cpp
     unit/test_backtest_hooks.cpp
     unit/test_db_csv_adapter.cpp
     unit/test_market_impact.cpp
@@ -36,7 +38,9 @@ add_executable(regimeflow_tests
     unit/test_report_writer.cpp
     unit/test_parity_checker.cpp
     unit/test_order_tif.cpp
+    unit/test_order_routing.cpp
     unit/test_execution_tif.cpp
+    unit/test_execution_resting.cpp
     unit/test_corporate_actions_csv.cpp
     unit/test_corporate_actions_symbol_change_csv.cpp
     unit/test_corporate_actions_symbol_change_memory.cpp
@@ -56,6 +60,7 @@ add_executable(regimeflow_tests
     unit/test_walkforward_optimizer.cpp
     unit/test_position_sizers.cpp
     unit/test_risk_limits.cpp
+    unit/test_portfolio.cpp
     unit/test_stop_loss.cpp
     unit/test_slippage_models.cpp
     unit/test_transaction_costs.cpp
