@@ -1,4 +1,5 @@
 #include "regimeflow/live/audit_log.h"
+#include "regimeflow/live/secret_hygiene.h"
 
 #include <sstream>
 
@@ -13,9 +14,9 @@ namespace regimeflow::live
             return Result<void>(Error(Error::Code::IoError, "Failed to open audit log"));
         }
         stream_ << event.timestamp.to_string() << "," << type_to_string(event.type) << ","
-                << event.details;
+                << sanitize(event.details);
         for (const auto& [k, v] : event.metadata) {
-            stream_ << "," << k << "=" << v;
+            stream_ << "," << k << "=" << sanitize(v);
         }
         stream_ << "\n";
         stream_.flush();
@@ -46,6 +47,10 @@ namespace regimeflow::live
             return;
         }
         stream_.open(path_, std::ios::out | std::ios::app);
+    }
+
+    std::string AuditLogger::sanitize(const std::string& value) {
+        return redact_sensitive_values(value);
     }
 
     std::string AuditLogger::type_to_string(AuditEvent::Type type) {
