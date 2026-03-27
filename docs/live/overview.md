@@ -34,4 +34,5 @@ You can also point the tracker at a backtest report JSON via `metrics.live.basel
 
 - `live/config.md`
 - `live/brokers.md`
+- `live/production-readiness.md`
 - `live/resilience.md`
