@@ -64,11 +64,13 @@ add_executable(regimeflow_tests
     unit/test_stop_loss.cpp
     unit/test_slippage_models.cpp
     unit/test_transaction_costs.cpp
+    unit/test_broker_adapter_capabilities.cpp
     unit/test_performance_metrics.cpp
     unit/test_performance_calculator.cpp
     unit/test_live_order_reconcile.cpp
     unit/test_live_engine_integration.cpp
     unit/test_live_performance.cpp
+    unit/test_secret_hygiene.cpp
     unit/test_event_bus.cpp
     unit/test_plugin_lifecycle.cpp
     unit/test_dynamic_plugin_loading.cpp
@@ -128,6 +130,9 @@ endif()
 target_compile_definitions(regimeflow_tests PRIVATE
     REGIMEFLOW_TEST_ROOT="${CMAKE_SOURCE_DIR}"
 )
+if(TARGET ibapi)
+    target_compile_definitions(regimeflow_tests PRIVATE REGIMEFLOW_ENABLE_IBAPI)
+endif()
 
 enable_testing()
 add_test(NAME regimeflow_tests COMMAND regimeflow_tests)
@@ -192,6 +197,27 @@ if(BUILD_PYTHON_BINDINGS AND PYTHON_BINDINGS_SMOKE_PYTHON)
             ${PYTHON_BINDINGS_SMOKE_PYTHON} -m pytest -q -m python_native ${CMAKE_SOURCE_DIR}/python/tests
     )
     set_tests_properties(python_native_tests PROPERTIES DEPENDS python_pytest_check)
+endif()
+
+if(UNIX)
+    find_program(BASH_EXECUTABLE bash)
+    if(BASH_EXECUTABLE AND TARGET regimeflow_live)
+        add_test(NAME live_paper_alpaca_smoke
+            COMMAND ${BASH_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/live/run_paper_smoke.sh
+                alpaca ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
+                ${CMAKE_SOURCE_DIR}/examples/live_paper_alpaca/config.yaml
+        )
+        add_test(NAME live_paper_ib_smoke
+            COMMAND ${BASH_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/live/run_paper_smoke.sh
+                ib ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
+                ${CMAKE_SOURCE_DIR}/examples/live_paper_ib/config.yaml
+        )
+        add_test(NAME live_paper_binance_smoke
+            COMMAND ${BASH_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/live/run_paper_smoke.sh
+                binance ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
+                ${CMAKE_SOURCE_DIR}/examples/live_paper_binance/config.yaml
+        )
+    endif()
 endif()
 
 add_executable(regimeflow_bench_event_processing
