@@ -242,6 +242,20 @@ namespace regimeflow::data
             return value;
         }
 
+        template<typename WebSocketStream>
+        void apply_request_headers(WebSocketStream& stream,
+                                   const std::map<std::string, std::string>& headers) {
+            if (headers.empty()) {
+                return;
+            }
+            stream.set_option(boost::beast::websocket::stream_base::decorator(
+                [headers](boost::beast::websocket::request_type& request) {
+                    for (const auto& [key, value] : headers) {
+                        request.set(key, value);
+                    }
+                }));
+        }
+
         bool json_has_string(const common::JsonValue::Object& obj,
                              const std::initializer_list<const char*> keys) {
             for (const auto* key : keys) {
@@ -356,6 +370,8 @@ namespace regimeflow::data
         }
 
         try {
+            const auto connect_timeout = std::chrono::milliseconds(
+                config_.connect_timeout_ms > 0 ? config_.connect_timeout_ms : 10'000);
             const auto results = resolver_.resolve(host, port);
             if (use_tls_) {
 #ifdef REGIMEFLOW_USE_OPENSSL
@@ -370,7 +386,9 @@ namespace regimeflow::data
                     ssl_ctx_.set_verify_mode(boost::asio::ssl::verify_none);
                 }
                 ws_tls_.emplace(ioc_, ssl_ctx_);
-                boost::beast::get_lowest_layer(*ws_tls_).connect(results);
+                auto& socket = boost::beast::get_lowest_layer(*ws_tls_);
+                socket.expires_after(connect_timeout);
+                socket.connect(results);
                 const std::string host_for_sni = config_.expected_hostname.empty()
                     ? host
                     : config_.expected_hostname;
@@ -378,19 +396,28 @@ namespace regimeflow::data
                                               host_for_sni.c_str())) {
                     throw std::runtime_error("Failed to set SNI hostname");
                                               }
+                socket.expires_after(connect_timeout);
                 ws_tls_->next_layer().handshake(boost::asio::ssl::stream_base::client);
+                apply_request_headers(*ws_tls_, config_.request_headers);
                 ws_tls_->set_option(boost::beast::websocket::stream_base::timeout::suggested(
                     boost::beast::role_type::client));
+                socket.expires_after(connect_timeout);
                 ws_tls_->handshake(host_for_sni, target);
+                socket.expires_never();
 #else
                 return Error(Error::Code::InvalidState, "OpenSSL not enabled for wss://");
 #endif
             } else {
                 ws_.emplace(ioc_);
-                boost::beast::get_lowest_layer(*ws_).connect(results);
+                auto& socket = boost::beast::get_lowest_layer(*ws_);
+                socket.expires_after(connect_timeout);
+                socket.connect(results);
+                apply_request_headers(*ws_, config_.request_headers);
                 ws_->set_option(boost::beast::websocket::stream_base::timeout::suggested(
                     boost::beast::role_type::client));
+                socket.expires_after(connect_timeout);
                 ws_->handshake(host, target);
+                socket.expires_never();
             }
             connected_ = true;
             backoff_ms_ = 0;
