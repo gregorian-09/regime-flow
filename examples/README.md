@@ -23,6 +23,7 @@ Safety rules:
 - `python_engine_regime/` - Python strategy using engine-provided regime detection
 - `data_ingest/` - CSV ingestion and normalization pipeline
 - `live_paper_alpaca/` - paper trading example (env-gated)
+- `live_paper_binance/` - paper or demo trading example (env-gated)
 - `live_paper_ib/` - paper trading example (env-gated)
 
 ## Quick Start
