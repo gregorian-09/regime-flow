@@ -3,6 +3,7 @@
 #include "regimeflow/common/yaml_config.h"
 #include "regimeflow/engine/order_routing.h"
 #include "regimeflow/live/live_engine.h"
+#include "regimeflow/live/secret_hygiene.h"
 
 #include <atomic>
 #include <csignal>
@@ -59,21 +60,7 @@ namespace
     }
 
     std::optional<std::string> get_env_value(const char* key) {
-#if defined(_WIN32)
-        char* raw = nullptr;
-        size_t len = 0;
-        if (_dupenv_s(&raw, &len, key) != 0 || raw == nullptr) {
-            return std::nullopt;
-        }
-        std::string value(raw);
-        std::free(raw);
-        return value;
-#else
-        if (const char* val = std::getenv(key)) {
-            return std::string(val);
-        }
-        return std::nullopt;
-#endif
+        return regimeflow::live::read_secret_env(key);
     }
 
     void load_dotenv(const std::string& path) {
@@ -126,17 +113,25 @@ namespace
         if (!obj) {
             return out;
         }
-        for (const auto& [k, v] : *obj) {
-            if (const auto* s = v.get_if<std::string>()) {
-                out[k] = *s;
-            } else if (const auto* b = v.get_if<bool>()) {
-                out[k] = *b ? "true" : "false";
-            } else if (const auto* i = v.get_if<int64_t>()) {
-                out[k] = std::to_string(*i);
-            } else if (const auto* d = v.get_if<double>()) {
-                out[k] = std::to_string(*d);
+        const auto flatten_object = [&out](const auto& self,
+                                           const regimeflow::ConfigValue::Object& object,
+                                           const std::string& prefix) -> void {
+            for (const auto& [k, v] : object) {
+                const std::string full_key = prefix.empty() ? k : prefix + "." + k;
+                if (const auto* nested = v.get_if<regimeflow::ConfigValue::Object>()) {
+                    self(self, *nested, full_key);
+                } else if (const auto* s = v.get_if<std::string>()) {
+                    out[full_key] = *s;
+                } else if (const auto* b = v.get_if<bool>()) {
+                    out[full_key] = *b ? "true" : "false";
+                } else if (const auto* i = v.get_if<int64_t>()) {
+                    out[full_key] = std::to_string(*i);
+                } else if (const auto* d = v.get_if<double>()) {
+                    out[full_key] = std::to_string(*d);
+                }
             }
-        }
+        };
+        flatten_object(flatten_object, *obj, "");
         return out;
     }
 
@@ -220,6 +215,7 @@ namespace
             set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");
             set_broker_config_from_env(cfg.broker_config, "secret_key", "ALPACA_API_SECRET");
             set_broker_config_from_env(cfg.broker_config, "base_url", "ALPACA_PAPER_BASE_URL");
+            set_broker_config_from_env(cfg.broker_config, "stream_url", "ALPACA_STREAM_URL");
             if (!cfg.broker_config.contains("api_key") ||
                 !cfg.broker_config.contains("secret_key")) {
                 return regimeflow::Result<regimeflow::live::LiveConfig>(regimeflow::Error(regimeflow::Error::Code::ConfigError,
@@ -228,6 +224,29 @@ namespace
             if (!cfg.broker_config.contains("base_url")) {
                 return regimeflow::Result<regimeflow::live::LiveConfig>(regimeflow::Error(regimeflow::Error::Code::ConfigError,
                     "Missing Alpaca base URL (ALPACA_PAPER_BASE_URL)"));
+            }
+        }
+        if (cfg.broker_type == "binance") {
+            set_broker_config_from_env(cfg.broker_config, "api_key", "BINANCE_API_KEY");
+            set_broker_config_from_env(cfg.broker_config, "secret_key", "BINANCE_SECRET_KEY");
+            set_broker_config_from_env(cfg.broker_config, "base_url", "BINANCE_BASE_URL");
+            set_broker_config_from_env(cfg.broker_config, "stream_url", "BINANCE_STREAM_URL");
+            set_broker_config_from_env(cfg.broker_config, "recv_window_ms", "BINANCE_RECV_WINDOW_MS");
+            if (!cfg.broker_config.contains("api_key") ||
+                !cfg.broker_config.contains("secret_key")) {
+                return regimeflow::Result<regimeflow::live::LiveConfig>(regimeflow::Error(regimeflow::Error::Code::ConfigError,
+                    "Missing Binance API key/secret"));
+            }
+        }
+        if (cfg.broker_type == "ib") {
+            set_broker_config_from_env(cfg.broker_config, "host", "IB_HOST");
+            set_broker_config_from_env(cfg.broker_config, "port", "IB_PORT");
+            set_broker_config_from_env(cfg.broker_config, "client_id", "IB_CLIENT_ID");
+            if (!cfg.broker_config.contains("host") ||
+                !cfg.broker_config.contains("port") ||
+                !cfg.broker_config.contains("client_id")) {
+                return regimeflow::Result<regimeflow::live::LiveConfig>(regimeflow::Error(regimeflow::Error::Code::ConfigError,
+                    "Missing IB host/port/client_id"));
             }
         }
 
@@ -243,6 +262,11 @@ namespace
         cfg.account_margin = regimeflow::engine::MarginProfile::from_config(root,
                                                                             "live.account.margin",
                                                                             margin_profile);
+        if (const auto resolved = regimeflow::live::resolve_secret_config(cfg.broker_config);
+            resolved.is_err()) {
+            return regimeflow::Result<regimeflow::live::LiveConfig>(resolved.error());
+        }
+        regimeflow::live::register_sensitive_config(cfg.broker_config);
 
         return regimeflow::Result<regimeflow::live::LiveConfig>(cfg);
     }
@@ -255,7 +279,9 @@ namespace
 #else
         localtime_r(&now, &tm);
 #endif
-        std::cout << "[" << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << "] " << message << "\n";
+        std::cout << "[" << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << "] "
+                  << regimeflow::live::redact_sensitive_values(message) << "\n"
+                  << std::flush;
     }
 }  // namespace
 
@@ -268,7 +294,8 @@ int main(int argc, char** argv) {
 
     auto config_res = load_live_config(argv[2]);
     if (config_res.is_err()) {
-        std::cerr << "Config error: " << config_res.error().to_string() << "\n";
+        std::cerr << "Config error: "
+                  << regimeflow::live::redact_sensitive_values(config_res.error().to_string()) << "\n";
         return 1;
     }
 
@@ -278,7 +305,8 @@ int main(int argc, char** argv) {
     std::signal(SIGTERM, handle_signal);
 
     if (auto res = engine.start(); res.is_err()) {
-        std::cerr << "Failed to start live engine: " << res.error().to_string() << "\n";
+        std::cerr << "Failed to start live engine: "
+                  << regimeflow::live::redact_sensitive_values(res.error().to_string()) << "\n";
         return 1;
     }
 
@@ -293,7 +321,7 @@ int main(int argc, char** argv) {
     regimeflow::Timestamp last_reconnect_attempt;
     regimeflow::Timestamp last_reconnect_success;
 
-    std::cout << "Press Ctrl+C to stop.\n";
+    std::cout << "Press Ctrl+C to stop.\n" << std::flush;
     while (g_running.load() && engine.is_running()) {
         auto health = engine.get_system_health();
         if (health.last_reconnect_attempt.microseconds() != 0 &&
