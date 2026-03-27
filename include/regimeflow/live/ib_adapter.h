@@ -24,7 +24,9 @@
 #endif
 
 #include <atomic>
+#include <cstdint>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <unordered_map>
 
@@ -35,6 +37,22 @@ namespace regimeflow::live
      */
     class IBAdapter final : public BrokerAdapter, public DefaultEWrapper {
     public:
+        struct ContractConfig {
+            std::string symbol_override;
+            std::string security_type = "STK";
+            std::string exchange = "SMART";
+            std::string currency = "USD";
+            std::string primary_exchange;
+            std::string local_symbol;
+            std::string trading_class;
+            std::string last_trade_date_or_contract_month;
+            std::string right;
+            std::string multiplier;
+            std::optional<double> strike;
+            int32_t con_id = 0;
+            bool include_expired = false;
+        };
+
         /**
          * @brief IB adapter configuration.
          */
@@ -51,6 +69,14 @@ namespace regimeflow::live
              * @brief Client ID.
              */
             int client_id = 1;
+            /**
+             * @brief Default contract shape for symbols without per-symbol overrides.
+             */
+            ContractConfig default_contract;
+            /**
+             * @brief Optional per-symbol contract overrides.
+             */
+            std::unordered_map<std::string, ContractConfig> contracts;
         };
 
         /**
@@ -118,12 +144,17 @@ namespace regimeflow::live
                           engine::TimeInForce tif) const override;
 
         /**
+         * @brief Return the normalized IB contract config used for a symbol.
+         */
+        [[nodiscard]] ContractConfig contract_config_for_symbol(std::string_view symbol) const;
+
+        /**
          * @brief Poll the adapter (for IB message pump).
          */
         void poll() override;
 
     private:
-        ::Contract build_stock_contract(const std::string& symbol) const;
+        [[nodiscard]] ::Contract build_contract(const std::string& symbol) const;
         ::Order build_order(const engine::Order& order, int64_t order_id) const;
 
         void nextValidId(OrderId orderId) override;
