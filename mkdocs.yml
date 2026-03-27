@@ -66,6 +66,7 @@ nav:
     - Live Overview: live/overview.md
     - Live Config: live/config.md
     - Brokers: live/brokers.md
+    - Production Readiness: live/production-readiness.md
     - Resilience: live/resilience.md
   - Reference:
     - Configuration: reference/configuration.md
