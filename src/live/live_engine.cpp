@@ -30,6 +30,48 @@
 namespace regimeflow::live
 {
     namespace {
+#if defined(REGIMEFLOW_ENABLE_IBAPI)
+        bool starts_with(const std::string_view value, const std::string_view prefix) {
+            return value.size() >= prefix.size() && value.substr(0, prefix.size()) == prefix;
+        }
+
+        bool parse_bool(const std::string& value) {
+            return value == "true" || value == "1" || value == "yes" || value == "on";
+        }
+
+        void apply_ib_contract_field(IBAdapter::ContractConfig& contract,
+                                     const std::string_view field,
+                                     const std::string& value) {
+            if (field == "symbol_override") {
+                contract.symbol_override = value;
+            } else if (field == "security_type") {
+                contract.security_type = value;
+            } else if (field == "exchange") {
+                contract.exchange = value;
+            } else if (field == "currency") {
+                contract.currency = value;
+            } else if (field == "primary_exchange") {
+                contract.primary_exchange = value;
+            } else if (field == "local_symbol") {
+                contract.local_symbol = value;
+            } else if (field == "trading_class") {
+                contract.trading_class = value;
+            } else if (field == "last_trade_date_or_contract_month") {
+                contract.last_trade_date_or_contract_month = value;
+            } else if (field == "right") {
+                contract.right = value;
+            } else if (field == "multiplier") {
+                contract.multiplier = value;
+            } else if (field == "strike") {
+                contract.strike = std::stod(value);
+            } else if (field == "con_id") {
+                contract.con_id = static_cast<int32_t>(std::stoi(value));
+            } else if (field == "include_expired") {
+                contract.include_expired = parse_bool(value);
+            }
+        }
+#endif
+
         const char* status_name(LiveOrderStatus status) {
             switch (status) {
             case LiveOrderStatus::PendingNew: return "PendingNew";
@@ -128,6 +170,26 @@ namespace regimeflow::live
                 if (it != config.broker_config.end()) cfg.port = std::stoi(it->second);
                 it = config.broker_config.find("client_id");
                 if (it != config.broker_config.end()) cfg.client_id = std::stoi(it->second);
+                for (const auto& [key, value] : config.broker_config) {
+                    if (starts_with(key, "defaults.")) {
+                        apply_ib_contract_field(cfg.default_contract,
+                                                std::string_view(key).substr(std::string_view("defaults.").size()),
+                                                value);
+                        continue;
+                    }
+                    if (!starts_with(key, "contracts.")) {
+                        continue;
+                    }
+                    const std::string_view remainder =
+                        std::string_view(key).substr(std::string_view("contracts.").size());
+                    const auto dot_pos = remainder.find('.');
+                    if (dot_pos == std::string_view::npos || dot_pos == 0 || dot_pos + 1 >= remainder.size()) {
+                        continue;
+                    }
+                    const std::string symbol(remainder.substr(0, dot_pos));
+                    const std::string_view field = remainder.substr(dot_pos + 1);
+                    apply_ib_contract_field(cfg.contracts[symbol], field, value);
+                }
                 return std::make_unique<IBAdapter>(std::move(cfg));
 #else
                 return nullptr;
