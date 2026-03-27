@@ -73,3 +73,4 @@ Docker_Output.txt
 bin/act
 /dist/
 regimeflow_tests.exe_*.dmp
+/data/
