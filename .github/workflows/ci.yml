@@ -283,6 +283,78 @@ jobs:
       if: matrix.build_type == 'Release'
       run: cd build && ctest --output-on-failure
 
+  analysis-linux:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake ninja-build clang-18 clang-tidy-18 ccache \
+          libeigen3-dev libboost-all-dev \
+          libprotobuf-dev protobuf-compiler \
+          libssl-dev libcurl4-openssl-dev \
+          libintelrdfpmath-dev
+
+    - name: Configure clang-tidy build
+      run: |
+        export CC=clang-18 CXX=clang++-18
+        cmake -B build-analysis -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_PYTHON_BINDINGS=OFF \
+          -DREGIMEFLOW_FETCH_DEPS=ON \
+          -DENABLE_CLANG_TIDY=ON
+
+    - name: Run clang-tidy build
+      run: cmake --build build-analysis
+
+  sanitizers-linux:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake ninja-build clang-18 ccache \
+          libeigen3-dev libboost-all-dev \
+          libprotobuf-dev protobuf-compiler \
+          libssl-dev libcurl4-openssl-dev \
+          libintelrdfpmath-dev
+
+    - name: Configure sanitizer build
+      run: |
+        export CC=clang-18 CXX=clang++-18
+        cmake -B build-asan -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DBUILD_TESTS=ON \
+          -DBUILD_PYTHON_BINDINGS=OFF \
+          -DREGIMEFLOW_FETCH_DEPS=ON \
+          -DENABLE_WERROR=ON \
+          -DENABLE_SANITIZERS=ON
+
+    - name: Build
+      run: cmake --build build-asan
+
+    - name: Test
+      env:
+        ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+        UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+      run: cd build-asan && ctest --output-on-failure
+
   python-tests:
     needs: build-linux
     runs-on: ubuntu-24.04
@@ -332,7 +404,7 @@ jobs:
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [build-linux, build-macos, build-windows, python-tests]
+    needs: [build-linux, build-macos, build-windows, analysis-linux, sanitizers-linux, python-tests]
     runs-on: ubuntu-22.04
     permissions:
       contents: write

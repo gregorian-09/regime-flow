@@ -15,6 +15,7 @@ option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
 option(BUILD_DOCS "Build documentation" OFF)
 option(ENABLE_SANITIZERS "Enable address/undefined sanitizers" OFF)
+option(ENABLE_CLANG_TIDY "Run clang-tidy during compilation" OFF)
 option(ENABLE_WERROR "Treat warnings as errors" OFF)
 option(REGIMEFLOW_FETCH_DEPS "Fetch lightweight deps via FetchContent when missing" OFF)
 option(ENABLE_OPENSSL "Enable OpenSSL/WSS support" ON)
@@ -24,6 +25,8 @@ option(ENABLE_ZMQ "Enable ZeroMQ adapter" ON)
 option(ENABLE_REDIS "Enable Redis adapter" ON)
 option(ENABLE_KAFKA "Enable Kafka adapter" ON)
 option(ENABLE_IBAPI "Enable Interactive Brokers adapter" ON)
+set(CLANG_TIDY_CHECKS "-*,clang-analyzer-*,bugprone-use-after-move" CACHE STRING
+    "Checks passed to clang-tidy when ENABLE_CLANG_TIDY is ON")
 
 if(BUILD_PYTHON)
     set(BUILD_PYTHON_BINDINGS ON)
@@ -52,8 +55,28 @@ if(ENABLE_WERROR)
 endif()
 
 if(ENABLE_SANITIZERS)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(FATAL_ERROR "ENABLE_SANITIZERS requires GCC or Clang")
+    endif()
     add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
     add_link_options(-fsanitize=address,undefined)
+endif()
+
+if(ENABLE_CLANG_TIDY)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(FATAL_ERROR "ENABLE_CLANG_TIDY requires GCC or Clang-compatible command lines")
+    endif()
+
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy clang-tidy-18 clang-tidy-17 clang-tidy-16)
+    if(NOT CLANG_TIDY_EXE)
+        message(FATAL_ERROR "ENABLE_CLANG_TIDY is ON but clang-tidy was not found")
+    endif()
+
+    set(CMAKE_CXX_CLANG_TIDY
+        ${CLANG_TIDY_EXE};
+        -p=${CMAKE_BINARY_DIR};
+        --checks=${CLANG_TIDY_CHECKS}
+    )
 endif()
 
 add_subdirectory(src)
