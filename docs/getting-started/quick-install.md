@@ -23,8 +23,8 @@ regimeflow-backtest --config path/to/config.yaml --strategy moving_average_cross
 
 If you prefer native binaries, use GitHub Releases. Each release includes platform‑specific artifacts and checksums.
 
-- Download: `https://github.com/regimeflow/regimeflow/releases`
- - Linux packages: `.deb` and `.rpm` artifacts are attached to each release.
+- Download: `https://github.com/gregorian-09/regime-flow/releases`
+- Linux packages: `.deb` and `.rpm` artifacts are attached to each release.
 
 ## Homebrew (macOS)
 
