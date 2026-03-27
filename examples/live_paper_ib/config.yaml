@@ -1,7 +1,7 @@
 live:
   broker: ib
   paper: true
-  symbols: ["AAPL", "MSFT"]
+  symbols: ["AAPL", "EURUSD", "FGBL", "BMW_C72_DEC25"]
   reconnect:
     enabled: true
     initial_ms: 500
@@ -13,6 +13,31 @@ live:
     limits:
       max_notional: 50000
       max_position_pct: 0.2
+  broker_config:
+    defaults:
+      security_type: STK
+      exchange: SMART
+      currency: USD
+      primary_exchange: ARCA
+    contracts:
+      EURUSD:
+        security_type: CASH
+        exchange: IDEALPRO
+      FGBL:
+        security_type: FUT
+        exchange: EUREX
+        currency: EUR
+        local_symbol: FGBL MAR 27
+        include_expired: true
+      BMW_C72_DEC25:
+        security_type: OPT
+        symbol_override: BMW
+        exchange: EUREX
+        currency: EUR
+        last_trade_date_or_contract_month: 20251219
+        strike: 72
+        right: C
+        multiplier: "100"
 
 strategy:
   name: buy_and_hold
