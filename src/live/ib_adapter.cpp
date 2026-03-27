@@ -15,7 +15,6 @@
 namespace regimeflow::live
 {
     namespace {
-
         engine::OrderSide map_side(const std::string& action) {
             if (action == "SELL") {
                 return engine::OrderSide::Sell;
@@ -48,6 +47,67 @@ namespace regimeflow::live
                 return LiveOrderStatus::New;
             }
             return LiveOrderStatus::New;
+        }
+
+        void apply_contract_override(IBAdapter::ContractConfig& target,
+                                     const IBAdapter::ContractConfig& override_cfg) {
+            if (!override_cfg.symbol_override.empty()) {
+                target.symbol_override = override_cfg.symbol_override;
+            }
+            if (!override_cfg.security_type.empty()) {
+                target.security_type = override_cfg.security_type;
+            }
+            if (!override_cfg.exchange.empty()) {
+                target.exchange = override_cfg.exchange;
+            }
+            if (!override_cfg.currency.empty()) {
+                target.currency = override_cfg.currency;
+            }
+            if (!override_cfg.primary_exchange.empty()) {
+                target.primary_exchange = override_cfg.primary_exchange;
+            }
+            if (!override_cfg.local_symbol.empty()) {
+                target.local_symbol = override_cfg.local_symbol;
+            }
+            if (!override_cfg.trading_class.empty()) {
+                target.trading_class = override_cfg.trading_class;
+            }
+            if (!override_cfg.last_trade_date_or_contract_month.empty()) {
+                target.last_trade_date_or_contract_month =
+                    override_cfg.last_trade_date_or_contract_month;
+            }
+            if (!override_cfg.right.empty()) {
+                target.right = override_cfg.right;
+            }
+            if (!override_cfg.multiplier.empty()) {
+                target.multiplier = override_cfg.multiplier;
+            }
+            if (override_cfg.strike.has_value()) {
+                target.strike = override_cfg.strike;
+            }
+            if (override_cfg.con_id > 0) {
+                target.con_id = override_cfg.con_id;
+            }
+            target.include_expired = override_cfg.include_expired;
+        }
+
+        void infer_fx_symbol_fields(const std::string_view requested_symbol,
+                                    IBAdapter::ContractConfig& contract) {
+            if (!contract.symbol_override.empty() && !contract.currency.empty()) {
+                return;
+            }
+            std::string symbol(requested_symbol);
+            symbol.erase(std::remove(symbol.begin(), symbol.end(), '/'), symbol.end());
+            if (symbol.size() != 6) {
+                return;
+            }
+            if (!contract.symbol_override.empty()) {
+                return;
+            }
+            contract.symbol_override = symbol.substr(0, 3);
+            if (contract.currency.empty() || contract.currency == "USD") {
+                contract.currency = symbol.substr(3, 3);
+            }
         }
 
     }  // namespace
@@ -107,7 +167,7 @@ namespace regimeflow::live
             return;
         }
         for (const auto& symbol : symbols) {
-            auto contract = build_stock_contract(symbol);
+            auto contract = build_contract(symbol);
             auto ticker_id = static_cast<TickerId>(SymbolRegistry::instance().intern(symbol));
             {
                 std::lock_guard<std::mutex> lock(state_mutex_);
@@ -141,7 +201,7 @@ namespace regimeflow::live
             }
             order_id = next_order_id_++;
         }
-        const auto contract = build_stock_contract(SymbolRegistry::instance().lookup(order.symbol));
+        const auto contract = build_contract(SymbolRegistry::instance().lookup(order.symbol));
         const auto ib_order = build_order(order, order_id);
         {
             std::lock_guard<std::mutex> lock(state_mutex_);
@@ -249,12 +309,42 @@ namespace regimeflow::live
 
     void IBAdapter::poll() {}
 
-    ::Contract IBAdapter::build_stock_contract(const std::string& symbol) const {
+    IBAdapter::ContractConfig IBAdapter::contract_config_for_symbol(const std::string_view symbol) const {
+        ContractConfig contract = config_.default_contract;
+        if (const auto it = config_.contracts.find(std::string(symbol)); it != config_.contracts.end()) {
+            apply_contract_override(contract, it->second);
+        }
+        contract.security_type = to_upper(contract.security_type);
+        contract.exchange = to_upper(contract.exchange);
+        contract.currency = to_upper(contract.currency);
+        contract.right = to_upper(contract.right);
+        contract.primary_exchange = to_upper(contract.primary_exchange);
+        if (contract.security_type == "CASH") {
+            infer_fx_symbol_fields(symbol, contract);
+        }
+        return contract;
+    }
+
+    ::Contract IBAdapter::build_contract(const std::string& symbol) const {
         Contract contract;
-        contract.symbol = symbol;
-        contract.secType = "STK";
-        contract.currency = "USD";
-        contract.exchange = "SMART";
+        const auto resolved = contract_config_for_symbol(symbol);
+        contract.symbol = resolved.symbol_override.empty() ? symbol : resolved.symbol_override;
+        contract.secType = resolved.security_type;
+        contract.currency = resolved.currency;
+        contract.exchange = resolved.exchange;
+        contract.primaryExchange = resolved.primary_exchange;
+        contract.localSymbol = resolved.local_symbol;
+        contract.tradingClass = resolved.trading_class;
+        contract.lastTradeDateOrContractMonth = resolved.last_trade_date_or_contract_month;
+        contract.right = resolved.right;
+        contract.multiplier = resolved.multiplier;
+        contract.includeExpired = resolved.include_expired;
+        if (resolved.strike.has_value()) {
+            contract.strike = *resolved.strike;
+        }
+        if (resolved.con_id > 0) {
+            contract.conId = resolved.con_id;
+        }
         return contract;
     }
 
