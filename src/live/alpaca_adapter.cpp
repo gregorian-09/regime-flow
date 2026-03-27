@@ -244,6 +244,9 @@ namespace regimeflow::live
             stream_cfg.unsubscribe_template = config_.stream_unsubscribe_template;
             stream_cfg.ca_bundle_path = config_.stream_ca_bundle_path;
             stream_cfg.expected_hostname = config_.stream_expected_hostname;
+            stream_cfg.request_headers.emplace("APCA-API-KEY-ID", config_.api_key);
+            stream_cfg.request_headers.emplace("APCA-API-SECRET-KEY", config_.secret_key);
+            stream_cfg.request_headers.emplace("Content-Type", "application/json");
             stream_ = std::make_unique<data::WebSocketFeed>(stream_cfg);
             stream_->on_bar([this](const data::Bar& bar) {
                 if (market_cb_) {
@@ -272,7 +275,7 @@ namespace regimeflow::live
             if (auto res = stream_->connect(); res.is_err()) {
                 return res;
             }
-            if (!config_.stream_auth_template.empty()) {
+            if (!config_.stream_auth_template.empty() && stream_cfg.request_headers.empty()) {
                 auto auth = replace_token(config_.stream_auth_template, "{api_key}", config_.api_key);
                 auth = replace_token(auth, "{secret_key}", config_.secret_key);
                 stream_->send_raw(auth);
