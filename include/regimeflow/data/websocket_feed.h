@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cmath>
 #include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -99,6 +100,10 @@ namespace regimeflow::data
              */
             ValidationConfig validation;
             /**
+             * @brief Extra HTTP headers added during the WebSocket handshake.
+             */
+            std::map<std::string, std::string> request_headers;
+            /**
              * @brief Enable schema/value validation on messages.
              */
             bool validate_messages = false;
@@ -106,6 +111,10 @@ namespace regimeflow::data
              * @brief Enforce strict schema validation when enabled.
              */
             bool strict_schema = true;
+            /**
+             * @brief Connect and handshake timeout in milliseconds.
+             */
+            int64_t connect_timeout_ms = 10'000;
         };
 
         /**
