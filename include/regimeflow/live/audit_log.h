@@ -80,6 +80,7 @@ namespace regimeflow::live
         std::ofstream stream_;
 
         void open_if_needed();
+        static std::string sanitize(const std::string& value);
         static std::string type_to_string(AuditEvent::Type type);
     };
 }  // namespace regimeflow::live
