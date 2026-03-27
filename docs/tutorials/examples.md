@@ -21,7 +21,8 @@ This section documents runnable examples intended for local testing and validati
 - **Transformer Regime Plugin**: C++ plugin reading transformer regime CSV output.
 - **Data Ingest**: CSV normalization and validation pipeline.
 - **Live Paper Alpaca**: paper-trading example for Alpaca (env-gated).
-- **Live Paper IB**: paper-trading example for Interactive Brokers (env-gated).
+- **Live Paper Binance**: paper or demo trading example for Binance Spot (env-gated).
+- **Live Paper IB**: paper-trading example for Interactive Brokers (env-gated, broker access may still be blocked by IB policy or region).
 
 ## Backtest Basic
 
@@ -200,11 +201,13 @@ Env vars:
 - `ALPACA_API_KEY`
 - `ALPACA_API_SECRET`
 - `ALPACA_PAPER_BASE_URL`
+- `ALPACA_STREAM_URL`
 
 ```bash
 export ALPACA_API_KEY=...
 export ALPACA_API_SECRET=...
 export ALPACA_PAPER_BASE_URL=https://paper-api.alpaca.markets
+export ALPACA_STREAM_URL=wss://stream.data.alpaca.markets/v2/iex
 ./build/bin/regimeflow_live --config examples/live_paper_alpaca/config.yaml
 ```
 
@@ -212,6 +215,34 @@ You can also store these values in a `.env` file in the project root; the live C
 will load it automatically if present.
 
 When the live CLI runs, it prints connection status and heartbeat health to stdout.
+
+## Live Paper Binance
+
+Path: `examples/live_paper_binance/`
+
+Env vars:
+- `BINANCE_API_KEY`
+- `BINANCE_SECRET_KEY`
+- `BINANCE_BASE_URL`
+- `BINANCE_STREAM_URL`
+
+```bash
+export BINANCE_API_KEY=...
+export BINANCE_SECRET_KEY=...
+export BINANCE_BASE_URL=https://demo-api.binance.com/api
+export BINANCE_STREAM_URL=wss://demo-stream.binance.com/ws
+./build/bin/regimeflow_live --config examples/live_paper_binance/config.yaml
+```
+
+Current official Binance Spot endpoints:
+
+- Live REST: `https://api.binance.com/api`
+- Live stream: `wss://stream.binance.com:9443/ws`
+- Demo Mode REST: `https://demo-api.binance.com/api`
+- Demo Mode stream: `wss://demo-stream.binance.com/ws`
+- Spot Testnet stream: `wss://stream.testnet.binance.vision/ws`
+
+The example stays environment-driven so users can match the current venue they operate.
 
 ## Alpaca Data REST (Python)
 
@@ -264,6 +295,13 @@ Env vars:
 - `IB_HOST`
 - `IB_PORT`
 - `IB_CLIENT_ID`
+
+The example config demonstrates mixed IB contract coverage:
+
+- `AAPL` through smart-routed US equity defaults
+- `EURUSD` through `CASH` and `IDEALPRO`
+- `FGBL` through a futures `local_symbol`
+- `BMW_C72_DEC25` through an option contract override
 
 ```bash
 export IB_HOST=127.0.0.1
