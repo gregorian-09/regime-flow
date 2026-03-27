@@ -1,7 +1,12 @@
 live:
   broker: alpaca
   paper: true
+  broker_asset_class: equity
   symbols: ["AAPL", "MSFT"]
+  broker_config:
+    enable_streaming: true
+    stream_subscribe_template: '{"action":"subscribe","bars":{symbols},"quotes":{symbols}}'
+    stream_unsubscribe_template: '{"action":"unsubscribe","bars":{symbols},"quotes":{symbols}}'
   reconnect:
     enabled: true
     initial_ms: 500
