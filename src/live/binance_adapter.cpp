@@ -235,16 +235,13 @@ namespace regimeflow::live
         if (res.is_err()) {
             return res;
         }
-        if (auto parsed = common::parse_json(res.value()); parsed.is_ok()) {
-            if (auto* obj = parsed.value().as_object()) {
-                if (auto id = get_string(*obj, "orderId"); !id.empty()) {
-                    std::lock_guard<std::mutex> lock(mutex_);
-                    order_symbols_[id] = symbol;
-                    return Result<std::string>(id);
-                }
-            }
+        auto order_id = parse_submitted_order_id(res.value());
+        if (order_id.is_err()) {
+            return order_id;
         }
-        return Result<std::string>(std::string("order-") + std::to_string(Timestamp::now().microseconds()));
+        std::lock_guard<std::mutex> lock(mutex_);
+        order_symbols_[order_id.value()] = symbol;
+        return order_id;
     }
 
     Result<void> BinanceAdapter::cancel_order(const std::string& broker_order_id) {
@@ -681,6 +678,25 @@ namespace regimeflow::live
         (void)query;
         return Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing");
 #endif
+    }
+
+    Result<std::string> BinanceAdapter::parse_submitted_order_id(const std::string& payload) {
+        auto parsed = common::parse_json(payload);
+        if (parsed.is_err()) {
+            return Result<std::string>(Error(Error::Code::ParseError,
+                                             "Unable to parse Binance submit response"));
+        }
+        auto* obj = parsed.value().as_object();
+        if (!obj) {
+            return Result<std::string>(Error(Error::Code::ParseError,
+                                             "Binance submit response must be a JSON object"));
+        }
+        const auto id = get_string(*obj, "orderId");
+        if (id.empty()) {
+            return Result<std::string>(Error(Error::Code::ParseError,
+                                             "Binance submit response missing broker order id"));
+        }
+        return Result<std::string>(id);
     }
 
     std::string BinanceAdapter::resolve_balance_symbol(const std::string& asset) const {

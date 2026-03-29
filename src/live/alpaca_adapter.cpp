@@ -421,14 +421,29 @@ namespace regimeflow::live
         if (res.is_err()) {
             return res;
         }
-        if (auto parsed = common::parse_json(res.value()); parsed.is_ok()) {
-            if (auto* obj = parsed.value().as_object()) {
-                if (auto id = optional_string(*obj, "id"); id.is_ok() && !id.value().empty()) {
-                    return Result<std::string>(id.value());
-                }
-            }
+        return parse_submitted_order_id(res.value());
+    }
+
+    Result<std::string> AlpacaAdapter::parse_submitted_order_id(const std::string& payload) {
+        auto parsed = common::parse_json(payload);
+        if (parsed.is_err()) {
+            return Result<std::string>(Error(Error::Code::ParseError,
+                                             "Unable to parse Alpaca submit response"));
         }
-        return Result<std::string>(std::string("order-") + std::to_string(Timestamp::now().microseconds()));
+        auto* obj = parsed.value().as_object();
+        if (!obj) {
+            return Result<std::string>(Error(Error::Code::ParseError,
+                                             "Alpaca submit response must be a JSON object"));
+        }
+        auto id = optional_string(*obj, "id");
+        if (!id.is_ok()) {
+            return Result<std::string>(id.error());
+        }
+        if (id.value().empty()) {
+            return Result<std::string>(Error(Error::Code::ParseError,
+                                             "Alpaca submit response missing broker order id"));
+        }
+        return Result<std::string>(id.value());
     }
 
     Result<void> AlpacaAdapter::cancel_order(const std::string& broker_order_id) {

@@ -11,6 +11,11 @@
 #include <atomic>
 #include <mutex>
 
+namespace regimeflow::test
+{
+    class BrokerAdapterTestAccess;
+}
+
 namespace regimeflow::live
 {
     /**
@@ -150,9 +155,12 @@ namespace regimeflow::live
         void poll() override;
 
     private:
+        friend class ::regimeflow::test::BrokerAdapterTestAccess;
+
         [[nodiscard]] Result<std::string> rest_get(const std::string& path) const;
         [[nodiscard]] Result<std::string> rest_post(const std::string& path, const std::string& body) const;
         [[nodiscard]] Result<std::string> rest_delete(const std::string& path) const;
+        [[nodiscard]] static Result<std::string> parse_submitted_order_id(const std::string& payload);
 
         void handle_stream_message(const std::string& msg) const;
         static LiveOrderStatus parse_trade_update_status(const std::string& value);

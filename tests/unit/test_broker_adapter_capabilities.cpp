@@ -8,6 +8,17 @@
 
 namespace regimeflow::test
 {
+    class BrokerAdapterTestAccess {
+    public:
+        static Result<std::string> parse_alpaca_submit_order_id(const std::string& payload) {
+            return live::AlpacaAdapter::parse_submitted_order_id(payload);
+        }
+
+        static Result<std::string> parse_binance_submit_order_id(const std::string& payload) {
+            return live::BinanceAdapter::parse_submitted_order_id(payload);
+        }
+    };
+
 #if defined(REGIMEFLOW_ENABLE_IBAPI)
     class IBAdapterTestAccess {
     public:
@@ -278,6 +289,17 @@ namespace regimeflow::test
         EXPECT_TRUE(adapter.disconnect().is_ok());
     }
 
+    TEST(BrokerAdapterFailures, AlpacaRequiresBrokerIssuedOrderIdInSubmitResponse) {
+        const auto invalid_json = BrokerAdapterTestAccess::parse_alpaca_submit_order_id("not-json");
+        ASSERT_TRUE(invalid_json.is_err());
+        EXPECT_EQ(invalid_json.error().code, Error::Code::ParseError);
+
+        const auto missing_id = BrokerAdapterTestAccess::parse_alpaca_submit_order_id(R"({"status":"accepted"})");
+        ASSERT_TRUE(missing_id.is_err());
+        EXPECT_EQ(missing_id.error().code, Error::Code::ParseError);
+        EXPECT_NE(missing_id.error().message.find("broker order id"), std::string::npos);
+    }
+
     TEST(BrokerAdapterFailures, BinanceRejectsSubmitWithoutConnection) {
         live::BinanceAdapter::Config cfg;
         cfg.enable_streaming = false;
@@ -319,5 +341,16 @@ namespace regimeflow::test
         ASSERT_TRUE(result.is_err());
         EXPECT_NE(result.error().message.find("order-symbol mapping"), std::string::npos);
         EXPECT_TRUE(adapter.disconnect().is_ok());
+    }
+
+    TEST(BrokerAdapterFailures, BinanceRequiresBrokerIssuedOrderIdInSubmitResponse) {
+        const auto invalid_json = BrokerAdapterTestAccess::parse_binance_submit_order_id("not-json");
+        ASSERT_TRUE(invalid_json.is_err());
+        EXPECT_EQ(invalid_json.error().code, Error::Code::ParseError);
+
+        const auto missing_id = BrokerAdapterTestAccess::parse_binance_submit_order_id(R"({"status":"NEW"})");
+        ASSERT_TRUE(missing_id.is_err());
+        EXPECT_EQ(missing_id.error().code, Error::Code::ParseError);
+        EXPECT_NE(missing_id.error().message.find("broker order id"), std::string::npos);
     }
 }  // namespace regimeflow::test
