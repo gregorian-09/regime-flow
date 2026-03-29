@@ -7,7 +7,10 @@ Use this page as the operational checklist before promoting a live strategy from
 - Broker capability tests validate the current time-in-force gates for Alpaca, Binance, and IB.
 - Adapter failure tests verify credential and connection guardrails for Alpaca and Binance.
 - Live-engine integration tests validate reconciliation, throttling, dashboard updates, and risk shutdowns with a broker-compatible mock.
-- Env-gated paper smoke tests are registered in `ctest` for Alpaca, Binance, and IB. They skip cleanly when credentials are absent.
+- Env-gated startup smoke tests are registered in `ctest` for Alpaca, Binance, and IB. They skip cleanly when credentials are absent.
+- `regimeflow_live_validate` provides manual broker lifecycle validation in:
+  - `submit_cancel_reconcile`
+  - `fill_reconcile`
 
 ## What You Still Need To Verify Per Broker Account
 
@@ -25,9 +28,37 @@ Use this page as the operational checklist before promoting a live strategy from
 
 1. Run deterministic backtests and inspect the dashboard/report outputs.
 2. Run native unit tests and the broker capability tests.
-3. Run the env-gated paper smoke test for your broker with `ctest -R live_paper_`.
-4. Run live paper trading with small symbols and verify fills, cancels, and reconciliation behavior.
-5. Only after paper reconciliation is stable should you consider production capital.
+3. Run the env-gated startup smoke test for your broker with `ctest -R live_paper_`.
+4. Run `./build/bin/regimeflow_live_validate --config ... --mode submit_cancel_reconcile` with a safe quantity and, when needed, an explicit passive `--limit-price`.
+5. Run `./build/bin/regimeflow_live_validate --config ... --mode fill_reconcile` only on paper/demo accounts after you are comfortable with the venue behavior.
+6. Run the broker-specific manual `workflow_dispatch` workflow when you want a GitHub-hosted paper-validation record.
+7. Only after paper reconciliation is stable should you consider production capital.
+
+## Validation Modes
+
+### `submit_cancel_reconcile`
+
+Use this first. It is intended to validate:
+
+- auth
+- market-data reachability when price discovery is needed
+- order submit acknowledgement
+- open-order reconciliation
+- cancel flow
+- post-cancel reconciliation
+
+This mode is the default because it minimizes account drift.
+
+### `fill_reconcile`
+
+Use this only on paper/demo accounts. It attempts a small round-trip:
+
+- submit a small market entry
+- observe the position/account reconciliation change
+- submit a matching exit
+- verify flattening through reconciliation
+
+This mode is intentionally manual because it mutates the paper account state.
 
 ## Broker Notes
 

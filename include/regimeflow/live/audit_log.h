@@ -68,6 +68,16 @@ namespace regimeflow::live
          */
         Result<void> log_error(const std::string& error);
         /**
+         * @brief Log a structured error event.
+         * @param error Structured error object.
+         * @param source Source subsystem or adapter.
+         * @param metadata Additional metadata to attach.
+         * @return Ok on success, IoError on failure.
+         */
+        Result<void> log_error(const Error& error,
+                               std::string source = {},
+                               std::map<std::string, std::string> metadata = {});
+        /**
          * @brief Log a regime transition.
          * @param transition Regime transition data.
          * @return Ok on success, IoError on failure.
@@ -81,6 +91,7 @@ namespace regimeflow::live
 
         void open_if_needed();
         static std::string sanitize(const std::string& value);
+        static std::string error_code_to_string(Error::Code code);
         static std::string type_to_string(AuditEvent::Type type);
     };
 }  // namespace regimeflow::live

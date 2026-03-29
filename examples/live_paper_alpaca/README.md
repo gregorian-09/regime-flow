@@ -37,3 +37,19 @@ For actual paper-trading market data, Alpaca documents feed URLs under
 `wss://stream.data.alpaca.markets/v2/iex` is the standard real-time feed.
 
 The live CLI logs connection status and heartbeat health to stdout while running.
+
+Lifecycle validation before a longer paper session:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_alpaca/config.yaml \
+  --mode submit_cancel_reconcile --quantity 1
+```
+
+Optional round-trip fill validation on paper only:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_alpaca/config.yaml \
+  --mode fill_reconcile --quantity 1
+```

@@ -9,8 +9,9 @@
 #include "regimeflow/risk/risk_factory.h"
 #include "regimeflow/strategy/strategy_factory.h"
 
-#include <chrono>
 #include <array>
+#include <chrono>
+#include <charconv>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -45,6 +46,28 @@ namespace regimeflow::live
         bool ends_with(const std::string_view value, const std::string_view suffix) {
             return value.size() >= suffix.size()
                 && value.substr(value.size() - suffix.size()) == suffix;
+        }
+
+        LiveOrderStatus parse_live_status_token(const std::string_view token) {
+            if (token == "PendingNew") return LiveOrderStatus::PendingNew;
+            if (token == "New") return LiveOrderStatus::New;
+            if (token == "PartiallyFilled") return LiveOrderStatus::PartiallyFilled;
+            if (token == "Filled") return LiveOrderStatus::Filled;
+            if (token == "PendingCancel") return LiveOrderStatus::PendingCancel;
+            if (token == "Cancelled") return LiveOrderStatus::Cancelled;
+            if (token == "Rejected") return LiveOrderStatus::Rejected;
+            if (token == "Expired") return LiveOrderStatus::Expired;
+            if (token == "Inactive") return LiveOrderStatus::Inactive;
+            return LiveOrderStatus::Error;
+        }
+
+        bool is_terminal_live_status(const LiveOrderStatus status) {
+            return status == LiveOrderStatus::Filled
+                || status == LiveOrderStatus::Cancelled
+                || status == LiveOrderStatus::Rejected
+                || status == LiveOrderStatus::Expired
+                || status == LiveOrderStatus::Inactive
+                || status == LiveOrderStatus::Error;
         }
 
 #if defined(REGIMEFLOW_ENABLE_IBAPI)
@@ -279,6 +302,30 @@ namespace regimeflow::live
             broker_ = build_broker(config_);
         }
         order_manager_ = std::make_unique<LiveOrderManager>(broker_.get());
+        order_manager_->on_order_update([this](const LiveOrder& order) {
+            {
+                std::lock_guard<std::mutex> lock(broker_mutex_);
+                if (!order.broker_order_id.empty()) {
+                    broker_order_ids_[order.internal_id] = order.broker_order_id;
+                    if (is_terminal_live_status(order.status)) {
+                        broker_to_order_ids_.erase(order.broker_order_id);
+                    } else {
+                        broker_to_order_ids_[order.broker_order_id] = order.internal_id;
+                    }
+                }
+            }
+            if (!reconciliation_journal_path_.empty()) {
+                record_reconciliation_entry("order_update",
+                                            order.internal_id,
+                                            order.broker_order_id,
+                                            order.symbol,
+                                            order.status,
+                                            order.acked_at.microseconds() != 0
+                                                ? order.acked_at
+                                                : Timestamp::now(),
+                                            order.status_message);
+            }
+        });
         risk_manager_ = std::make_unique<risk::RiskManager>(risk::RiskFactory::create_risk_manager(
             config_.risk_config));
         if (config_.metrics_config.enabled) {
@@ -293,20 +340,16 @@ namespace regimeflow::live
                 std::make_unique<engine::SmartOrderRouter>(config_.routing_config),
                 [this](const engine::Order& order) {
                     engine::RoutingContext ctx;
-                    if (const auto quote_it = last_quotes_.find(order.symbol);
-                        quote_it != last_quotes_.end()) {
-                        if (quote_it->second.bid > 0.0) {
-                            ctx.bid = quote_it->second.bid;
+                    if (const auto quote = find_last_quote(order.symbol); quote.has_value()) {
+                        if (quote->bid > 0.0) {
+                            ctx.bid = quote->bid;
                         }
-                        if (quote_it->second.ask > 0.0) {
-                            ctx.ask = quote_it->second.ask;
+                        if (quote->ask > 0.0) {
+                            ctx.ask = quote->ask;
                         }
                     }
-                    if (const auto price_it = last_prices_.find(order.symbol);
-                        price_it != last_prices_.end()) {
-                        if (price_it->second > 0.0) {
-                            ctx.last = price_it->second;
-                        }
+                    if (const auto price = find_last_price(order.symbol); price.has_value() && *price > 0.0) {
+                        ctx.last = *price;
                     }
                     return ctx;
                 });
@@ -318,6 +361,7 @@ namespace regimeflow::live
             if (!broker_) {
                 return Ok();
             }
+            normalize_order_for_broker(order);
             if (!broker_->supports_tif(order.type, order.tif)) {
                 return Result<void>(Error(Error::Code::InvalidArgument, "Unsupported time-in-force for broker"));
             }
@@ -399,11 +443,8 @@ namespace regimeflow::live
                 Price price = 0.0;
                 if (order.type == engine::OrderType::Limit && order.limit_price > 0) {
                     price = order.limit_price;
-                } else {
-                    auto it = last_prices_.find(order.symbol);
-                    if (it != last_prices_.end()) {
-                        price = it->second;
-                    }
+                } else if (const auto last_price = find_last_price(order.symbol); last_price.has_value()) {
+                    price = *last_price;
                 }
                 if (price <= 0.0) {
                     if (error_cb_) {
@@ -491,7 +532,7 @@ namespace regimeflow::live
                     error_cb_(submit_res.error().to_string());
                 }
                 if (audit_logger_) {
-                    audit_logger_->log_error(submit_res.error().to_string());
+                    audit_logger_->log_error(submit_res.error(), "live_engine.submit_order");
                 }
                 strategy_order_manager_.update_order_status(order.id, engine::OrderStatus::Rejected);
             }
@@ -509,6 +550,8 @@ namespace regimeflow::live
         if (!config_.log_dir.empty()) {
             std::filesystem::create_directories(config_.log_dir);
             audit_logger_ = std::make_unique<AuditLogger>(config_.log_dir + "/audit.log");
+            reconciliation_journal_path_ = config_.log_dir + "/reconciliation_journal.tsv";
+            restore_reconciliation_journal();
         }
         last_market_data_ = Timestamp::now();
     }
@@ -630,6 +673,7 @@ namespace regimeflow::live
 
         auto positions = broker_->get_positions();
         apply_positions(positions, startup_ts);
+        reconcile_orders();
         refresh_derived_account_state(startup_ts);
         if (live_metrics_) {
             live_metrics_->start(last_account_info_.equity);
@@ -1148,7 +1192,7 @@ namespace regimeflow::live
                 error_cb_(res.error().to_string());
             }
             if (audit_logger_) {
-                audit_logger_->log_error(res.error().to_string());
+                audit_logger_->log_error(res.error(), "live_engine.reconcile_orders");
             }
         }
     }
@@ -1266,15 +1310,159 @@ namespace regimeflow::live
         }
         close_all_positions();
         if (audit_logger_) {
-            AuditEvent event;
-            event.timestamp = Timestamp::now();
-            event.type = AuditEvent::Type::RiskLimitBreached;
-            event.details = res.error().to_string();
-            event.metadata["context"] = context;
-            audit_logger_->log(event);
+            audit_logger_->log_error(res.error(),
+                                     "live_engine.enforce_portfolio_limits",
+                                     std::map<std::string, std::string>{{"context", context}});
         }
         if (error_cb_) {
             error_cb_(res.error().to_string());
+        }
+    }
+
+    void LiveTradingEngine::normalize_order_for_broker(engine::Order& order) const {
+        const auto current_symbol = SymbolRegistry::instance().lookup(order.symbol);
+        if (!current_symbol.empty()) {
+            for (const auto& configured : config_.symbols) {
+                if (to_upper(configured) == to_upper(current_symbol)) {
+                    if (to_upper(current_symbol) != configured) {
+                        order.metadata["original_symbol"] = current_symbol;
+                    }
+                    order.symbol = SymbolRegistry::instance().intern(configured);
+                    order.metadata["normalized_symbol"] = configured;
+                    break;
+                }
+            }
+        }
+
+        if (config_.broker_type == "binance") {
+            if (order.type == engine::OrderType::Market && order.tif == engine::TimeInForce::Day) {
+                order.tif = engine::TimeInForce::IOC;
+                order.metadata["normalized_tif"] = "IOC";
+            } else if (order.type == engine::OrderType::Limit && order.tif == engine::TimeInForce::Day) {
+                order.tif = engine::TimeInForce::GTC;
+                order.metadata["normalized_tif"] = "GTC";
+            }
+        } else if (config_.broker_type == "alpaca"
+                   && config_.broker_asset_class == "crypto"
+                   && order.tif == engine::TimeInForce::Day) {
+            order.tif = engine::TimeInForce::GTC;
+            order.metadata["normalized_tif"] = "GTC";
+        }
+    }
+
+    std::optional<Price> LiveTradingEngine::find_last_price(const SymbolId symbol) const {
+        if (const auto it = last_prices_.find(symbol); it != last_prices_.end()) {
+            return it->second;
+        }
+        const auto requested = SymbolRegistry::instance().lookup(symbol);
+        if (requested.empty()) {
+            return std::nullopt;
+        }
+        const auto requested_upper = to_upper(requested);
+        for (const auto& [candidate_symbol, price] : last_prices_) {
+            if (to_upper(SymbolRegistry::instance().lookup(candidate_symbol)) == requested_upper) {
+                return price;
+            }
+        }
+        return std::nullopt;
+    }
+
+    std::optional<data::Quote> LiveTradingEngine::find_last_quote(const SymbolId symbol) const {
+        if (const auto it = last_quotes_.find(symbol); it != last_quotes_.end()) {
+            return it->second;
+        }
+        const auto requested = SymbolRegistry::instance().lookup(symbol);
+        if (requested.empty()) {
+            return std::nullopt;
+        }
+        const auto requested_upper = to_upper(requested);
+        for (const auto& [candidate_symbol, quote] : last_quotes_) {
+            if (to_upper(SymbolRegistry::instance().lookup(candidate_symbol)) == requested_upper) {
+                return quote;
+            }
+        }
+        return std::nullopt;
+    }
+
+    void LiveTradingEngine::record_reconciliation_entry(const std::string& source,
+                                                        const engine::OrderId internal_id,
+                                                        const std::string& broker_order_id,
+                                                        const std::string& symbol,
+                                                        const LiveOrderStatus status,
+                                                        const Timestamp timestamp,
+                                                        const std::string& note) const {
+        if (reconciliation_journal_path_.empty()) {
+            return;
+        }
+        std::ofstream out(reconciliation_journal_path_, std::ios::out | std::ios::app);
+        if (!out.is_open()) {
+            return;
+        }
+        out << timestamp.to_string() << '\t'
+            << source << '\t'
+            << internal_id << '\t'
+            << broker_order_id << '\t'
+            << symbol << '\t'
+            << status_name(status) << '\t'
+            << note << '\n';
+    }
+
+    void LiveTradingEngine::restore_reconciliation_journal() {
+        if (reconciliation_journal_path_.empty() || !std::filesystem::exists(reconciliation_journal_path_)) {
+            return;
+        }
+
+        std::ifstream in(reconciliation_journal_path_);
+        if (!in.is_open()) {
+            return;
+        }
+
+        struct RestoredOrderState {
+            engine::OrderId internal_id = 0;
+            LiveOrderStatus status = LiveOrderStatus::Error;
+            std::string symbol;
+        };
+
+        std::unordered_map<std::string, RestoredOrderState> latest;
+        std::string line;
+        while (std::getline(in, line)) {
+            if (line.empty()) {
+                continue;
+            }
+            std::vector<std::string> fields;
+            std::stringstream row(line);
+            std::string field;
+            while (std::getline(row, field, '\t')) {
+                fields.emplace_back(std::move(field));
+            }
+            if (fields.size() < 6 || fields[2].empty() || fields[3].empty()) {
+                continue;
+            }
+
+            engine::OrderId internal_id = 0;
+            const char* begin = fields[2].data();
+            const char* end = begin + fields[2].size();
+            if (const auto [ptr, ec] = std::from_chars(begin, end, internal_id);
+                ec != std::errc{} || ptr != end) {
+                continue;
+            }
+
+            RestoredOrderState restored;
+            restored.internal_id = internal_id;
+            restored.status = parse_live_status_token(fields[5]);
+            restored.symbol = fields[4];
+            latest[fields[3]] = std::move(restored);
+        }
+
+        std::lock_guard<std::mutex> lock(broker_mutex_);
+        for (const auto& [broker_order_id, state] : latest) {
+            if (is_terminal_live_status(state.status)) {
+                broker_to_order_ids_.erase(broker_order_id);
+                continue;
+            }
+            order_manager_->restore_order(state.internal_id, broker_order_id, state.symbol, state.status);
+            broker_to_order_ids_[broker_order_id] = state.internal_id;
+            broker_order_ids_[state.internal_id] = broker_order_id;
         }
     }
 
@@ -1595,7 +1783,7 @@ namespace regimeflow::live
             + Duration::milliseconds(reconnect_backoff_ms_);
         add_alert("Reconnect failed: " + res.error().to_string());
         if (audit_logger_) {
-            audit_logger_->log_error(res.error().to_string());
+            audit_logger_->log_error(res.error(), "live_engine.attempt_reconnect");
         }
         if (error_cb_) {
             error_cb_(res.error().to_string());

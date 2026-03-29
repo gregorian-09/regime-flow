@@ -64,6 +64,10 @@ namespace regimeflow::live
             return LiveOrderStatus::New;
         }
 
+        bool quote_complete(const data::Quote& quote) {
+            return quote.symbol != 0 && quote.bid > 0.0 && quote.ask > 0.0;
+        }
+
         void apply_contract_override(IBAdapter::ContractConfig& target,
                                      const IBAdapter::ContractConfig& override_cfg) {
             if (!override_cfg.symbol_override.empty()) {
@@ -458,10 +462,13 @@ namespace regimeflow::live
             return;
         }
         if (field != TickType::LAST && field != TickType::DELAYED_LAST &&
-            field != TickType::BID && field != TickType::ASK) {
+            field != TickType::BID && field != TickType::ASK &&
+            field != TickType::DELAYED_BID && field != TickType::DELAYED_ASK) {
             return;
-            }
+        }
         SymbolId symbol = 0;
+        data::Quote quote;
+        bool emit_quote = false;
         {
             std::lock_guard<std::mutex> lock(state_mutex_);
             auto it = ticker_to_symbol_.find(tickerId);
@@ -469,7 +476,26 @@ namespace regimeflow::live
                 return;
             }
             symbol = it->second;
-            last_prices_[symbol] = price;
+            if (field == TickType::LAST || field == TickType::DELAYED_LAST) {
+                last_prices_[symbol] = price;
+            } else {
+                auto& state = quote_state_[symbol];
+                state.symbol = symbol;
+                state.timestamp = Timestamp::now();
+                if (field == TickType::BID || field == TickType::DELAYED_BID) {
+                    state.bid = price;
+                } else {
+                    state.ask = price;
+                }
+                quote = state;
+                emit_quote = quote_complete(state);
+            }
+        }
+        if (emit_quote) {
+            MarketDataUpdate update;
+            update.data = quote;
+            market_cb_(update);
+            return;
         }
         data::Tick tick;
         tick.symbol = symbol;
@@ -485,12 +511,16 @@ namespace regimeflow::live
         if (!market_cb_) {
             return;
         }
-        if (field != TickType::LAST_SIZE && field != TickType::DELAYED_LAST_SIZE) {
+        if (field != TickType::LAST_SIZE && field != TickType::DELAYED_LAST_SIZE &&
+            field != TickType::BID_SIZE && field != TickType::ASK_SIZE &&
+            field != TickType::DELAYED_BID_SIZE && field != TickType::DELAYED_ASK_SIZE) {
             return;
         }
         SymbolId symbol = 0;
         double last_price = 0.0;
         const double size_value = DecimalFunctions::decimalToDouble(size);
+        data::Quote quote;
+        bool emit_quote = false;
         {
             std::lock_guard<std::mutex> lock(state_mutex_);
             const auto it = ticker_to_symbol_.find(tickerId);
@@ -498,11 +528,30 @@ namespace regimeflow::live
                 return;
             }
             symbol = it->second;
-            last_sizes_[symbol] = size_value;
-            auto price_it = last_prices_.find(symbol);
-            if (price_it != last_prices_.end()) {
-                last_price = price_it->second;
+            if (field == TickType::LAST_SIZE || field == TickType::DELAYED_LAST_SIZE) {
+                last_sizes_[symbol] = size_value;
+                auto price_it = last_prices_.find(symbol);
+                if (price_it != last_prices_.end()) {
+                    last_price = price_it->second;
+                }
+            } else {
+                auto& state = quote_state_[symbol];
+                state.symbol = symbol;
+                state.timestamp = Timestamp::now();
+                if (field == TickType::BID_SIZE || field == TickType::DELAYED_BID_SIZE) {
+                    state.bid_size = size_value;
+                } else {
+                    state.ask_size = size_value;
+                }
+                quote = state;
+                emit_quote = quote_complete(state);
             }
+        }
+        if (emit_quote) {
+            MarketDataUpdate update;
+            update.data = quote;
+            market_cb_(update);
+            return;
         }
         data::Tick tick;
         tick.symbol = symbol;

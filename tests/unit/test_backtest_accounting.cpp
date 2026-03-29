@@ -102,4 +102,98 @@ namespace regimeflow::test
         EXPECT_DOUBLE_EQ(engine.portfolio().cash(), -100.0);
         EXPECT_NEAR(engine.portfolio().equity(), 99900.0, 1e-9);
     }
+
+    TEST(BacktestAccounting, MarginCallCancelsOpenOrdersWithoutHaltingTrading) {
+        engine::BacktestEngine engine(100000.0);
+
+        Config exec_cfg;
+        exec_cfg.set_path("account.margin.initial_margin_ratio", 0.5);
+        exec_cfg.set_path("account.margin.maintenance_margin_ratio", 0.25);
+        exec_cfg.set_path("account.margin.stop_out_margin_level", 0.5);
+        exec_cfg.set_path("account.enforcement.enabled", true);
+        exec_cfg.set_path("account.enforcement.margin_call_action", "cancel_open_orders");
+        exec_cfg.set_path("account.enforcement.stop_out_action", "none");
+        engine.configure_execution(exec_cfg);
+
+        const SymbolId symbol = SymbolRegistry::instance().intern("MARGIN");
+        const Timestamp start(10);
+        engine.portfolio().set_cash(-8000.0, start);
+        engine.portfolio().set_position(symbol, 100.0, 100.0, 100.0, start);
+
+        auto resting = engine::Order::limit(symbol, engine::OrderSide::Buy, 1.0, 95.0);
+        resting.created_at = start;
+        const auto submit_result = engine.order_manager().submit_order(resting);
+        ASSERT_TRUE(submit_result.is_ok());
+        const auto resting_id = submit_result.value();
+
+        data::Bar bar;
+        bar.symbol = symbol;
+        bar.open = 100.0;
+        bar.high = 100.0;
+        bar.low = 100.0;
+        bar.close = 100.0;
+        bar.volume = 1;
+        bar.timestamp = Timestamp(11);
+        engine.enqueue(events::make_market_event(bar));
+        ASSERT_TRUE(engine.step());
+
+        const auto snapshot = engine.dashboard_snapshot();
+        EXPECT_TRUE(snapshot.margin_call);
+        EXPECT_FALSE(snapshot.stop_out);
+
+        const auto cancelled = engine.order_manager().get_order(resting_id);
+        ASSERT_TRUE(cancelled.has_value());
+        EXPECT_EQ(cancelled->status, engine::OrderStatus::Cancelled);
+
+        auto replacement = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        replacement.created_at = Timestamp(12);
+        EXPECT_TRUE(engine.order_manager().submit_order(replacement).is_ok());
+    }
+
+    TEST(BacktestAccounting, MarginCallCanHaltTrading) {
+        engine::BacktestEngine engine(100000.0);
+
+        Config exec_cfg;
+        exec_cfg.set_path("account.margin.initial_margin_ratio", 0.5);
+        exec_cfg.set_path("account.margin.maintenance_margin_ratio", 0.25);
+        exec_cfg.set_path("account.margin.stop_out_margin_level", 0.5);
+        exec_cfg.set_path("account.enforcement.enabled", true);
+        exec_cfg.set_path("account.enforcement.margin_call_action", "halt_trading");
+        exec_cfg.set_path("account.enforcement.stop_out_action", "none");
+        engine.configure_execution(exec_cfg);
+
+        const SymbolId symbol = SymbolRegistry::instance().intern("HALT");
+        const Timestamp start(20);
+        engine.portfolio().set_cash(-8000.0, start);
+        engine.portfolio().set_position(symbol, 100.0, 100.0, 100.0, start);
+
+        auto resting = engine::Order::limit(symbol, engine::OrderSide::Buy, 1.0, 95.0);
+        resting.created_at = start;
+        const auto submit_result = engine.order_manager().submit_order(resting);
+        ASSERT_TRUE(submit_result.is_ok());
+        const auto resting_id = submit_result.value();
+
+        data::Bar bar;
+        bar.symbol = symbol;
+        bar.open = 100.0;
+        bar.high = 100.0;
+        bar.low = 100.0;
+        bar.close = 100.0;
+        bar.volume = 1;
+        bar.timestamp = Timestamp(21);
+        engine.enqueue(events::make_market_event(bar));
+        ASSERT_TRUE(engine.step());
+
+        const auto snapshot = engine.dashboard_snapshot();
+        EXPECT_TRUE(snapshot.margin_call);
+        EXPECT_FALSE(snapshot.stop_out);
+
+        const auto cancelled = engine.order_manager().get_order(resting_id);
+        ASSERT_TRUE(cancelled.has_value());
+        EXPECT_EQ(cancelled->status, engine::OrderStatus::Cancelled);
+
+        auto rejected = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        rejected.created_at = Timestamp(22);
+        EXPECT_TRUE(engine.order_manager().submit_order(rejected).is_err());
+    }
 }  // namespace regimeflow::test

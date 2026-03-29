@@ -316,6 +316,17 @@ namespace regimeflow::live
         void apply_position_update(const Position& position, Timestamp timestamp);
         void check_daily_loss_limit();
         void enforce_portfolio_limits(const std::string& context);
+        void normalize_order_for_broker(engine::Order& order) const;
+        [[nodiscard]] std::optional<Price> find_last_price(SymbolId symbol) const;
+        [[nodiscard]] std::optional<data::Quote> find_last_quote(SymbolId symbol) const;
+        void record_reconciliation_entry(const std::string& source,
+                                         engine::OrderId internal_id,
+                                         const std::string& broker_order_id,
+                                         const std::string& symbol,
+                                         LiveOrderStatus status,
+                                         Timestamp timestamp,
+                                         const std::string& note = {}) const;
+        void restore_reconciliation_journal();
         void update_dashboard_snapshot();
         DashboardSnapshot build_dashboard_snapshot();
         void add_alert(const std::string& message);
@@ -369,6 +380,7 @@ namespace regimeflow::live
         std::function<void(const regime::RegimeTransition&)> regime_cb_;
         std::function<void(const std::string&)> error_cb_;
         std::function<void(const DashboardSnapshot&)> dashboard_cb_;
+        std::string reconciliation_journal_path_;
 
         mutable std::mutex dashboard_mutex_;
         DashboardSnapshot last_dashboard_;

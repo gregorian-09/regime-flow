@@ -53,6 +53,49 @@ namespace regimeflow::live
             body << "\"" << key << "\":" << value;
         }
 
+#ifdef REGIMEFLOW_USE_CURL
+        Error make_alpaca_transport_error(const char* operation, const CURLcode code) {
+            Error error(code == CURLE_OPERATION_TIMEDOUT ? Error::Code::TimeoutError
+                                                         : Error::Code::NetworkError,
+                        std::string("Alpaca ")
+                            .append(operation)
+                            .append(" transport failure: ")
+                            .append(curl_easy_strerror(code)));
+            error.details = std::string("category=")
+                .append(code == CURLE_OPERATION_TIMEDOUT ? "timeout" : "network")
+                .append(";operation=")
+                .append(operation)
+                .append(";curl_code=")
+                .append(std::to_string(static_cast<int>(code)));
+            return error;
+        }
+#endif
+
+        Error make_alpaca_http_error(const char* operation,
+                                     const long status,
+                                     const std::string& response) {
+            Error error;
+            if (status == 401 || status == 403) {
+                error = Error(Error::Code::BrokerError, "Alpaca authentication failed");
+                error.details = std::string("category=auth;operation=").append(operation);
+            } else if (status == 408 || status == 504) {
+                error = Error(Error::Code::TimeoutError, "Alpaca request timed out");
+                error.details = std::string("category=timeout;operation=").append(operation);
+            } else if (status == 429) {
+                error = Error(Error::Code::BrokerError, "Alpaca rate limit exceeded");
+                error.details = std::string("category=rate_limit;operation=").append(operation);
+            } else if (status >= 400 && status < 500) {
+                error = Error(Error::Code::BrokerError, "Alpaca rejected request");
+                error.details = std::string("category=rejection;operation=").append(operation);
+            } else {
+                error = Error(Error::Code::NetworkError, "Alpaca upstream HTTP failure");
+                error.details = std::string("category=network;operation=").append(operation);
+            }
+            error.details = error.details.value() + ";http_status=" + std::to_string(status)
+                + ";response=" + response;
+            return error;
+        }
+
         Result<std::string> build_alpaca_submit_body(const engine::Order& order) {
             std::string order_type;
             bool needs_limit_price = false;
@@ -427,21 +470,26 @@ namespace regimeflow::live
     Result<std::string> AlpacaAdapter::parse_submitted_order_id(const std::string& payload) {
         auto parsed = common::parse_json(payload);
         if (parsed.is_err()) {
-            return Result<std::string>(Error(Error::Code::ParseError,
-                                             "Unable to parse Alpaca submit response"));
+            Error error(Error::Code::ParseError, "Unable to parse Alpaca submit response");
+            error.details = "category=schema;operation=parse_submit_response";
+            return Result<std::string>(std::move(error));
         }
         auto* obj = parsed.value().as_object();
         if (!obj) {
-            return Result<std::string>(Error(Error::Code::ParseError,
-                                             "Alpaca submit response must be a JSON object"));
+            Error error(Error::Code::ParseError, "Alpaca submit response must be a JSON object");
+            error.details = "category=schema;operation=parse_submit_response";
+            return Result<std::string>(std::move(error));
         }
         auto id = optional_string(*obj, "id");
         if (!id.is_ok()) {
-            return Result<std::string>(id.error());
+            Error copy(id.error().code, id.error().message, id.error().location);
+            copy.details = "category=schema;operation=parse_submit_response";
+            return Result<std::string>(std::move(copy));
         }
         if (id.value().empty()) {
-            return Result<std::string>(Error(Error::Code::ParseError,
-                                             "Alpaca submit response missing broker order id"));
+            Error error(Error::Code::ParseError, "Alpaca submit response missing broker order id");
+            error.details = "category=schema;operation=parse_submit_response";
+            return Result<std::string>(std::move(error));
         }
         return Result<std::string>(id.value());
     }
@@ -676,10 +724,10 @@ namespace regimeflow::live
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
-            return Result<std::string>(Error(Error::Code::NetworkError, curl_easy_strerror(res)));
+            return Result<std::string>(make_alpaca_transport_error("rest_get", res));
         }
         if (status < 200 || status >= 300) {
-            return Result<std::string>(Error(Error::Code::NetworkError, "HTTP error: " + std::to_string(status)));
+            return Result<std::string>(make_alpaca_http_error("rest_get", status, response));
         }
         return Result<std::string>(response);
 #else
@@ -719,10 +767,10 @@ namespace regimeflow::live
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
-            return Result<std::string>(Error(Error::Code::NetworkError, curl_easy_strerror(res)));
+            return Result<std::string>(make_alpaca_transport_error("rest_post", res));
         }
         if (status < 200 || status >= 300) {
-            return Result<std::string>(Error(Error::Code::NetworkError, "HTTP error: " + std::to_string(status)));
+            return Result<std::string>(make_alpaca_http_error("rest_post", status, response));
         }
         return Result<std::string>(response);
 #else
@@ -754,17 +802,17 @@ namespace regimeflow::live
         headers = curl_slist_append(headers, ("APCA-API-SECRET-KEY: " + config_.secret_key).c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-        CURLcode res = curl_easy_perform(curl);
+        const CURLcode res = curl_easy_perform(curl);
         long status = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
-            return Result<std::string>(Error(Error::Code::NetworkError, curl_easy_strerror(res)));
+            return Result<std::string>(make_alpaca_transport_error("rest_delete", res));
         }
         if (status < 200 || status >= 300) {
-            return Result<std::string>(Error(Error::Code::NetworkError, "HTTP error: " + std::to_string(status)));
+            return Result<std::string>(make_alpaca_http_error("rest_delete", status, response));
         }
         return Result<std::string>(response);
 #else

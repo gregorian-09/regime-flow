@@ -31,3 +31,19 @@ RegimeFlow keeps the config file environment-driven so you can choose the venue 
 matches your account and current Binance documentation.
 
 The live CLI logs connection status and heartbeat health to stdout while running.
+
+Lifecycle validation before a longer demo session:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_binance/config.yaml \
+  --mode submit_cancel_reconcile --quantity 0.001
+```
+
+Optional round-trip fill validation on demo or testnet only:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_binance/config.yaml \
+  --mode fill_reconcile --quantity 0.001
+```

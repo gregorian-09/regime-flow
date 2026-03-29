@@ -31,6 +31,25 @@ namespace regimeflow::live
         return log(event);
     }
 
+    Result<void> AuditLogger::log_error(const Error& error,
+                                        std::string source,
+                                        std::map<std::string, std::string> metadata) {
+        AuditEvent event;
+        event.timestamp = Timestamp::now();
+        event.type = AuditEvent::Type::Error;
+        event.details = error.message;
+        if (!source.empty()) {
+            metadata.emplace("source", std::move(source));
+        }
+        metadata.emplace("code", error_code_to_string(error.code));
+        metadata.emplace("location", std::string(error.location.file_name()) + ":" + std::to_string(error.location.line()));
+        if (error.details.has_value() && !error.details->empty()) {
+            metadata.emplace("details", *error.details);
+        }
+        event.metadata = std::move(metadata);
+        return log(event);
+    }
+
     Result<void> AuditLogger::log_regime_change(const regime::RegimeTransition& transition) {
         AuditEvent event;
         event.timestamp = transition.timestamp;
@@ -51,6 +70,27 @@ namespace regimeflow::live
 
     std::string AuditLogger::sanitize(const std::string& value) {
         return redact_sensitive_values(value);
+    }
+
+    std::string AuditLogger::error_code_to_string(const Error::Code code) {
+        switch (code) {
+        case Error::Code::Ok: return "ok";
+        case Error::Code::InvalidArgument: return "invalid_argument";
+        case Error::Code::NotFound: return "not_found";
+        case Error::Code::AlreadyExists: return "already_exists";
+        case Error::Code::OutOfRange: return "out_of_range";
+        case Error::Code::InvalidState: return "invalid_state";
+        case Error::Code::IoError: return "io";
+        case Error::Code::ParseError: return "parse";
+        case Error::Code::ConfigError: return "config";
+        case Error::Code::PluginError: return "plugin";
+        case Error::Code::BrokerError: return "broker";
+        case Error::Code::NetworkError: return "network";
+        case Error::Code::TimeoutError: return "timeout";
+        case Error::Code::InternalError: return "internal";
+        case Error::Code::Unknown: return "unknown";
+        }
+        return "unknown";
     }
 
     std::string AuditLogger::type_to_string(AuditEvent::Type type) {

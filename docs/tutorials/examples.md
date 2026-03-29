@@ -216,6 +216,14 @@ will load it automatically if present.
 
 When the live CLI runs, it prints connection status and heartbeat health to stdout.
 
+Lifecycle validation:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_alpaca/config.yaml \
+  --mode submit_cancel_reconcile --quantity 1
+```
+
 ## Live Paper Binance
 
 Path: `examples/live_paper_binance/`
@@ -243,6 +251,14 @@ Current official Binance Spot endpoints:
 - Spot Testnet stream: `wss://stream.testnet.binance.vision/ws`
 
 The example stays environment-driven so users can match the current venue they operate.
+
+Lifecycle validation:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_binance/config.yaml \
+  --mode submit_cancel_reconcile --quantity 0.001
+```
 
 ## Alpaca Data REST (Python)
 
@@ -308,4 +324,12 @@ export IB_HOST=127.0.0.1
 export IB_PORT=7497
 export IB_CLIENT_ID=1
 ./build/bin/regimeflow_live --config examples/live_paper_ib/config.yaml
+```
+
+Lifecycle validation:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_ib/config.yaml \
+  --mode submit_cancel_reconcile --quantity 1
 ```

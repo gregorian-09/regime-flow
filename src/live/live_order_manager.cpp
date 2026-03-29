@@ -32,14 +32,17 @@ namespace regimeflow::live
                 return to == LiveOrderStatus::New || to == LiveOrderStatus::PartiallyFilled
                     || to == LiveOrderStatus::Filled || to == LiveOrderStatus::Rejected
                     || to == LiveOrderStatus::Cancelled || to == LiveOrderStatus::Expired
+                    || to == LiveOrderStatus::Inactive
                     || to == LiveOrderStatus::Error;
             case LiveOrderStatus::New:
                 return to == LiveOrderStatus::PartiallyFilled || to == LiveOrderStatus::Filled
                     || to == LiveOrderStatus::Cancelled || to == LiveOrderStatus::Rejected
+                    || to == LiveOrderStatus::Inactive
                     || to == LiveOrderStatus::Expired || to == LiveOrderStatus::Error;
             case LiveOrderStatus::PartiallyFilled:
                 return to == LiveOrderStatus::PartiallyFilled || to == LiveOrderStatus::Filled
                     || to == LiveOrderStatus::Cancelled || to == LiveOrderStatus::Rejected
+                    || to == LiveOrderStatus::Inactive
                     || to == LiveOrderStatus::Expired || to == LiveOrderStatus::Error;
             case LiveOrderStatus::PendingCancel:
                 return to == LiveOrderStatus::Cancelled || to == LiveOrderStatus::Rejected
@@ -281,6 +284,29 @@ namespace regimeflow::live
             }
         }
         return std::nullopt;
+    }
+
+    void LiveOrderManager::restore_order(const engine::OrderId internal_id,
+                                         std::string broker_order_id,
+                                         std::string symbol,
+                                         const LiveOrderStatus status) {
+        if (broker_order_id.empty()) {
+            return;
+        }
+        LiveOrder live;
+        if (const auto it = orders_.find(internal_id); it != orders_.end()) {
+            live = it->second;
+        }
+        live.internal_id = internal_id;
+        live.broker_order_id = std::move(broker_order_id);
+        if (!symbol.empty()) {
+            live.symbol = std::move(symbol);
+        }
+        live.status = status;
+        if (internal_id >= next_order_id_) {
+            next_order_id_ = internal_id + 1;
+        }
+        orders_[internal_id] = std::move(live);
     }
 
     void LiveOrderManager::update_order_state(LiveOrder& order, const ExecutionReport& report) {

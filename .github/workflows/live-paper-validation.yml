@@ -1,0 +1,101 @@
+name: Live Paper Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      broker:
+        description: Broker adapter to validate
+        required: true
+        type: choice
+        options:
+          - alpaca
+          - binance
+          - ib
+      mode:
+        description: Validation mode
+        required: true
+        default: submit_cancel_reconcile
+        type: choice
+        options:
+          - submit_cancel_reconcile
+          - fill_reconcile
+      quantity:
+        description: Optional validation quantity override
+        required: false
+        type: string
+      limit_price:
+        description: Optional passive limit price for submit/cancel validation
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      with:
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake ninja-build clang-18 ccache \
+          libeigen3-dev libboost-all-dev \
+          libprotobuf-dev protobuf-compiler \
+          libssl-dev libcurl4-openssl-dev \
+          libintelrdfpmath-dev
+        python -m venv .venv
+        . .venv/bin/activate
+        pip install --upgrade pip
+        pip install pybind11 numpy pandas pytest
+
+    - name: Configure
+      run: |
+        export CC=clang-18 CXX=clang++-18
+        export CMAKE_PREFIX_PATH="${{ github.workspace }}/.venv"
+        PYTHON_BIN="${{ github.workspace }}/.venv/bin/python"
+        NUMPY_INC="$($PYTHON_BIN -c 'import numpy; print(numpy.get_include())')"
+        PYBIND11_DIR="$($PYTHON_BIN -c 'import pybind11; print(pybind11.get_cmake_dir())')"
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_TESTS=ON \
+          -DBUILD_PYTHON_BINDINGS=ON \
+          -DREGIMEFLOW_FETCH_DEPS=ON \
+          -DPython3_EXECUTABLE="$PYTHON_BIN" \
+          -DPython3_NumPy_INCLUDE_DIRS="$NUMPY_INC" \
+          -Dpybind11_DIR="$PYBIND11_DIR"
+
+    - name: Build Validation Tool
+      run: cmake --build build --target regimeflow_live_validate
+
+    - name: Run Broker Validation
+      env:
+        ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+        ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
+        ALPACA_PAPER_BASE_URL: ${{ secrets.ALPACA_PAPER_BASE_URL }}
+        ALPACA_STREAM_URL: ${{ secrets.ALPACA_STREAM_URL }}
+        BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
+        BINANCE_SECRET_KEY: ${{ secrets.BINANCE_SECRET_KEY }}
+        BINANCE_BASE_URL: ${{ secrets.BINANCE_BASE_URL }}
+        BINANCE_STREAM_URL: ${{ secrets.BINANCE_STREAM_URL }}
+        IB_HOST: ${{ secrets.IB_HOST }}
+        IB_PORT: ${{ secrets.IB_PORT }}
+        IB_CLIENT_ID: ${{ secrets.IB_CLIENT_ID }}
+        VALIDATION_MODE: ${{ inputs.mode }}
+        VALIDATION_QUANTITY: ${{ inputs.quantity }}
+        VALIDATION_LIMIT_PRICE: ${{ inputs.limit_price }}
+      run: |
+        bash tests/live/run_paper_validation.sh \
+          "${{ inputs.broker }}" \
+          "${{ github.workspace }}" \
+          "${{ github.workspace }}/build" \
+          "examples/live_paper_${{ inputs.broker }}/config.yaml"

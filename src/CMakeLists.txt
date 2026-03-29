@@ -529,6 +529,9 @@ add_executable(regimeflow_live_cli tools/live_main.cpp)
 target_link_libraries(regimeflow_live_cli PRIVATE regimeflow_live)
 set_target_properties(regimeflow_live_cli PROPERTIES OUTPUT_NAME regimeflow_live)
 
+add_executable(regimeflow_live_validate tools/live_validation_main.cpp)
+target_link_libraries(regimeflow_live_validate PRIVATE regimeflow_live)
+
 add_executable(regimeflow_parity_check tools/parity_check_main.cpp)
 target_link_libraries(regimeflow_parity_check PRIVATE regimeflow_engine regimeflow_common)
 

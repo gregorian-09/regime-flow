@@ -44,6 +44,37 @@ namespace regimeflow::test
             adapter.orderStatus(7, status, zero, zero, 101.25, 0, 0, 0.0, 0, "", 0.0);
             return captured;
         }
+
+        static void register_ticker(live::IBAdapter& adapter,
+                                    const TickerId ticker_id,
+                                    const SymbolId symbol) {
+            std::lock_guard<std::mutex> lock(adapter.state_mutex_);
+            adapter.ticker_to_symbol_[ticker_id] = symbol;
+        }
+
+        static live::MarketDataUpdate emit_tick_price(live::IBAdapter& adapter,
+                                                      const TickerId ticker_id,
+                                                      const TickType field,
+                                                      const double price) {
+            live::MarketDataUpdate captured;
+            adapter.on_market_data([&captured](const live::MarketDataUpdate& update) {
+                captured = update;
+            });
+            adapter.tickPrice(ticker_id, field, price, TickAttrib{});
+            return captured;
+        }
+
+        static live::MarketDataUpdate emit_tick_size(live::IBAdapter& adapter,
+                                                     const TickerId ticker_id,
+                                                     const TickType field,
+                                                     const double size) {
+            live::MarketDataUpdate captured;
+            adapter.on_market_data([&captured](const live::MarketDataUpdate& update) {
+                captured = update;
+            });
+            adapter.tickSize(ticker_id, field, DecimalFunctions::doubleToDecimal(size));
+            return captured;
+        }
     };
 #endif
 
@@ -210,6 +241,28 @@ namespace regimeflow::test
         const auto rejected = IBAdapterTestAccess::emit_order_status(adapter, "Rejected");
         EXPECT_EQ(rejected.status, live::LiveOrderStatus::Rejected);
     }
+
+    TEST(BrokerAdapterCapabilities, IbEmitsQuotesForBidAskUpdates) {
+        live::IBAdapter adapter(live::IBAdapter::Config{});
+        const auto symbol = SymbolRegistry::instance().intern("IBM");
+        IBAdapterTestAccess::register_ticker(adapter, 101, symbol);
+
+        const auto no_emit = IBAdapterTestAccess::emit_tick_price(adapter, 101, TickType::BID, 101.0);
+        EXPECT_FALSE(std::holds_alternative<data::Quote>(no_emit.data));
+
+        const auto quote_update = IBAdapterTestAccess::emit_tick_price(adapter, 101, TickType::ASK, 101.5);
+        ASSERT_TRUE(std::holds_alternative<data::Quote>(quote_update.data));
+        const auto& quote = std::get<data::Quote>(quote_update.data);
+        EXPECT_EQ(quote.symbol, symbol);
+        EXPECT_DOUBLE_EQ(quote.bid, 101.0);
+        EXPECT_DOUBLE_EQ(quote.ask, 101.5);
+
+        const auto sized_quote = IBAdapterTestAccess::emit_tick_size(adapter, 101, TickType::BID_SIZE, 12.0);
+        ASSERT_TRUE(std::holds_alternative<data::Quote>(sized_quote.data));
+        const auto& sized = std::get<data::Quote>(sized_quote.data);
+        EXPECT_DOUBLE_EQ(sized.bid_size, 12.0);
+        EXPECT_DOUBLE_EQ(sized.ask, 101.5);
+    }
 #endif
 
     TEST(BrokerAdapterFailures, AlpacaRequiresCredentialsBeforeConnect) {
@@ -293,11 +346,15 @@ namespace regimeflow::test
         const auto invalid_json = BrokerAdapterTestAccess::parse_alpaca_submit_order_id("not-json");
         ASSERT_TRUE(invalid_json.is_err());
         EXPECT_EQ(invalid_json.error().code, Error::Code::ParseError);
+        ASSERT_TRUE(invalid_json.error().details.has_value());
+        EXPECT_NE(invalid_json.error().details->find("category=schema"), std::string::npos);
 
         const auto missing_id = BrokerAdapterTestAccess::parse_alpaca_submit_order_id(R"({"status":"accepted"})");
         ASSERT_TRUE(missing_id.is_err());
         EXPECT_EQ(missing_id.error().code, Error::Code::ParseError);
         EXPECT_NE(missing_id.error().message.find("broker order id"), std::string::npos);
+        ASSERT_TRUE(missing_id.error().details.has_value());
+        EXPECT_NE(missing_id.error().details->find("category=schema"), std::string::npos);
     }
 
     TEST(BrokerAdapterFailures, BinanceRejectsSubmitWithoutConnection) {
@@ -347,10 +404,14 @@ namespace regimeflow::test
         const auto invalid_json = BrokerAdapterTestAccess::parse_binance_submit_order_id("not-json");
         ASSERT_TRUE(invalid_json.is_err());
         EXPECT_EQ(invalid_json.error().code, Error::Code::ParseError);
+        ASSERT_TRUE(invalid_json.error().details.has_value());
+        EXPECT_NE(invalid_json.error().details->find("category=schema"), std::string::npos);
 
         const auto missing_id = BrokerAdapterTestAccess::parse_binance_submit_order_id(R"({"status":"NEW"})");
         ASSERT_TRUE(missing_id.is_err());
         EXPECT_EQ(missing_id.error().code, Error::Code::ParseError);
         EXPECT_NE(missing_id.error().message.find("broker order id"), std::string::npos);
+        ASSERT_TRUE(missing_id.error().details.has_value());
+        EXPECT_NE(missing_id.error().details->find("category=schema"), std::string::npos);
     }
 }  // namespace regimeflow::test

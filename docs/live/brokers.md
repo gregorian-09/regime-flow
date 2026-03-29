@@ -124,13 +124,35 @@ Notes:
 - Secret values in `live.broker_config` can also be expressed as `vault://`, `aws-sm://`, `gcp-sm://`, or `azure-kv://` references and are resolved before the live engine starts.
 - Brokers are constructed at engine startup. Invalid config fields typically fail at connect time.
 - Capability tests now validate the supported time-in-force matrix for Alpaca, Binance, and IB.
-- Env-gated paper smoke tests are available through `ctest` for Alpaca, Binance, and IB.
+- Env-gated startup smoke tests are available through `ctest` for Alpaca, Binance, and IB.
+- Lifecycle validation now uses `regimeflow_live_validate` in either:
+  - `submit_cancel_reconcile`
+  - `fill_reconcile`
 
 ## Verification Status
 
-- `alpaca`: integrated into the live engine, capability-tested, env-gated paper smoke test available.
-- `binance`: integrated into the live engine, capability-tested, env-gated paper/demo smoke test available.
-- `ib`: integrated into the live engine, capability-tested when built with `ENABLE_IBAPI`, env-gated paper smoke test available.
+### Alpaca
+
+- `implemented`: yes
+- `startup-validated`: yes, via env-gated `ctest` smoke
+- `paper-validated`: manual `regimeflow_live_validate` run required
+- `production-validated`: no blanket claim; account, market-data entitlements, and venue behavior remain deployment-specific
+
+### Binance
+
+- `implemented`: yes
+- `startup-validated`: yes, via env-gated `ctest` smoke
+- `paper-validated`: manual `regimeflow_live_validate` run required for the exact Demo Mode or Testnet venue in use
+- `production-validated`: no blanket claim; venue filters, permissions, and live-venue behavior remain deployment-specific
+
+### Interactive Brokers
+
+- `implemented`: yes when built with `ENABLE_IBAPI`
+- `startup-validated`: yes, via env-gated `ctest` smoke when IB API support is compiled in
+- `paper-validated`: manual `regimeflow_live_validate` run required against the target TWS or Gateway session
+- `production-validated`: no blanket claim; exchange, account, jurisdiction, login, and TWS/Gateway behavior remain deployment-specific
+
+No broker is advertised as globally production-validated by the repository alone.
 
 ## Interactive Brokers Access Boundary
 

@@ -129,6 +129,17 @@ namespace regimeflow::live
          */
         std::optional<engine::OrderId> find_order_id_by_broker_id(
             const std::string& broker_order_id) const;
+        /**
+         * @brief Restore a broker order mapping during restart-time reconciliation.
+         * @param internal_id Previously assigned internal order ID.
+         * @param broker_order_id Broker-native order identifier.
+         * @param symbol Symbol string when known.
+         * @param status Last known order status.
+         */
+        void restore_order(engine::OrderId internal_id,
+                           std::string broker_order_id,
+                           std::string symbol,
+                           LiveOrderStatus status);
 
     private:
         void update_order_state(LiveOrder& order, const ExecutionReport& report);

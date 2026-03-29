@@ -36,3 +36,19 @@ export IB_PORT=7497
 export IB_CLIENT_ID=1
 ./build/bin/regimeflow_live --config examples/live_paper_ib/config.yaml
 ```
+
+Lifecycle validation before a longer paper session:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_ib/config.yaml \
+  --mode submit_cancel_reconcile --quantity 1
+```
+
+Optional round-trip fill validation on paper only:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_ib/config.yaml \
+  --mode fill_reconcile --quantity 1
+```

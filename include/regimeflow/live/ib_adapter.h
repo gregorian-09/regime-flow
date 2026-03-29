@@ -204,6 +204,7 @@ namespace regimeflow::live
         std::unordered_map<TickerId, SymbolId> ticker_to_symbol_;
         std::unordered_map<SymbolId, double> last_prices_;
         std::unordered_map<SymbolId, double> last_sizes_;
+        std::unordered_map<SymbolId, data::Quote> quote_state_;
         std::unordered_map<int64_t, ExecutionReport> open_orders_;
         std::unordered_map<int64_t, ::Contract> order_contracts_;
         std::unordered_map<SymbolId, Position> positions_;

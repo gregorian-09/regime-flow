@@ -95,6 +95,49 @@ namespace regimeflow::live
             return to_upper(std::move(value));
         }
 
+#ifdef REGIMEFLOW_USE_CURL
+        Error make_binance_transport_error(const char* operation, const CURLcode code) {
+            Error error(code == CURLE_OPERATION_TIMEDOUT ? Error::Code::TimeoutError
+                                                         : Error::Code::NetworkError,
+                        std::string("Binance ")
+                            .append(operation)
+                            .append(" transport failure: ")
+                            .append(curl_easy_strerror(code)));
+            error.details = std::string("category=")
+                .append(code == CURLE_OPERATION_TIMEDOUT ? "timeout" : "network")
+                .append(";operation=")
+                .append(operation)
+                .append(";curl_code=")
+                .append(std::to_string(static_cast<int>(code)));
+            return error;
+        }
+#endif
+
+        Error make_binance_http_error(const char* operation,
+                                      const long status,
+                                      const std::string& response) {
+            Error error;
+            if (status == 401 || status == 403) {
+                error = Error(Error::Code::BrokerError, "Binance authentication failed");
+                error.details = std::string("category=auth;operation=").append(operation);
+            } else if (status == 408 || status == 504) {
+                error = Error(Error::Code::TimeoutError, "Binance request timed out");
+                error.details = std::string("category=timeout;operation=").append(operation);
+            } else if (status == 429 || status == 418) {
+                error = Error(Error::Code::BrokerError, "Binance rate limit exceeded");
+                error.details = std::string("category=rate_limit;operation=").append(operation);
+            } else if (status >= 400 && status < 500) {
+                error = Error(Error::Code::BrokerError, "Binance rejected request");
+                error.details = std::string("category=rejection;operation=").append(operation);
+            } else {
+                error = Error(Error::Code::NetworkError, "Binance upstream HTTP failure");
+                error.details = std::string("category=network;operation=").append(operation);
+            }
+            error.details = error.details.value() + ";http_status=" + std::to_string(status)
+                + ";response=" + response;
+            return error;
+        }
+
         constexpr std::array<std::string_view, 6> kStableQuotes = {
             "USDT", "USDC", "FDUSD", "BUSD", "TUSD", "USD"
         };
@@ -549,10 +592,10 @@ namespace regimeflow::live
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
-            return Result<std::string>(Error(Error::Code::NetworkError, curl_easy_strerror(res)));
+            return Result<std::string>(make_binance_transport_error("rest_get", res));
         }
         if (status < 200 || status >= 300) {
-            return Result<std::string>(Error(Error::Code::NetworkError, "HTTP error: " + std::to_string(status)));
+            return Result<std::string>(make_binance_http_error("rest_get", status, response));
         }
         return Result<std::string>(response);
 #else
@@ -591,10 +634,10 @@ namespace regimeflow::live
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
-            return Result<std::string>(Error(Error::Code::NetworkError, curl_easy_strerror(res)));
+            return Result<std::string>(make_binance_transport_error("rest_post", res));
         }
         if (status < 200 || status >= 300) {
-            return Result<std::string>(Error(Error::Code::NetworkError, "HTTP error: " + std::to_string(status)));
+            return Result<std::string>(make_binance_http_error("rest_post", status, response));
         }
         return Result<std::string>(response);
 #else
@@ -632,10 +675,10 @@ namespace regimeflow::live
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
-            return Result<std::string>(Error(Error::Code::NetworkError, curl_easy_strerror(res)));
+            return Result<std::string>(make_binance_transport_error("rest_delete", res));
         }
         if (status < 200 || status >= 300) {
-            return Result<std::string>(Error(Error::Code::NetworkError, "HTTP error: " + std::to_string(status)));
+            return Result<std::string>(make_binance_http_error("rest_delete", status, response));
         }
         return Result<std::string>(response);
 #else
@@ -683,18 +726,21 @@ namespace regimeflow::live
     Result<std::string> BinanceAdapter::parse_submitted_order_id(const std::string& payload) {
         auto parsed = common::parse_json(payload);
         if (parsed.is_err()) {
-            return Result<std::string>(Error(Error::Code::ParseError,
-                                             "Unable to parse Binance submit response"));
+            Error error(Error::Code::ParseError, "Unable to parse Binance submit response");
+            error.details = "category=schema;operation=parse_submit_response";
+            return Result<std::string>(std::move(error));
         }
         auto* obj = parsed.value().as_object();
         if (!obj) {
-            return Result<std::string>(Error(Error::Code::ParseError,
-                                             "Binance submit response must be a JSON object"));
+            Error error(Error::Code::ParseError, "Binance submit response must be a JSON object");
+            error.details = "category=schema;operation=parse_submit_response";
+            return Result<std::string>(std::move(error));
         }
         const auto id = get_string(*obj, "orderId");
         if (id.empty()) {
-            return Result<std::string>(Error(Error::Code::ParseError,
-                                             "Binance submit response missing broker order id"));
+            Error error(Error::Code::ParseError, "Binance submit response missing broker order id");
+            error.details = "category=schema;operation=parse_submit_response";
+            return Result<std::string>(std::move(error));
         }
         return Result<std::string>(id);
     }
