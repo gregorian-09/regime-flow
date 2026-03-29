@@ -24,11 +24,17 @@
 #endif
 
 #include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <mutex>
 #include <optional>
 #include <thread>
 #include <unordered_map>
+
+namespace regimeflow::test
+{
+    class IBAdapterTestAccess;
+}
 
 namespace regimeflow::live
 {
@@ -97,6 +103,8 @@ namespace regimeflow::live
          * @brief Check connection status.
          */
         bool is_connected() const override;
+        [[nodiscard]] bool is_transport_connected() const;
+        [[nodiscard]] bool is_ready_for_orders() const;
 
         void subscribe_market_data(const std::vector<std::string>& symbols) override;
         void unsubscribe_market_data(const std::vector<std::string>& symbols) override;
@@ -154,6 +162,8 @@ namespace regimeflow::live
         void poll() override;
 
     private:
+        friend class ::regimeflow::test::IBAdapterTestAccess;
+
         [[nodiscard]] ::Contract build_contract(const std::string& symbol) const;
         ::Order build_order(const engine::Order& order, int64_t order_id) const;
 
@@ -182,12 +192,14 @@ namespace regimeflow::live
 
         Config config_;
         std::atomic<bool> connected_{false};
+        std::atomic<bool> trading_ready_{false};
         std::unique_ptr<EReaderOSSignal> reader_signal_;
         std::unique_ptr<EClientSocket> client_;
         std::unique_ptr<EReader> reader_;
         std::thread reader_thread_;
 
         std::mutex state_mutex_;
+        std::condition_variable state_cv_;
         int64_t next_order_id_ = -1;
         std::unordered_map<TickerId, SymbolId> ticker_to_symbol_;
         std::unordered_map<SymbolId, double> last_prices_;

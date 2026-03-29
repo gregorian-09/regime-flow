@@ -37,11 +37,26 @@ namespace regimeflow::live
             if (value == "PARTIALLYFILLED" || value == "PARTIALFILL") {
                 return LiveOrderStatus::PartiallyFilled;
             }
+            if (value == "PENDINGSUBMIT" || value == "APIPENDING") {
+                return LiveOrderStatus::PendingNew;
+            }
+            if (value == "PENDINGCANCEL") {
+                return LiveOrderStatus::PendingCancel;
+            }
             if (value == "CANCELLED" || value == "CANCELED") {
+                return LiveOrderStatus::Cancelled;
+            }
+            if (value == "APICANCELLED") {
                 return LiveOrderStatus::Cancelled;
             }
             if (value == "REJECTED") {
                 return LiveOrderStatus::Rejected;
+            }
+            if (value == "EXPIRED") {
+                return LiveOrderStatus::Expired;
+            }
+            if (value == "INACTIVE") {
+                return LiveOrderStatus::Inactive;
             }
             if (value == "SUBMITTED" || value == "PRESUBMITTED") {
                 return LiveOrderStatus::New;
@@ -121,34 +136,58 @@ namespace regimeflow::live
         if (!client_) {
             return Result<void>(Error(Error::Code::BrokerError, "IB client not initialized"));
         }
-        if (client_->isConnected()) {
+        if (client_->isConnected() && trading_ready_.load()) {
             connected_ = true;
             return Ok();
         }
+        {
+            std::lock_guard<std::mutex> lock(state_mutex_);
+            next_order_id_ = -1;
+        }
+        trading_ready_ = false;
         if (!client_->eConnect(config_.host.c_str(), config_.port, config_.client_id)) {
             return Result<void>(Error(Error::Code::BrokerError, "Failed to connect to IB TWS/Gateway"));
         }
         connected_ = true;
 
-        reader_ = std::make_unique<EReader>(client_.get(), reader_signal_.get());
-        reader_->start();
-        reader_thread_ = std::thread([this] {
-            while (connected_) {
-                reader_signal_->waitForSignal();
-                if (!connected_) {
-                    break;
+        if (!reader_thread_.joinable()) {
+            reader_ = std::make_unique<EReader>(client_.get(), reader_signal_.get());
+            reader_->start();
+            reader_thread_ = std::thread([this] {
+                while (connected_) {
+                    reader_signal_->waitForSignal();
+                    if (!connected_) {
+                        break;
+                    }
+                    reader_->processMsgs();
                 }
-                reader_->processMsgs();
-            }
-        });
+            });
+        }
 
+        client_->reqIds(-1);
         client_->reqAccountSummary(9001, "All", "NetLiquidation,TotalCashValue,BuyingPower");
         client_->reqPositions();
+        std::unique_lock<std::mutex> lock(state_mutex_);
+        const bool ready = state_cv_.wait_for(lock, std::chrono::seconds(5), [this] {
+            return trading_ready_.load() || !connected_.load();
+        });
+        lock.unlock();
+        if (!ready || !trading_ready_.load()) {
+            disconnect();
+            return Result<void>(Error(Error::Code::BrokerError,
+                                      "IB connection established but nextValidId was not received"));
+        }
         return Ok();
     }
 
     Result<void> IBAdapter::disconnect() {
         connected_ = false;
+        trading_ready_ = false;
+        {
+            std::lock_guard<std::mutex> lock(state_mutex_);
+            next_order_id_ = -1;
+        }
+        state_cv_.notify_all();
         if (client_ && client_->isConnected()) {
             client_->eDisconnect();
         }
@@ -159,7 +198,15 @@ namespace regimeflow::live
     }
 
     bool IBAdapter::is_connected() const {
+        return connected_.load() && trading_ready_.load();
+    }
+
+    bool IBAdapter::is_transport_connected() const {
         return connected_.load();
+    }
+
+    bool IBAdapter::is_ready_for_orders() const {
+        return connected_.load() && trading_ready_.load();
     }
 
     void IBAdapter::subscribe_market_data(const std::vector<std::string>& symbols) {
@@ -190,8 +237,8 @@ namespace regimeflow::live
     }
 
     Result<std::string> IBAdapter::submit_order(const engine::Order& order) {
-        if (!client_ || !client_->isConnected()) {
-            return Result<std::string>(Error(Error::Code::BrokerError, "Not connected"));
+        if (!client_ || !client_->isConnected() || !is_ready_for_orders()) {
+            return Result<std::string>(Error(Error::Code::BrokerError, "Not connected and ready for orders"));
         }
         int64_t order_id = -1;
         {
@@ -397,8 +444,12 @@ namespace regimeflow::live
     }
 
     void IBAdapter::nextValidId(const OrderId orderId) {
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        next_order_id_ = orderId;
+        {
+            std::lock_guard<std::mutex> lock(state_mutex_);
+            next_order_id_ = orderId;
+        }
+        trading_ready_ = true;
+        state_cv_.notify_all();
     }
 
     void IBAdapter::tickPrice(const TickerId tickerId, const TickType field, const double price,
@@ -470,10 +521,8 @@ namespace regimeflow::live
         report.broker_order_id = std::to_string(orderId);
         report.quantity = DecimalFunctions::decimalToDouble(filled);
         report.price = avgFillPrice;
-        report.status = status == "Filled" ? LiveOrderStatus::Filled
-                                           : (status == "PartiallyFilled"
-                                                  ? LiveOrderStatus::PartiallyFilled
-                                                  : LiveOrderStatus::New);
+        report.status = map_status(status);
+        report.text = status;
         report.timestamp = Timestamp::now();
         {
             std::lock_guard<std::mutex> lock(state_mutex_);
@@ -494,6 +543,7 @@ namespace regimeflow::live
         report.quantity = DecimalFunctions::decimalToDouble(order.totalQuantity);
         report.price = order.lmtPrice > 0 ? order.lmtPrice : order.auxPrice;
         report.status = map_status(orderState.status);
+        report.text = orderState.status;
         report.timestamp = Timestamp::now();
         {
             std::lock_guard<std::mutex> lock(state_mutex_);

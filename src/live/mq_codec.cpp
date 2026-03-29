@@ -57,6 +57,7 @@ namespace regimeflow::live
             case LiveOrderStatus::Cancelled: return "CANCELLED";
             case LiveOrderStatus::Rejected: return "REJECTED";
             case LiveOrderStatus::Expired: return "EXPIRED";
+            case LiveOrderStatus::Inactive: return "INACTIVE";
             case LiveOrderStatus::Error: return "ERROR";
             }
             return "NEW";
@@ -71,6 +72,7 @@ namespace regimeflow::live
             if (token == "CANCELLED") return LiveOrderStatus::Cancelled;
             if (token == "REJECTED") return LiveOrderStatus::Rejected;
             if (token == "EXPIRED") return LiveOrderStatus::Expired;
+            if (token == "INACTIVE") return LiveOrderStatus::Inactive;
             if (token == "ERROR") return LiveOrderStatus::Error;
             return LiveOrderStatus::New;
         }

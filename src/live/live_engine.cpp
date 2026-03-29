@@ -95,6 +95,7 @@ namespace regimeflow::live
             case LiveOrderStatus::Cancelled: return "Cancelled";
             case LiveOrderStatus::Rejected: return "Rejected";
             case LiveOrderStatus::Expired: return "Expired";
+            case LiveOrderStatus::Inactive: return "Inactive";
             case LiveOrderStatus::Error: return "Error";
             default: return "Unknown";
             }
@@ -1024,7 +1025,8 @@ namespace regimeflow::live
                 event.details = "Order cancelled";
                 event.metadata["broker_order_id"] = report.broker_order_id;
                 audit_logger_->log(event);
-            } else if (report.status == LiveOrderStatus::Rejected) {
+            } else if (report.status == LiveOrderStatus::Rejected ||
+                       report.status == LiveOrderStatus::Inactive) {
                 AuditEvent event;
                 event.timestamp = report.timestamp;
                 event.type = AuditEvent::Type::OrderRejected;

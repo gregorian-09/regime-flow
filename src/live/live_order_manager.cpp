@@ -17,6 +17,7 @@ namespace regimeflow::live
             case LiveOrderStatus::Cancelled: return "Cancelled";
             case LiveOrderStatus::Rejected: return "Rejected";
             case LiveOrderStatus::Expired: return "Expired";
+            case LiveOrderStatus::Inactive: return "Inactive";
             case LiveOrderStatus::Error: return "Error";
             default: return "Unknown";
             }
@@ -42,11 +43,13 @@ namespace regimeflow::live
                     || to == LiveOrderStatus::Expired || to == LiveOrderStatus::Error;
             case LiveOrderStatus::PendingCancel:
                 return to == LiveOrderStatus::Cancelled || to == LiveOrderStatus::Rejected
-                    || to == LiveOrderStatus::Expired || to == LiveOrderStatus::Error;
+                    || to == LiveOrderStatus::Expired || to == LiveOrderStatus::Inactive
+                    || to == LiveOrderStatus::Error;
             case LiveOrderStatus::Cancelled:
             case LiveOrderStatus::Rejected:
             case LiveOrderStatus::Filled:
             case LiveOrderStatus::Expired:
+            case LiveOrderStatus::Inactive:
             case LiveOrderStatus::Error:
                 return false;
             default:

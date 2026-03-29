@@ -28,6 +28,7 @@ namespace regimeflow::live
         Cancelled,
         Rejected,
         Expired,
+        Inactive,
         Error
     };
 

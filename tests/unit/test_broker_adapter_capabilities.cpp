@@ -8,6 +8,34 @@
 
 namespace regimeflow::test
 {
+#if defined(REGIMEFLOW_ENABLE_IBAPI)
+    class IBAdapterTestAccess {
+    public:
+        static void set_transport_connected(live::IBAdapter& adapter, const bool value) {
+            adapter.connected_ = value;
+        }
+
+        static void set_trading_ready(live::IBAdapter& adapter, const bool value) {
+            adapter.trading_ready_ = value;
+        }
+
+        static void deliver_next_valid_id(live::IBAdapter& adapter, const OrderId order_id) {
+            adapter.nextValidId(order_id);
+        }
+
+        static live::ExecutionReport emit_order_status(live::IBAdapter& adapter,
+                                                       const std::string& status) {
+            live::ExecutionReport captured;
+            adapter.on_execution_report([&captured](const live::ExecutionReport& report) {
+                captured = report;
+            });
+            const Decimal zero = DecimalFunctions::doubleToDecimal(0.0);
+            adapter.orderStatus(7, status, zero, zero, 101.25, 0, 0, 0.0, 0, "", 0.0);
+            return captured;
+        }
+    };
+#endif
+
     TEST(BrokerAdapterCapabilities, AlpacaEquitySupportsExpectedTifMatrix) {
         live::AlpacaAdapter::Config cfg;
         cfg.api_key = "key";
@@ -75,6 +103,29 @@ namespace regimeflow::test
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Limit, engine::TimeInForce::GTD));
     }
 
+    TEST(BrokerAdapterCapabilities, IbSeparatesTransportAndTradingReadyState) {
+        live::IBAdapter adapter(live::IBAdapter::Config{});
+
+        EXPECT_FALSE(adapter.is_transport_connected());
+        EXPECT_FALSE(adapter.is_ready_for_orders());
+        EXPECT_FALSE(adapter.is_connected());
+
+        IBAdapterTestAccess::set_transport_connected(adapter, true);
+        EXPECT_TRUE(adapter.is_transport_connected());
+        EXPECT_FALSE(adapter.is_ready_for_orders());
+        EXPECT_FALSE(adapter.is_connected());
+
+        IBAdapterTestAccess::deliver_next_valid_id(adapter, 42);
+        EXPECT_TRUE(adapter.is_transport_connected());
+        EXPECT_TRUE(adapter.is_ready_for_orders());
+        EXPECT_TRUE(adapter.is_connected());
+
+        IBAdapterTestAccess::set_trading_ready(adapter, false);
+        EXPECT_TRUE(adapter.is_transport_connected());
+        EXPECT_FALSE(adapter.is_ready_for_orders());
+        EXPECT_FALSE(adapter.is_connected());
+    }
+
     TEST(BrokerAdapterCapabilities, IbSupportsFxFuturesAndOptionsContractOverrides) {
         live::IBAdapter::Config cfg;
         cfg.default_contract.exchange = "SMART";
@@ -127,6 +178,26 @@ namespace regimeflow::test
         ASSERT_TRUE(option.strike.has_value());
         EXPECT_DOUBLE_EQ(*option.strike, 72.0);
         EXPECT_EQ(option.multiplier, "100");
+    }
+
+    TEST(BrokerAdapterCapabilities, IbMapsLifecycleStatusesExplicitly) {
+        live::IBAdapter adapter(live::IBAdapter::Config{});
+
+        const auto pending_cancel = IBAdapterTestAccess::emit_order_status(adapter, "PendingCancel");
+        EXPECT_EQ(pending_cancel.status, live::LiveOrderStatus::PendingCancel);
+        EXPECT_EQ(pending_cancel.text, "PendingCancel");
+
+        const auto expired = IBAdapterTestAccess::emit_order_status(adapter, "Expired");
+        EXPECT_EQ(expired.status, live::LiveOrderStatus::Expired);
+
+        const auto inactive = IBAdapterTestAccess::emit_order_status(adapter, "Inactive");
+        EXPECT_EQ(inactive.status, live::LiveOrderStatus::Inactive);
+
+        const auto cancelled = IBAdapterTestAccess::emit_order_status(adapter, "ApiCancelled");
+        EXPECT_EQ(cancelled.status, live::LiveOrderStatus::Cancelled);
+
+        const auto rejected = IBAdapterTestAccess::emit_order_status(adapter, "Rejected");
+        EXPECT_EQ(rejected.status, live::LiveOrderStatus::Rejected);
     }
 #endif
 
