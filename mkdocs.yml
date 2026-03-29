@@ -36,6 +36,7 @@ extra_javascript:
   - assets/katex-init.js
 extra_css:
   - assets/katex.min.css
+  - assets/diagram-theme.css
 plugins:
 - search
 exclude_docs: '_maintainer/*'
