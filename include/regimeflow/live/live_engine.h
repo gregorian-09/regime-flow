@@ -309,6 +309,7 @@ namespace regimeflow::live
         void handle_market_data(const MarketDataUpdate& update);
         void handle_execution_report(const ExecutionReport& report);
         void refresh_account_info();
+        void refresh_derived_account_state(Timestamp timestamp);
         void refresh_positions();
         void reconcile_orders() const;
         void apply_positions(const std::vector<Position>& positions, Timestamp timestamp);

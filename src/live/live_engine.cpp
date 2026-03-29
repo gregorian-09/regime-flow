@@ -622,16 +622,18 @@ namespace regimeflow::live
         portfolio_ = std::make_unique<engine::Portfolio>(account.equity);
         portfolio_->configure_margin(config_.account_margin);
         last_account_info_ = account;
-        daily_start_equity_ = account.equity;
+        daily_start_equity_ = 0.0;
         daily_pnl_ = 0.0;
-        portfolio_->set_cash(account.cash, Timestamp::now());
-        if (live_metrics_) {
-            live_metrics_->start(account.equity);
-            live_metrics_->update(Timestamp::now(), account.equity, daily_pnl_);
-        }
+        const Timestamp startup_ts = Timestamp::now();
+        portfolio_->set_cash(account.cash, startup_ts);
 
         auto positions = broker_->get_positions();
-        apply_positions(positions, Timestamp::now());
+        apply_positions(positions, startup_ts);
+        refresh_derived_account_state(startup_ts);
+        if (live_metrics_) {
+            live_metrics_->start(last_account_info_.equity);
+            live_metrics_->update(startup_ts, last_account_info_.equity, daily_pnl_);
+        }
 
         if (strategy_) {
             strategy_ctx_ = std::make_unique<strategy::StrategyContext>(&strategy_order_manager_,
@@ -992,6 +994,7 @@ namespace regimeflow::live
             (void)updated_regime;
         }, update.data);
         if (snapshot_updated) {
+            refresh_derived_account_state(snapshot_time);
             update_dashboard_snapshot();
         }
     }
@@ -1087,23 +1090,41 @@ namespace regimeflow::live
         }
         auto info = broker_->get_account_info();
         last_account_info_ = info;
+        const Timestamp now = Timestamp::now();
         if (portfolio_) {
-            portfolio_->set_cash(info.cash, Timestamp::now());
+            portfolio_->set_cash(info.cash, now);
         }
-        if (daily_start_equity_ <= 0.0 && info.equity > 0.0) {
-            daily_start_equity_ = info.equity;
-        }
-        if (daily_start_equity_ > 0.0) {
-            daily_pnl_ = info.equity - daily_start_equity_;
-        }
-        if (live_metrics_) {
-            live_metrics_->update(Timestamp::now(), info.equity, daily_pnl_);
-        }
-        check_daily_loss_limit();
+        refresh_derived_account_state(now);
         if (portfolio_) {
-            portfolio_->record_snapshot(Timestamp::now());
+            portfolio_->record_snapshot(now);
         }
         update_dashboard_snapshot();
+    }
+
+    void LiveTradingEngine::refresh_derived_account_state(const Timestamp timestamp) {
+        if (!portfolio_) {
+            return;
+        }
+
+        if (config_.broker_type == "binance") {
+            last_account_info_.equity = std::max(portfolio_->equity(), last_account_info_.cash);
+            if (last_account_info_.buying_power <= 0.0) {
+                last_account_info_.buying_power = last_account_info_.cash;
+            }
+        } else if (last_account_info_.equity <= 0.0) {
+            last_account_info_.equity = portfolio_->equity();
+        }
+
+        if (daily_start_equity_ <= 0.0 && last_account_info_.equity > 0.0) {
+            daily_start_equity_ = last_account_info_.equity;
+        }
+        if (daily_start_equity_ > 0.0) {
+            daily_pnl_ = last_account_info_.equity - daily_start_equity_;
+        }
+        if (live_metrics_) {
+            live_metrics_->update(timestamp, last_account_info_.equity, daily_pnl_);
+        }
+        check_daily_loss_limit();
     }
 
     void LiveTradingEngine::refresh_positions() {
@@ -1162,6 +1183,7 @@ namespace regimeflow::live
             mapped[symbol_id] = pos;
         }
         portfolio_->replace_positions(mapped, timestamp);
+        refresh_derived_account_state(timestamp);
         enforce_portfolio_limits("position_reconcile");
         portfolio_->record_snapshot(timestamp);
         update_dashboard_snapshot();
@@ -1188,6 +1210,7 @@ namespace regimeflow::live
         }
         portfolio_->set_position(symbol_id, position.quantity, position.average_price,
                                  current_price, timestamp);
+        refresh_derived_account_state(timestamp);
         enforce_portfolio_limits("position_update");
         portfolio_->record_snapshot(timestamp);
         update_dashboard_snapshot();

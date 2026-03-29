@@ -4,6 +4,7 @@
 #include "regimeflow/common/types.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <sstream>
 #include <mutex>
@@ -93,6 +94,10 @@ namespace regimeflow::live
         std::string normalize_symbol(std::string value) {
             return to_upper(std::move(value));
         }
+
+        constexpr std::array<std::string_view, 6> kStableQuotes = {
+            "USDT", "USDC", "FDUSD", "BUSD", "TUSD", "USD"
+        };
 
         LiveOrderStatus map_order_status(std::string value) {
             value = to_upper(std::move(value));
@@ -324,22 +329,43 @@ namespace regimeflow::live
         }
         if (auto* balances = find_field(*obj, "balances"); balances && balances->as_array()) {
             double cash = 0.0;
+            double equity = 0.0;
             for (const auto& entry : *balances->as_array()) {
                 auto* bal = entry.as_object();
                 if (!bal) {
                     continue;
                 }
-                std::string asset = get_string(*bal, "asset");
+                std::string asset = normalize_symbol(get_string(*bal, "asset"));
                 double free_amt = 0.0;
                 double locked_amt = 0.0;
                 get_number(*bal, "free", free_amt);
                 get_number(*bal, "locked", locked_amt);
-                if (asset == "USDT" || asset == "USD") {
-                    cash += free_amt + locked_amt;
+                const double total = free_amt + locked_amt;
+                if (total <= 0.0) {
+                    continue;
+                }
+                bool is_cash_asset = false;
+                for (const auto quote : kStableQuotes) {
+                    if (asset == quote) {
+                        is_cash_asset = true;
+                        break;
+                    }
+                }
+                if (is_cash_asset) {
+                    cash += total;
+                    equity += total;
+                    continue;
+                }
+                const std::string resolved_symbol = resolve_balance_symbol(asset);
+                if (resolved_symbol.empty()) {
+                    continue;
+                }
+                if (const auto price = fetch_public_price(resolved_symbol)) {
+                    equity += total * *price;
                 }
             }
             info.cash = cash;
-            info.equity = cash;
+            info.equity = equity > 0.0 ? equity : cash;
             info.buying_power = cash;
         }
         return info;
@@ -374,6 +400,7 @@ namespace regimeflow::live
             if (!bal) {
                 continue;
             }
+            const std::string asset = normalize_symbol(get_string(*bal, "asset"));
             double free_amt = 0.0;
             double locked_amt = 0.0;
             get_number(*bal, "free", free_amt);
@@ -383,8 +410,14 @@ namespace regimeflow::live
                 continue;
             }
             Position pos;
-            pos.symbol = get_string(*bal, "asset");
+            const std::string resolved_symbol = resolve_balance_symbol(asset);
+            pos.symbol = resolved_symbol.empty() ? asset : resolved_symbol;
             pos.quantity = total;
+            if (!resolved_symbol.empty()) {
+                if (const auto price = fetch_public_price(resolved_symbol)) {
+                    pos.market_value = total * *price;
+                }
+            }
             out.push_back(pos);
             if (position_cb_) {
                 position_cb_(pos);
@@ -648,6 +681,51 @@ namespace regimeflow::live
         (void)query;
         return Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing");
 #endif
+    }
+
+    std::string BinanceAdapter::resolve_balance_symbol(const std::string& asset) const {
+        if (asset.empty()) {
+            return {};
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            for (const auto& configured : raw_symbols_) {
+                const std::string symbol = normalize_symbol(configured);
+                if (symbol.rfind(asset, 0) != 0) {
+                    continue;
+                }
+                for (const auto quote : kStableQuotes) {
+                    if (symbol.size() > asset.size() && symbol.ends_with(quote)) {
+                        return symbol;
+                    }
+                }
+            }
+        }
+        return {};
+    }
+
+    std::optional<double> BinanceAdapter::fetch_public_price(const std::string& symbol) const {
+        if (symbol.empty()) {
+            return std::nullopt;
+        }
+        const auto response = rest_get("/api/v3/ticker/price?symbol=" + symbol);
+        if (response.is_err()) {
+            return std::nullopt;
+        }
+        auto parsed = common::parse_json(response.value());
+        if (parsed.is_err()) {
+            return std::nullopt;
+        }
+        const auto* obj = parsed.value().as_object();
+        if (!obj) {
+            return std::nullopt;
+        }
+        double price = 0.0;
+        if (!get_number(*obj, "price", price) || price <= 0.0) {
+            return std::nullopt;
+        }
+        return price;
     }
 
     void BinanceAdapter::handle_stream_message(const std::string& msg) const

@@ -404,6 +404,12 @@ namespace regimeflow::test
         cfg.account_refresh_interval = Duration::milliseconds(20);
         cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_binance_position_map_test").string();
 
+        live::AccountInfo info;
+        info.equity = 10000.0;
+        info.cash = 10000.0;
+        info.buying_power = 10000.0;
+        broker_ptr->set_account_info(info);
+
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
         auto start_res = engine->start();
         ASSERT_TRUE(start_res.is_ok());
@@ -412,6 +418,7 @@ namespace regimeflow::test
         pos.symbol = "BTC";
         pos.quantity = 1.5;
         pos.average_price = 42000.0;
+        pos.market_value = 63000.0;
         broker_ptr->set_positions({pos});
 
         auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
@@ -421,6 +428,8 @@ namespace regimeflow::test
             if (!snapshot.positions.empty()) {
                 ASSERT_EQ(snapshot.positions.size(), 1u);
                 EXPECT_EQ(SymbolRegistry::instance().lookup(snapshot.positions.front().symbol), "BTCUSDT");
+                EXPECT_GE(snapshot.equity, 73000.0 - 1e-6);
+                EXPECT_GE(engine->get_status().equity, 73000.0 - 1e-6);
                 resolved = true;
                 break;
             }

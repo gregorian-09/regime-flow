@@ -149,11 +149,13 @@ namespace regimeflow::live
         [[nodiscard]] Result<std::string> signed_delete(const std::string& path, const std::string& query) const;
 
         [[nodiscard]] std::string build_trade_stream_symbol(const std::string& symbol) const;
+        [[nodiscard]] std::string resolve_balance_symbol(const std::string& asset) const;
+        [[nodiscard]] std::optional<double> fetch_public_price(const std::string& symbol) const;
         void handle_stream_message(const std::string& msg) const;
 
         Config config_;
         std::atomic<bool> connected_{false};
-        std::mutex mutex_;
+        mutable std::mutex mutex_;
         std::vector<std::string> symbols_;
         std::vector<std::string> raw_symbols_;
         std::unordered_map<std::string, std::string> order_symbols_;
