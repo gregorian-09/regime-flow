@@ -10,6 +10,7 @@
 #include "regimeflow/strategy/strategy_factory.h"
 
 #include <chrono>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -30,11 +31,23 @@
 namespace regimeflow::live
 {
     namespace {
-#if defined(REGIMEFLOW_ENABLE_IBAPI)
         bool starts_with(const std::string_view value, const std::string_view prefix) {
             return value.size() >= prefix.size() && value.substr(0, prefix.size()) == prefix;
         }
 
+        std::string to_upper(std::string value) {
+            for (auto& c : value) {
+                c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+            }
+            return value;
+        }
+
+        bool ends_with(const std::string_view value, const std::string_view suffix) {
+            return value.size() >= suffix.size()
+                && value.substr(value.size() - suffix.size()) == suffix;
+        }
+
+#if defined(REGIMEFLOW_ENABLE_IBAPI)
         bool parse_bool(const std::string& value) {
             return value == "true" || value == "1" || value == "yes" || value == "on";
         }
@@ -85,6 +98,61 @@ namespace regimeflow::live
             case LiveOrderStatus::Error: return "Error";
             default: return "Unknown";
             }
+        }
+
+        std::string resolve_live_position_symbol(const LiveConfig& config,
+                                                 const std::string& broker_symbol) {
+            if (broker_symbol.empty()) {
+                return {};
+            }
+
+            const std::string normalized_symbol = to_upper(broker_symbol);
+            if (config.broker_type != "binance") {
+                return normalized_symbol;
+            }
+
+            for (const auto& configured : config.symbols) {
+                if (to_upper(configured) == normalized_symbol) {
+                    return to_upper(configured);
+                }
+            }
+
+            static constexpr std::array<std::string_view, 6> quote_assets = {
+                "USDT", "USDC", "FDUSD", "BUSD", "TUSD", "USD"
+            };
+            for (const auto quote : quote_assets) {
+                if (normalized_symbol == quote) {
+                    return {};
+                }
+            }
+
+            std::string resolved;
+            size_t matches = 0;
+            for (const auto& configured : config.symbols) {
+                const std::string configured_upper = to_upper(configured);
+                if (!starts_with(configured_upper, normalized_symbol)) {
+                    continue;
+                }
+                const std::string_view suffix(configured_upper.data() + normalized_symbol.size(),
+                                              configured_upper.size() - normalized_symbol.size());
+                bool supported_quote = false;
+                for (const auto quote : quote_assets) {
+                    if (suffix == quote || ends_with(configured_upper, quote)) {
+                        supported_quote = true;
+                        break;
+                    }
+                }
+                if (!supported_quote) {
+                    continue;
+                }
+                resolved = configured_upper;
+                ++matches;
+            }
+
+            if (matches == 1) {
+                return resolved;
+            }
+            return {};
         }
 
         Timestamp best_order_timestamp(const LiveOrder& order) {
@@ -1073,7 +1141,11 @@ namespace regimeflow::live
             if (position.symbol.empty() || position.quantity == 0.0) {
                 continue;
             }
-            SymbolId symbol_id = SymbolRegistry::instance().intern(position.symbol);
+            const std::string resolved_symbol = resolve_live_position_symbol(config_, position.symbol);
+            if (resolved_symbol.empty()) {
+                continue;
+            }
+            SymbolId symbol_id = SymbolRegistry::instance().intern(resolved_symbol);
             engine::Position pos;
             pos.symbol = symbol_id;
             pos.quantity = position.quantity;
@@ -1102,7 +1174,11 @@ namespace regimeflow::live
         if (position.symbol.empty()) {
             return;
         }
-        SymbolId symbol_id = SymbolRegistry::instance().intern(position.symbol);
+        const std::string resolved_symbol = resolve_live_position_symbol(config_, position.symbol);
+        if (resolved_symbol.empty()) {
+            return;
+        }
+        SymbolId symbol_id = SymbolRegistry::instance().intern(resolved_symbol);
         Price current_price = position.average_price;
         auto price_it = last_prices_.find(symbol_id);
         if (price_it != last_prices_.end()) {

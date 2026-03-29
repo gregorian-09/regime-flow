@@ -389,6 +389,48 @@ namespace regimeflow::test
         engine->stop();
     }
 
+    TEST(LiveEngineIntegration, BinanceAssetPositionsResolveToConfiguredTradingSymbol) {
+        strategy::StrategyFactory::instance().register_creator(
+            "noop_binance_positions", [](const Config&) { return std::make_unique<NoopStrategy>(); });
+        auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "binance";
+        cfg.strategy_name = "noop_binance_positions";
+        cfg.strategy_config.set("type", "noop_binance_positions");
+        cfg.symbols = {"BTCUSDT"};
+        cfg.position_reconcile_interval = Duration::milliseconds(20);
+        cfg.account_refresh_interval = Duration::milliseconds(20);
+        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_binance_position_map_test").string();
+
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        auto start_res = engine->start();
+        ASSERT_TRUE(start_res.is_ok());
+
+        live::Position pos;
+        pos.symbol = "BTC";
+        pos.quantity = 1.5;
+        pos.average_price = 42000.0;
+        broker_ptr->set_positions({pos});
+
+        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
+        bool resolved = false;
+        while (std::chrono::steady_clock::now() < deadline) {
+            const auto snapshot = engine->get_dashboard_snapshot();
+            if (!snapshot.positions.empty()) {
+                ASSERT_EQ(snapshot.positions.size(), 1u);
+                EXPECT_EQ(SymbolRegistry::instance().lookup(snapshot.positions.front().symbol), "BTCUSDT");
+                resolved = true;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        EXPECT_TRUE(resolved);
+        engine->stop();
+    }
+
     TEST(LiveEngineIntegration, DashboardCallbackReceivesSnapshot) {
         strategy::StrategyFactory::instance().register_creator(
             "noop_dashboard", [](const Config&) { return std::make_unique<NoopStrategy>(); });
