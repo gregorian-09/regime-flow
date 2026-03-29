@@ -17,7 +17,9 @@ Related diagrams:
 | `regimeflow/strategy/strategy_factory.h` | Factory for strategy construction. |
 | `regimeflow/strategy/strategy_manager.h` | Strategy lifecycle orchestration. |
 | `regimeflow/strategy/strategies/buy_and_hold.h` | Built-in buy-and-hold example. |
+| `regimeflow/strategy/strategies/harmonic_pattern.h` | Built-in harmonic-pattern strategy. |
 | `regimeflow/strategy/strategies/moving_average_cross.h` | Built-in MA cross example. |
+| `regimeflow/strategy/strategies/pairs_trading.h` | Built-in pairs-trading strategy. |
 
 ## Type Index
 

@@ -70,6 +70,7 @@ nav:
     - Resilience: live/resilience.md
   - Reference:
     - Configuration: reference/configuration.md
+    - Environment And Flags: reference/environment-and-flags.md
     - Data Validation: reference/data-validation.md
     - Config Cheat Sheet: reference/config-cheatsheet.md
     - Broker Message Types: reference/broker-message-types.md
@@ -93,6 +94,8 @@ nav:
       - Python: api/python.md
       - Metrics Validation: api/python-metrics-validation.md
       - Full File Index: api/file-index.md
+      - Public Symbol Index: api/public-symbol-index.md
+      - Coverage Audit: api/coverage-audit.md
   - Tutorials:
     - Examples: tutorials/examples.md
     - Python Usage: tutorials/python-usage.md

@@ -25,6 +25,8 @@ This section is the canonical, JavaDoc-style reference for the RegimeFlow API su
 - [Walk-Forward](walkforward.md)
 - [Python](python.md)
 - [Full File Index](file-index.md)
+- [Public Symbol Index](public-symbol-index.md)
+- [Coverage Audit](coverage-audit.md)
 
 ## System Diagrams
 

@@ -61,6 +61,7 @@ This index lists every public header under `include/regimeflow/**` and serves as
 - `regimeflow/engine/backtest_engine.h`
 - `regimeflow/engine/backtest_results.h`
 - `regimeflow/engine/backtest_runner.h`
+- `regimeflow/engine/dashboard_snapshot.h`
 - `regimeflow/engine/engine_factory.h`
 - `regimeflow/engine/event_generator.h`
 - `regimeflow/engine/event_loop.h`
@@ -69,6 +70,9 @@ This index lists every public header under `include/regimeflow/**` and serves as
 - `regimeflow/engine/order.h`
 - `regimeflow/engine/order_book_cache.h`
 - `regimeflow/engine/order_manager.h`
+- `regimeflow/engine/order_routing.h`
+- `regimeflow/engine/parity_checker.h`
+- `regimeflow/engine/parity_report.h`
 - `regimeflow/engine/portfolio.h`
 - `regimeflow/engine/regime_tracker.h`
 - `regimeflow/engine/timer_service.h`
@@ -107,12 +111,14 @@ This index lists every public header under `include/regimeflow/**` and serves as
 - `regimeflow/live/live_order_manager.h`
 - `regimeflow/live/mq_adapter.h`
 - `regimeflow/live/mq_codec.h`
+- `regimeflow/live/secret_hygiene.h`
 - `regimeflow/live/types.h`
 
 ## Metrics
 
 - `regimeflow/metrics/attribution.h`
 - `regimeflow/metrics/drawdown.h`
+- `regimeflow/metrics/live_performance.h`
 - `regimeflow/metrics/metrics_tracker.h`
 - `regimeflow/metrics/performance.h`
 - `regimeflow/metrics/performance_calculator.h`
@@ -153,7 +159,9 @@ This index lists every public header under `include/regimeflow/**` and serves as
 
 - `regimeflow/strategy/context.h`
 - `regimeflow/strategy/strategies/buy_and_hold.h`
+- `regimeflow/strategy/strategies/harmonic_pattern.h`
 - `regimeflow/strategy/strategies/moving_average_cross.h`
+- `regimeflow/strategy/strategies/pairs_trading.h`
 - `regimeflow/strategy/strategy.h`
 - `regimeflow/strategy/strategy_factory.h`
 - `regimeflow/strategy/strategy_manager.h`

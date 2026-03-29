@@ -23,6 +23,7 @@ Related diagrams:
 | `regimeflow/live/live_order_manager.h` | Live order lifecycle management. |
 | `regimeflow/live/mq_adapter.h` | Message bus adapter (Kafka/Redis Streams). |
 | `regimeflow/live/mq_codec.h` | Serialization/codec for MQ payloads. |
+| `regimeflow/live/secret_hygiene.h` | Secret loading, secret-manager resolution, and redaction helpers. |
 | `regimeflow/live/types.h` | Shared live types and enums. |
 
 ## Type Index
@@ -34,12 +35,14 @@ Related diagrams:
 | `LiveOrderManager` | Tracks broker order state. |
 | `EventBus` | Pub/sub for live events. |
 | `MQAdapter` | Message bus integration. |
+| `Secret hygiene helpers` | Runtime secret loading, resolution, and log redaction. |
 | `AlpacaAdapter`, `IbAdapter`, `BinanceAdapter` | Broker-specific adapters. |
 
 ## Lifecycle & Usage Notes
 
 - `LiveEngine` uses `BrokerAdapter` and `LiveOrderManager` to ensure consistent lifecycle.
 - The `MQAdapter` is designed for external durability and downstream analytics.
+- `secret_hygiene.h` is the runtime boundary for env, `*_FILE`, and secret-manager sourced credentials.
 - Adapter implementations must honor the reconnection/backoff policies in `live-resiliency` docs.
 
 ## Type Details
@@ -198,6 +201,24 @@ Trade execution payload.
 ### `AuditEvent`
 
 Live audit log event payload for compliance logging.
+
+### `Secret Hygiene`
+
+Helper layer for runtime secret loading and redaction in live tooling.
+
+Key APIs:
+
+| API | Description |
+| --- | --- |
+| `read_secret_env(key)` | Read `KEY` or `KEY_FILE`. |
+| `is_secret_reference(value)` | Detect `vault://`, `aws-sm://`, `gcp-sm://`, or `azure-kv://` references. |
+| `resolve_secret_reference(value)` | Resolve a single secret-manager reference. |
+| `resolve_secret_config(values)` | Resolve secret references inside a broker config map. |
+| `is_sensitive_secret_key(key)` | Classify config keys that should be treated as sensitive. |
+| `register_sensitive_value(value)` | Register one secret for later redaction. |
+| `register_sensitive_config(values)` | Register all sensitive values from a config map. |
+| `redact_sensitive_values(message)` | Replace registered secrets with `***` in logs and errors. |
+| `reset_sensitive_values_for_tests()` | Clear the redaction registry for tests. |
 
 ### `AlpacaAdapter` / `IBAdapter` / `BinanceAdapter`
 

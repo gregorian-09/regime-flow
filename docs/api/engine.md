@@ -17,6 +17,7 @@ Related diagrams:
 | `regimeflow/engine/backtest_engine.h` | Backtest engine coordinator. |
 | `regimeflow/engine/backtest_results.h` | Backtest result container and summaries. |
 | `regimeflow/engine/backtest_runner.h` | High-level runner for repeated backtests. |
+| `regimeflow/engine/dashboard_snapshot.h` | Shared dashboard snapshot types and rendering helpers. |
 | `regimeflow/engine/engine_factory.h` | Engine factory and dependency wiring. |
 | `regimeflow/engine/event_generator.h` | Generates events from data sources. |
 | `regimeflow/engine/event_loop.h` | Main event loop and dispatch. |
@@ -25,6 +26,9 @@ Related diagrams:
 | `regimeflow/engine/order.h` | Order model and helpers. |
 | `regimeflow/engine/order_book_cache.h` | In-memory order book cache. |
 | `regimeflow/engine/order_manager.h` | Order lifecycle management. |
+| `regimeflow/engine/order_routing.h` | Smart routing config, routing plans, and router interfaces. |
+| `regimeflow/engine/parity_checker.h` | Backtest/live configuration parity checks. |
+| `regimeflow/engine/parity_report.h` | Structured parity-check results and status enums. |
 | `regimeflow/engine/portfolio.h` | Portfolio state and accounting. |
 | `regimeflow/engine/regime_tracker.h` | Regime state tracking and transitions. |
 | `regimeflow/engine/timer_service.h` | Scheduled callbacks and timers. |
@@ -35,9 +39,12 @@ Related diagrams:
 | --- | --- |
 | `BacktestEngine` | Orchestrates backtest data ingestion and strategy execution. |
 | `BacktestRunner` | Repeats backtests for parameter sweeps. |
+| `DashboardSnapshot` | Shared snapshot contract for terminal and browser dashboards. |
 | `EventLoop` | Single-threaded event processing pipeline. |
 | `ExecutionPipeline` | Bridges strategies to execution models. |
 | `OrderManager` | Validates, routes, and tracks orders. |
+| `RoutingConfig` / `OrderRouter` / `SmartOrderRouter` | Smart order routing configuration and planning. |
+| `ParityChecker` / `ParityReport` | Compare backtest and live config parity before deployment. |
 | `Portfolio` | PnL, positions, and cash accounting. |
 | `RegimeTracker` | Tracks regime signals and transition stats. |
 | `TimerService` | Timers for heartbeat, sampling, and periodic tasks. |
@@ -47,6 +54,8 @@ Related diagrams:
 - `EngineFactory` should be the only constructor of `BacktestEngine` or `LiveEngine` to ensure consistent wiring.
 - `EventGenerator` drives the `EventLoop` with market data events.
 - The `ExecutionPipeline` is the hand-off between strategy decisions and execution models.
+- `DashboardSnapshot` is the shared payload contract for the strategy tester and dashboard exporters.
+- `ParityChecker` is the pre-deployment guard for backtest/live configuration drift.
 - `AuditLog` is used for both live and backtest runs to guarantee traceability.
 
 ## Type Details
@@ -301,6 +310,57 @@ Throws: None.
 Parameters: None.
 Returns: `void`.
 Throws: None.
+
+### `DashboardSnapshot` / `DashboardSetup` / `DashboardVenueSummary`
+
+Shared dashboard payloads used by terminal and browser-facing strategy tester views.
+
+Key helpers:
+
+| Helper | Description |
+| --- | --- |
+| `summarize_dashboard_venues(fills)` | Aggregate venue rows from fills. |
+| `make_dashboard_snapshot(results)` | Build a shared snapshot from backtest results. |
+| `dashboard_snapshot_to_json(snapshot)` | Serialize snapshot for UI consumers. |
+| `render_dashboard_terminal(snapshot, options)` | Render a terminal-style dashboard. |
+
+### `RoutingConfig` / `RoutingContext` / `RoutingPlan`
+
+Smart-routing configuration and plan payloads used by the execution pipeline.
+
+Key fields:
+
+| Field | Description |
+| --- | --- |
+| `RoutingConfig::mode` | Routing mode (`none` or `smart`). |
+| `RoutingConfig::split_mode` | Child-order split behavior. |
+| `RoutingConfig::parent_aggregation` | Parent-fill aggregation behavior. |
+| `RoutingConfig::venues` | Venue weights and venue-level overrides. |
+| `RoutingContext::bid/ask/last` | Market snapshot used for routing decisions. |
+| `RoutingPlan::children` | Child orders produced by routing or splitting. |
+
+### `OrderRouter` / `SmartOrderRouter`
+
+Router interfaces that transform an input order plus market context into a routing plan.
+
+Methods:
+
+| Method | Description |
+| --- | --- |
+| `route(order, ctx)` | Return the routed parent order and optional child orders. |
+
+### `ParityChecker` / `ParityReport`
+
+Utilities for validating whether a live config remains operationally aligned with a backtest config.
+
+Key APIs:
+
+| API | Description |
+| --- | --- |
+| `ParityChecker::check(backtest, live)` | Compare in-memory configs. |
+| `ParityChecker::check_files(backtest_path, live_path)` | Compare YAML files directly. |
+| `ParityReport::status_name()` | Return `pass`, `warn`, or `fail`. |
+| `ParityReport::ok()` | True only when parity status is `Pass`. |
 
 ### `BacktestRunner`
 

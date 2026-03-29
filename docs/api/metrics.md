@@ -14,6 +14,7 @@ Related diagrams:
 | --- | --- |
 | `regimeflow/metrics/attribution.h` | Return attribution helpers. |
 | `regimeflow/metrics/drawdown.h` | Drawdown calculations. |
+| `regimeflow/metrics/live_performance.h` | Live-vs-baseline performance tracking and export. |
 | `regimeflow/metrics/metrics_tracker.h` | Metrics tracking coordinator. |
 | `regimeflow/metrics/performance.h` | Performance data structures. |
 | `regimeflow/metrics/performance_calculator.h` | Computes metrics from trades and equity curve. |
@@ -29,6 +30,7 @@ Related diagrams:
 | Type | Description |
 | --- | --- |
 | `MetricsTracker` | Coordinates metric computation. |
+| `LivePerformanceTracker` | Tracks live drift against a baseline backtest report. |
 | `PerformanceCalculator` | Computes returns, drawdowns, ratios. |
 | `PerformanceMetric` | Interface for metric plugins. |
 | `RegimeAttribution` | Attribution by regime. |
@@ -38,6 +40,7 @@ Related diagrams:
 ## Lifecycle & Usage Notes
 
 - Metrics are typically computed at end-of-run or on periodic snapshots.
+- `LivePerformanceTracker` is the live-mode counterpart used for drift and drawdown export.
 - Transition metrics integrate with `RegimeTracker` in the engine.
 
 ## Type Details
@@ -94,6 +97,25 @@ Methods:
 | --- | --- |
 | `name()` | Metric name. |
 | `compute(curve, periods_per_year)` | Compute metric value. |
+
+### `LivePerformanceConfig` / `LivePerformanceSnapshot` / `LivePerformanceSummary`
+
+Configuration and snapshot payloads for live-vs-baseline monitoring.
+
+### `LivePerformanceTracker`
+
+Tracks live equity and shortfall against a baseline report and writes configured sinks.
+
+Methods:
+
+| Method | Description |
+| --- | --- |
+| `LivePerformanceTracker(config)` | Construct tracker. |
+| `start(initial_equity)` | Initialize peak and starting equity state. |
+| `update(timestamp, equity, daily_pnl)` | Record a live performance snapshot. |
+| `flush()` | Flush outputs to configured sinks. |
+| `summary()` | Access current summary. |
+| `config()` | Access tracker config. |
 
 ### `RegimeAttribution`
 
