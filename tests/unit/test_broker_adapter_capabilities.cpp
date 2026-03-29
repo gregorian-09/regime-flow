@@ -58,6 +58,7 @@ namespace regimeflow::test
         EXPECT_FALSE(adapter.supports_tif(engine::OrderType::Limit, engine::TimeInForce::Day));
         EXPECT_FALSE(adapter.supports_tif(engine::OrderType::Limit, engine::TimeInForce::GTD));
 
+        EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::Day));
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::IOC));
         EXPECT_FALSE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::GTC));
         EXPECT_FALSE(adapter.supports_tif(engine::OrderType::Stop, engine::TimeInForce::IOC));
@@ -229,6 +230,23 @@ namespace regimeflow::test
         const auto result = adapter.submit_order(order);
 
         EXPECT_TRUE(result.is_err());
+        EXPECT_TRUE(adapter.disconnect().is_ok());
+    }
+
+    TEST(BrokerAdapterFailures, BinanceCancelRequiresKnownOrderSymbolMapping) {
+        live::BinanceAdapter::Config cfg;
+        cfg.api_key = "key";
+        cfg.secret_key = "secret";
+        cfg.enable_streaming = false;
+        live::BinanceAdapter adapter(std::move(cfg));
+
+        ASSERT_TRUE(adapter.connect().is_ok());
+        adapter.subscribe_market_data({"BTCUSDT", "ETHUSDT"});
+
+        const auto result = adapter.cancel_order("12345");
+
+        ASSERT_TRUE(result.is_err());
+        EXPECT_NE(result.error().message.find("order-symbol mapping"), std::string::npos);
         EXPECT_TRUE(adapter.disconnect().is_ok());
     }
 }  // namespace regimeflow::test

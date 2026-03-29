@@ -90,6 +90,10 @@ namespace regimeflow::live
             return true;
         }
 
+        std::string normalize_symbol(std::string value) {
+            return to_upper(std::move(value));
+        }
+
         LiveOrderStatus map_order_status(std::string value) {
             value = to_upper(std::move(value));
             if (value == "NEW") return LiveOrderStatus::New;
@@ -229,6 +233,8 @@ namespace regimeflow::live
         if (auto parsed = common::parse_json(res.value()); parsed.is_ok()) {
             if (auto* obj = parsed.value().as_object()) {
                 if (auto id = get_string(*obj, "orderId"); !id.empty()) {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    order_symbols_[id] = symbol;
                     return Result<std::string>(id);
                 }
             }
@@ -249,15 +255,24 @@ namespace regimeflow::live
         std::string symbol;
         {
             std::lock_guard<std::mutex> lock(mutex_);
-            if (!raw_symbols_.empty()) {
-                symbol = raw_symbols_.front();
+            if (const auto it = order_symbols_.find(broker_order_id); it != order_symbols_.end()) {
+                symbol = it->second;
             }
         }
         if (symbol.empty()) {
-            return Result<void>(Error(Error::Code::InvalidState, "Symbol required to cancel Binance order"));
+            for (const auto& report : get_open_orders()) {
+                if (report.broker_order_id == broker_order_id) {
+                    symbol = normalize_symbol(report.symbol);
+                    break;
+                }
+            }
+        }
+        if (symbol.empty()) {
+            return Result<void>(Error(Error::Code::InvalidState,
+                                      "Binance order-symbol mapping required to cancel order"));
         }
         std::ostringstream query;
-        query << "symbol=" << to_upper(symbol);
+        query << "symbol=" << symbol;
         query << "&orderId=" << broker_order_id;
         query << "&timestamp=" << Timestamp::now().milliseconds();
         query << "&recvWindow=" << config_.recv_window_ms;
@@ -405,7 +420,7 @@ namespace regimeflow::live
             }
             ExecutionReport report;
             report.broker_order_id = get_string(*obj, "orderId");
-            report.symbol = get_string(*obj, "symbol");
+            report.symbol = normalize_symbol(get_string(*obj, "symbol"));
             std::string side = get_string(*obj, "side");
             report.side = side == "SELL" ? engine::OrderSide::Sell : engine::OrderSide::Buy;
             double qty = 0.0;
@@ -417,6 +432,8 @@ namespace regimeflow::live
             report.status = map_order_status(get_string(*obj, "status"));
             report.timestamp = Timestamp::now();
             if (!report.broker_order_id.empty()) {
+                std::lock_guard<std::mutex> lock(mutex_);
+                order_symbols_[report.broker_order_id] = report.symbol;
                 out.push_back(report);
             }
         }
@@ -453,7 +470,11 @@ namespace regimeflow::live
                 || tif == engine::TimeInForce::FOK;
         }
         if (type == engine::OrderType::Market) {
-            return tif == engine::TimeInForce::IOC;
+            // Binance market orders do not carry a timeInForce field on submit.
+            // Accept the engine default Day setting so default market orders remain
+            // broker-compatible without caller-side mutation.
+            return tif == engine::TimeInForce::Day
+                || tif == engine::TimeInForce::IOC;
         }
         return false;
     }

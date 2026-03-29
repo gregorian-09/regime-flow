@@ -10,6 +10,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <unordered_map>
 
 namespace regimeflow::live
 {
@@ -155,6 +156,7 @@ namespace regimeflow::live
         std::mutex mutex_;
         std::vector<std::string> symbols_;
         std::vector<std::string> raw_symbols_;
+        std::unordered_map<std::string, std::string> order_symbols_;
 
         std::function<void(const MarketDataUpdate&)> market_cb_;
         std::function<void(const ExecutionReport&)> exec_cb_;
