@@ -16,6 +16,10 @@ namespace regimeflow::test
         exec_cfg.set_path("account.enforcement.margin_call_action", "cancel_open_orders");
         exec_cfg.set_path("account.enforcement.stop_out_action", "liquidate_worst_first");
         exec_cfg.set_path("account.enforcement.halt_after_stop_out", true);
+        exec_cfg.set_path("commission.type", "fixed");
+        exec_cfg.set_path("commission.amount", 5.0);
+        exec_cfg.set_path("transaction_cost.type", "per_order");
+        exec_cfg.set_path("transaction_cost.per_order", 2.5);
         engine.configure_execution(exec_cfg);
 
         const SymbolId weak = SymbolRegistry::instance().intern("WEAK");
@@ -45,10 +49,16 @@ namespace regimeflow::test
         const auto weak_position = engine.portfolio().get_position(weak);
         ASSERT_TRUE(weak_position.has_value());
         EXPECT_DOUBLE_EQ(weak_position->quantity, 0.0);
+        EXPECT_DOUBLE_EQ(engine.portfolio().cash(), -40007.5);
 
         const auto strong_position = engine.portfolio().get_position(strong);
         ASSERT_TRUE(strong_position.has_value());
         EXPECT_DOUBLE_EQ(strong_position->quantity, 500.0);
+
+        const auto snapshot = engine.dashboard_snapshot();
+        EXPECT_DOUBLE_EQ(snapshot.total_commission, 5.0);
+        EXPECT_DOUBLE_EQ(snapshot.total_transaction_cost, 2.5);
+        EXPECT_DOUBLE_EQ(snapshot.total_cost, 7.5);
 
         const auto cancelled = engine.order_manager().get_order(resting_id);
         ASSERT_TRUE(cancelled.has_value());

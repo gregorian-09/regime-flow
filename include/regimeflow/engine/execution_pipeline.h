@@ -187,6 +187,19 @@ namespace regimeflow::engine
          * @param bar Latest bar.
          */
         void on_bar(const data::Bar& bar);
+        /**
+         * @brief Simulate an immediate fill using the configured execution, impact, commission,
+         * and transaction-cost models without routing through the event queue.
+         * @param order Order to simulate.
+         * @param reference_price Reference price for execution.
+         * @param timestamp Evaluation timestamp.
+         * @param is_maker Whether the fill should be modeled as maker-side.
+         * @return Enriched fills using the same pricing/cost models as normal execution.
+         */
+        [[nodiscard]] std::vector<Fill> simulate_immediate_fills(const Order& order,
+                                                                 Price reference_price,
+                                                                 Timestamp timestamp,
+                                                                 bool is_maker = false) const;
 
     private:
         struct RestingOrderState {
@@ -237,6 +250,9 @@ namespace regimeflow::engine
         [[nodiscard]] std::vector<Fill> build_fills(const RestingOrderState& state,
                                                     Timestamp timestamp,
                                                     EvaluationContext context = EvaluationContext()) const;
+        [[nodiscard]] std::vector<Fill> enrich_fills(const Order& order,
+                                                     const std::vector<Fill>& fills,
+                                                     bool is_maker) const;
         void process_resting_order(OrderId id,
                                    Timestamp timestamp,
                                    EvaluationContext context = EvaluationContext());

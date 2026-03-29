@@ -319,27 +319,39 @@ namespace regimeflow::engine
             if (liquidation_price <= 0.0) {
                 continue;
             }
+            Order forced_order = Order::market(
+                position.symbol,
+                position.quantity > 0.0 ? OrderSide::Sell : OrderSide::Buy,
+                std::abs(position.quantity));
+            forced_order.tif = TimeInForce::IOC;
+            forced_order.created_at = timestamp;
+            forced_order.metadata["forced_liquidation"] = "true";
+            forced_order.metadata["liquidation_reason"] = "stop_out";
 
-            Fill fill;
-            fill.symbol = position.symbol;
-            fill.quantity = -position.quantity;
-            fill.price = liquidation_price;
-            fill.timestamp = timestamp;
-            portfolio_.update_position(fill);
-            portfolio_.record_snapshot(timestamp);
-            if (strategy_) {
-                strategy_->on_fill(fill);
+            const auto fills = execution_pipeline_.simulate_immediate_fills(forced_order,
+                                                                            liquidation_price,
+                                                                            timestamp,
+                                                                            false);
+            for (const auto& fill : fills) {
+                portfolio_.update_position(fill);
+                portfolio_.record_snapshot(fill.timestamp);
+                if (strategy_) {
+                    strategy_->on_fill(fill);
+                }
+                strategy_manager_.on_fill(fill);
+                log_account_event(fill.timestamp,
+                                  "Stop-out liquidation fill",
+                                  {
+                                      {"symbol", SymbolRegistry::instance().lookup(position.symbol)},
+                                      {"quantity", std::to_string(fill.quantity)},
+                                      {"price", std::to_string(fill.price)},
+                                      {"commission", std::to_string(fill.commission)},
+                                      {"transaction_cost", std::to_string(fill.transaction_cost)}
+                                  });
             }
-            strategy_manager_.on_fill(fill);
-            log_account_event(timestamp,
-                              "Stop-out liquidation fill",
-                              {
-                                  {"symbol", SymbolRegistry::instance().lookup(position.symbol)},
-                                  {"quantity", std::to_string(fill.quantity)},
-                                  {"price", std::to_string(fill.price)}
-                              });
 
-            if (account_enforcement_.stop_out_action == StopOutAction::LiquidateWorstFirst
+            if (!fills.empty()
+                && account_enforcement_.stop_out_action == StopOutAction::LiquidateWorstFirst
                 && !portfolio_.margin_snapshot().stop_out) {
                 break;
             }

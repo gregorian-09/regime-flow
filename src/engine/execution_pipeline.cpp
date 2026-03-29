@@ -599,6 +599,74 @@ namespace regimeflow::engine
         }
     }
 
+    std::vector<Fill> ExecutionPipeline::simulate_immediate_fills(const Order& order,
+                                                                  const Price reference_price,
+                                                                  const Timestamp timestamp,
+                                                                  const bool is_maker) const {
+        if (reference_price <= 0.0 || order.symbol == 0 || order.quantity <= 0.0) {
+            return {};
+        }
+
+        Timestamp execution_ts = timestamp;
+        if (const auto override_ms = metadata_int64(order, "venue_latency_ms")) {
+            execution_ts = execution_ts + Duration::milliseconds(std::max<int64_t>(0, *override_ms));
+        } else if (latency_model_) {
+            execution_ts = execution_ts + latency_model_->latency();
+        }
+
+        std::vector<Fill> fills;
+        if (execution_model_) {
+            fills = execution_model_->execute(order, reference_price, execution_ts);
+        }
+        if (fills.empty()) {
+            Fill fill;
+            fill.order_id = order.id;
+            fill.symbol = order.symbol;
+            fill.quantity = order.quantity * (order.side == OrderSide::Buy ? 1.0 : -1.0);
+            fill.price = reference_price;
+            fill.timestamp = execution_ts;
+            fill.is_maker = is_maker;
+            fills.emplace_back(fill);
+        }
+        return enrich_fills(order, fills, is_maker);
+    }
+
+    std::vector<Fill> ExecutionPipeline::enrich_fills(const Order& order,
+                                                      const std::vector<Fill>& fills,
+                                                      const bool is_maker) const {
+        const data::OrderBook* book_ptr = nullptr;
+        std::optional<data::OrderBook> book_holder;
+        if (order_books_) {
+            book_holder = order_books_->latest(order.symbol);
+            if (book_holder.has_value()) {
+                book_ptr = &book_holder.value();
+            }
+        }
+
+        std::vector<Fill> enriched_fills;
+        enriched_fills.reserve(fills.size());
+        for (auto fill : fills) {
+            fill.is_maker = is_maker;
+            fill.parent_order_id = order.parent_id;
+            if (const auto it = order.metadata.find("venue"); it != order.metadata.end()) {
+                fill.venue = it->second;
+            }
+            if (market_impact_model_) {
+                const double impact = market_impact_model_->impact_bps(order, book_ptr) / 10000.0;
+                fill.price *= (order.side == OrderSide::Buy) ? (1.0 + impact)
+                                                             : (1.0 - impact);
+            }
+            if (commission_model_) {
+                fill.commission = commission_model_->commission(order, fill);
+            }
+            if (transaction_cost_model_) {
+                fill.transaction_cost = transaction_cost_model_->cost(order, fill);
+            }
+            enriched_fills.emplace_back(std::move(fill));
+        }
+        return enriched_fills;
+    }
+
     bool ExecutionPipeline::can_fill_now(const RestingOrderState& state,
                                          const EvaluationContext context) const {
         const Order& order = state.order;
@@ -801,32 +869,7 @@ namespace regimeflow::engine
         const auto emit_fills = [this](const std::vector<Fill>& emitted_fills,
                                        const Order& order_ref,
                                        const bool mark_maker) {
-            const data::OrderBook* book_ptr = nullptr;
-            std::optional<data::OrderBook> book_holder;
-            if (order_books_) {
-                book_holder = order_books_->latest(order_ref.symbol);
-                if (book_holder.has_value()) {
-                    book_ptr = &book_holder.value();
-                }
-            }
-            for (const auto& fill : emitted_fills) {
-                Fill enriched = fill;
-                enriched.is_maker = mark_maker;
-                enriched.parent_order_id = order_ref.parent_id;
-                if (const auto it = order_ref.metadata.find("venue"); it != order_ref.metadata.end()) {
-                    enriched.venue = it->second;
-                }
-                if (market_impact_model_) {
-                    const double impact = market_impact_model_->impact_bps(order_ref, book_ptr) / 10000.0;
-                    enriched.price *= (order_ref.side == OrderSide::Buy) ? (1.0 + impact)
-                                                                         : (1.0 - impact);
-                }
-                if (commission_model_) {
-                    enriched.commission = commission_model_->commission(order_ref, enriched);
-                }
-                if (transaction_cost_model_) {
-                    enriched.transaction_cost = transaction_cost_model_->cost(order_ref, enriched);
-                }
+            for (const auto& enriched : enrich_fills(order_ref, emitted_fills, mark_maker)) {
                 const auto event = events::make_order_event(
                     events::OrderEventKind::Fill,
                     enriched.timestamp,
