@@ -31,6 +31,97 @@ namespace regimeflow::live
             return value;
         }
 
+        void append_json_string(std::ostringstream& body,
+                                const char* key,
+                                const std::string_view value,
+                                bool& first) {
+            if (!first) {
+                body << ",";
+            }
+            first = false;
+            body << "\"" << key << "\":\"" << value << "\"";
+        }
+
+        void append_json_number(std::ostringstream& body,
+                                const char* key,
+                                const double value,
+                                bool& first) {
+            if (!first) {
+                body << ",";
+            }
+            first = false;
+            body << "\"" << key << "\":" << value;
+        }
+
+        Result<std::string> build_alpaca_submit_body(const engine::Order& order) {
+            std::string order_type;
+            bool needs_limit_price = false;
+            bool needs_stop_price = false;
+
+            switch (order.type) {
+            case engine::OrderType::Market:
+                order_type = "market";
+                break;
+            case engine::OrderType::Limit:
+                order_type = "limit";
+                needs_limit_price = true;
+                break;
+            case engine::OrderType::Stop:
+                order_type = "stop";
+                needs_stop_price = true;
+                break;
+            case engine::OrderType::StopLimit:
+                order_type = "stop_limit";
+                needs_limit_price = true;
+                needs_stop_price = true;
+                break;
+            case engine::OrderType::MarketOnClose:
+            case engine::OrderType::MarketOnOpen:
+                return Result<std::string>(Error(Error::Code::InvalidArgument,
+                                                 "Unsupported Alpaca order type"));
+            }
+
+            if (needs_limit_price && order.limit_price <= 0.0) {
+                return Result<std::string>(Error(Error::Code::InvalidArgument,
+                                                 "Alpaca limit order requires positive limit_price"));
+            }
+            if (needs_stop_price && order.stop_price <= 0.0) {
+                return Result<std::string>(Error(Error::Code::InvalidArgument,
+                                                 "Alpaca stop order requires positive stop_price"));
+            }
+
+            std::ostringstream body;
+            body << "{";
+            bool first = true;
+            append_json_string(body, "symbol", SymbolRegistry::instance().lookup(order.symbol), first);
+            append_json_number(body, "qty", order.quantity, first);
+            append_json_string(body, "side",
+                               order.side == engine::OrderSide::Buy ? "buy" : "sell", first);
+            append_json_string(body, "type", order_type, first);
+
+            const auto tif = [&]() -> std::string_view {
+                switch (order.tif) {
+                case engine::TimeInForce::Day: return "day";
+                case engine::TimeInForce::GTC: return "gtc";
+                case engine::TimeInForce::IOC: return "ioc";
+                case engine::TimeInForce::FOK: return "fok";
+                case engine::TimeInForce::GTD: return "gtd";
+                default: return "day";
+                }
+            }();
+            append_json_string(body, "time_in_force", tif, first);
+
+            if (needs_limit_price) {
+                append_json_number(body, "limit_price", order.limit_price, first);
+            }
+            if (needs_stop_price) {
+                append_json_number(body, "stop_price", order.stop_price, first);
+            }
+
+            body << "}";
+            return Result<std::string>(body.str());
+        }
+
         LiveOrderStatus parse_order_status(std::string value) {
             for (auto& c : value) {
                 c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
@@ -321,25 +412,12 @@ namespace regimeflow::live
         if (!connected_) {
             return Result<std::string>(Error(Error::Code::BrokerError, "Not connected"));
         }
-        const auto tif = [&]() -> std::string {
-            switch (order.tif) {
-            case engine::TimeInForce::Day: return "day";
-            case engine::TimeInForce::GTC: return "gtc";
-            case engine::TimeInForce::IOC: return "ioc";
-            case engine::TimeInForce::FOK: return "fok";
-            case engine::TimeInForce::GTD: return "gtd";
-            default: return "day";
-            }
-        }();
-        std::ostringstream body;
-        body << R"({"symbol":")" << SymbolRegistry::instance().lookup(order.symbol)
-             << R"(","qty":)" << order.quantity
-             << R"(,"side":")" << (order.side == engine::OrderSide::Buy ? "buy" : "sell")
-             << R"(","type":")" << (order.type == engine::OrderType::Limit ? "limit" : "market")
-             << R"(","time_in_force":")" << tif
-             << "\"}";
+        auto body = build_alpaca_submit_body(order);
+        if (body.is_err()) {
+            return Result<std::string>(body.error());
+        }
 
-        auto res = rest_post("/v2/orders", body.str());
+        auto res = rest_post("/v2/orders", body.value());
         if (res.is_err()) {
             return res;
         }

@@ -153,6 +153,59 @@ namespace regimeflow::test
         EXPECT_FALSE(adapter.is_connected());
     }
 
+    TEST(BrokerAdapterFailures, AlpacaRejectsUnsupportedMarketOnOpenCloseOrdersBeforeRestCall) {
+        live::AlpacaAdapter::Config cfg;
+        cfg.api_key = "key";
+        cfg.secret_key = "secret";
+        cfg.enable_streaming = false;
+
+        live::AlpacaAdapter adapter(std::move(cfg));
+        ASSERT_TRUE(adapter.connect().is_ok());
+
+        const auto symbol = SymbolRegistry::instance().intern("AAPL");
+
+        auto moo = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        moo.type = engine::OrderType::MarketOnOpen;
+        EXPECT_TRUE(adapter.submit_order(moo).is_err());
+
+        auto moc = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        moc.type = engine::OrderType::MarketOnClose;
+        EXPECT_TRUE(adapter.submit_order(moc).is_err());
+
+        EXPECT_TRUE(adapter.disconnect().is_ok());
+    }
+
+    TEST(BrokerAdapterFailures, AlpacaRejectsMissingLimitAndStopPricesBeforeRestCall) {
+        live::AlpacaAdapter::Config cfg;
+        cfg.api_key = "key";
+        cfg.secret_key = "secret";
+        cfg.enable_streaming = false;
+
+        live::AlpacaAdapter adapter(std::move(cfg));
+        ASSERT_TRUE(adapter.connect().is_ok());
+
+        const auto symbol = SymbolRegistry::instance().intern("AAPL");
+
+        engine::Order limit = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        limit.type = engine::OrderType::Limit;
+        EXPECT_TRUE(adapter.submit_order(limit).is_err());
+
+        engine::Order stop = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        stop.type = engine::OrderType::Stop;
+        EXPECT_TRUE(adapter.submit_order(stop).is_err());
+
+        engine::Order stop_limit = engine::Order::market(symbol, engine::OrderSide::Buy, 1.0);
+        stop_limit.type = engine::OrderType::StopLimit;
+        stop_limit.stop_price = 100.0;
+        EXPECT_TRUE(adapter.submit_order(stop_limit).is_err());
+
+        stop_limit.limit_price = 101.0;
+        stop_limit.stop_price = 0.0;
+        EXPECT_TRUE(adapter.submit_order(stop_limit).is_err());
+
+        EXPECT_TRUE(adapter.disconnect().is_ok());
+    }
+
     TEST(BrokerAdapterFailures, BinanceRejectsSubmitWithoutConnection) {
         live::BinanceAdapter::Config cfg;
         cfg.enable_streaming = false;
