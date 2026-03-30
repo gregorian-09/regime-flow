@@ -7,6 +7,7 @@
 
 #include <optional>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -29,15 +30,26 @@ namespace regimeflow
          * @brief Object (map) of config values.
          */
         using Object = std::unordered_map<std::string, ConfigValue>;
+        using ArrayPtr = std::shared_ptr<Array>;
+        using ObjectPtr = std::shared_ptr<Object>;
         /**
          * @brief Variant for supported config types.
          */
-        using Value = std::variant<std::monostate, bool, int64_t, double, std::string, Array, Object>;
+        using Value = std::variant<std::monostate, bool, int64_t, double, std::string, ArrayPtr, ObjectPtr>;
 
         /**
          * @brief Construct an empty (monostate) value.
          */
         ConfigValue() = default;
+        ConfigValue(const ConfigValue& other) { copy_from(other); }
+        ConfigValue& operator=(const ConfigValue& other) {
+            if (this != &other) {
+                copy_from(other);
+            }
+            return *this;
+        }
+        ConfigValue(ConfigValue&&) noexcept = default;
+        ConfigValue& operator=(ConfigValue&&) noexcept = default;
         /**
          * @brief Construct a boolean config value.
          * @param v Boolean value.
@@ -67,12 +79,12 @@ namespace regimeflow
          * @brief Construct an array config value.
          * @param v Array value.
          */
-        ConfigValue(Array v) : value_(std::move(v)) {}
+        ConfigValue(Array v) : value_(std::make_shared<Array>(std::move(v))) {}
         /**
          * @brief Construct an object config value.
          * @param v Object value.
          */
-        ConfigValue(Object v) : value_(std::move(v)) {}
+        ConfigValue(Object v) : value_(std::make_shared<Object>(std::move(v))) {}
 
         /**
          * @brief Access the raw variant.
@@ -86,16 +98,56 @@ namespace regimeflow
          * @return Pointer to value if the type matches, otherwise null.
          */
         template<typename T>
-        const T* get_if() const { return std::get_if<T>(&value_); }
+        const T* get_if() const {
+            if constexpr (std::is_same_v<T, Array>) {
+                if (const auto* ptr = std::get_if<ArrayPtr>(&value_)) {
+                    return ptr->get();
+                }
+                return nullptr;
+            } else if constexpr (std::is_same_v<T, Object>) {
+                if (const auto* ptr = std::get_if<ObjectPtr>(&value_)) {
+                    return ptr->get();
+                }
+                return nullptr;
+            } else {
+                return std::get_if<T>(&value_);
+            }
+        }
         /**
          * @brief Try to get a mutable typed pointer to the stored value.
          * @tparam T Requested type.
          * @return Pointer to value if the type matches, otherwise null.
          */
         template<typename T>
-        T* get_if() { return std::get_if<T>(&value_); }
+        T* get_if() {
+            if constexpr (std::is_same_v<T, Array>) {
+                if (auto* ptr = std::get_if<ArrayPtr>(&value_)) {
+                    return ptr->get();
+                }
+                return nullptr;
+            } else if constexpr (std::is_same_v<T, Object>) {
+                if (auto* ptr = std::get_if<ObjectPtr>(&value_)) {
+                    return ptr->get();
+                }
+                return nullptr;
+            } else {
+                return std::get_if<T>(&value_);
+            }
+        }
 
     private:
+        void copy_from(const ConfigValue& other) {
+            if (const auto* array = other.get_if<Array>()) {
+                value_ = std::make_shared<Array>(*array);
+                return;
+            }
+            if (const auto* object = other.get_if<Object>()) {
+                value_ = std::make_shared<Object>(*object);
+                return;
+            }
+            value_ = other.value_;
+        }
+
         Value value_;
     };
 

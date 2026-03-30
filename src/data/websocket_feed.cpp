@@ -242,6 +242,7 @@ namespace regimeflow::data
             return value;
         }
 
+#ifdef REGIMEFLOW_USE_BOOST_BEAST
         template<typename WebSocketStream>
         void apply_request_headers(WebSocketStream& stream,
                                    const std::map<std::string, std::string>& headers) {
@@ -255,6 +256,7 @@ namespace regimeflow::data
                     }
                 }));
         }
+#endif
 
         bool json_has_string(const common::JsonValue::Object& obj,
                              const std::initializer_list<const char*> keys) {
@@ -336,10 +338,10 @@ namespace regimeflow::data
         }
         return Ok();
 #else
-        return Error(Error::Code::InvalidState, "OpenSSL not enabled for wss://");
+        return Result<void>(Error(Error::Code::InvalidState, "OpenSSL not enabled for wss://"));
 #endif
 #else
-        return Error(Error::Code::InvalidState, "Boost.Beast not enabled");
+        return Result<void>(Error(Error::Code::InvalidState, "Boost.Beast not enabled"));
 #endif
     }
 
@@ -405,7 +407,7 @@ namespace regimeflow::data
                 ws_tls_->handshake(host_for_sni, target);
                 socket.expires_never();
 #else
-                return Error(Error::Code::InvalidState, "OpenSSL not enabled for wss://");
+                return Result<void>(Error(Error::Code::InvalidState, "OpenSSL not enabled for wss://"));
 #endif
             } else {
                 ws_.emplace(ioc_);
@@ -426,7 +428,7 @@ namespace regimeflow::data
             return Result<void>(Error(Error::Code::NetworkError, ex.what()));
         }
 #else
-        return Error(Error::Code::InvalidState, "Boost.Beast not enabled");
+        return Result<void>(Error(Error::Code::InvalidState, "Boost.Beast not enabled"));
 #endif
 
         if (!subscriptions_.empty()) {
@@ -973,7 +975,7 @@ namespace regimeflow::data
         return Ok();
 #else
         (void)message;
-        return Error(Error::Code::InvalidState, "Boost.Beast not enabled");
+        return Result<void>(Error(Error::Code::InvalidState, "Boost.Beast not enabled"));
 #endif
     }
 

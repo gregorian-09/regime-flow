@@ -430,7 +430,7 @@ namespace regimeflow::data
 #ifdef REGIMEFLOW_USE_LIBPQ
         auto* conn = static_cast<PGconn*>(pool_.acquire());
         if (!conn) {
-            return Error(Error::Code::IoError, "Postgres connection unavailable");
+            return Result<void>(Error(Error::Code::IoError, "Postgres connection unavailable"));
         }
 
         std::vector<const char*> values;
@@ -448,7 +448,7 @@ namespace regimeflow::data
                 PQclear(res);
             }
             pool_.release(conn);
-            return Error(Error::Code::IoError, message);
+            return Result<void>(Error(Error::Code::IoError, message));
         }
 
         row_handler(res);

@@ -165,7 +165,7 @@ namespace regimeflow::data
         (void)base_url;
         (void)path;
         (void)query;
-        return Error(Error::Code::InvalidState, "CURL disabled");
+        return Result<std::string>(Error(Error::Code::InvalidState, "CURL disabled"));
 #endif
     }
 }  // namespace regimeflow::data

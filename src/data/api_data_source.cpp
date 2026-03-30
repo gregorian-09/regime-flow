@@ -234,7 +234,7 @@ namespace regimeflow::data
             (void)url;
             (void)headers;
             (void)timeout_seconds;
-            return Error(Error::Code::NetworkError, "libcurl not enabled");
+            return Result<std::string>(Error(Error::Code::NetworkError, "libcurl not enabled"));
 #endif
         }
 

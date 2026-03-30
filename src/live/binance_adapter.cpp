@@ -612,7 +612,7 @@ namespace regimeflow::live
         return Result<std::string>(response);
 #else
         (void)path;
-        return Error(Error::Code::NetworkError, "libcurl not enabled");
+        return Result<std::string>(Error(Error::Code::NetworkError, "libcurl not enabled"));
 #endif
     }
 
@@ -655,7 +655,7 @@ namespace regimeflow::live
 #else
         (void)path;
         (void)body;
-        return Error(Error::Code::NetworkError, "libcurl not enabled");
+        return Result<std::string>(Error(Error::Code::NetworkError, "libcurl not enabled"));
 #endif
     }
 
@@ -695,7 +695,7 @@ namespace regimeflow::live
         return Result<std::string>(response);
 #else
         (void)path;
-        return Error(Error::Code::NetworkError, "libcurl not enabled");
+        return Result<std::string>(Error(Error::Code::NetworkError, "libcurl not enabled"));
 #endif
     }
 
@@ -707,7 +707,7 @@ namespace regimeflow::live
 #else
         (void)path;
         (void)query;
-        return Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing");
+        return Result<std::string>(Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing"));
 #endif
     }
 
@@ -719,7 +719,7 @@ namespace regimeflow::live
 #else
         (void)path;
         (void)query;
-        return Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing");
+        return Result<std::string>(Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing"));
 #endif
     }
 
@@ -731,7 +731,7 @@ namespace regimeflow::live
 #else
         (void)path;
         (void)query;
-        return Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing");
+        return Result<std::string>(Error(Error::Code::InvalidState, "OpenSSL not enabled for Binance signing"));
 #endif
     }
 

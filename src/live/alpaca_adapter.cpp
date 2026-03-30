@@ -732,7 +732,7 @@ namespace regimeflow::live
         return Result<std::string>(response);
 #else
         (void)path;
-        return Error(Error::Code::NetworkError, "libcurl not enabled");
+        return Result<std::string>(Error(Error::Code::NetworkError, "libcurl not enabled"));
 #endif
     }
 
@@ -776,7 +776,7 @@ namespace regimeflow::live
 #else
         (void)path;
         (void)body;
-        return Error(Error::Code::NetworkError, "libcurl not enabled");
+        return Result<std::string>(Error(Error::Code::NetworkError, "libcurl not enabled"));
 #endif
     }
 
@@ -817,7 +817,7 @@ namespace regimeflow::live
         return Result<std::string>(response);
 #else
         (void)path;
-        return Error(Error::Code::NetworkError, "libcurl not enabled");
+        return Result<std::string>(Error(Error::Code::NetworkError, "libcurl not enabled"));
 #endif
     }
 

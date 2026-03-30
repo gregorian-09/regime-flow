@@ -9,6 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if(APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING
+        "Minimum macOS deployment target" FORCE)
+endif()
+
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)

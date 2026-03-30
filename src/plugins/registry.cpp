@@ -87,7 +87,7 @@ namespace regimeflow::plugins
 #if defined(_WIN32)
         HMODULE handle = LoadLibraryA(path.c_str());
         if (!handle) {
-            return Error(Error::Code::IoError, "Failed to load plugin library");
+            return Result<void>(Error(Error::Code::IoError, "Failed to load plugin library"));
         }
 
         using CreateFn = Plugin* (*)();
@@ -97,7 +97,7 @@ namespace regimeflow::plugins
         auto destroy_fn = reinterpret_cast<DestroyFn>(GetProcAddress(handle, "destroy_plugin"));
         if (!create_fn || !destroy_fn) {
             FreeLibrary(handle);
-            return Error(Error::Code::InvalidState, "Plugin missing create/destroy entry points");
+            return Result<void>(Error(Error::Code::InvalidState, "Plugin missing create/destroy entry points"));
         }
 
         auto type_fn = reinterpret_cast<StrFn>(GetProcAddress(handle, "plugin_type"));
@@ -107,14 +107,14 @@ namespace regimeflow::plugins
             const char* version = abi_fn();
             if (!version || std::string(version) != REGIMEFLOW_ABI_VERSION) {
                 FreeLibrary(handle);
-                return Error(Error::Code::InvalidState, "Plugin ABI version mismatch");
+                return Result<void>(Error(Error::Code::InvalidState, "Plugin ABI version mismatch"));
             }
         }
 
         PluginPtr probe(create_fn(), [destroy_fn](Plugin* p) { destroy_fn(p); });
         if (!probe) {
             FreeLibrary(handle);
-            return Error(Error::Code::InvalidState, "Plugin creation failed");
+            return Result<void>(Error(Error::Code::InvalidState, "Plugin creation failed"));
         }
 
         auto info = probe->info();
@@ -133,7 +133,7 @@ namespace regimeflow::plugins
         if (plugin_name.empty()) {
             probe.reset();
             FreeLibrary(handle);
-            return Error(Error::Code::InvalidArgument, "Plugin has no name");
+            return Result<void>(Error(Error::Code::InvalidArgument, "Plugin has no name"));
         }
 
         DynamicPlugin record;
@@ -148,7 +148,7 @@ namespace regimeflow::plugins
             if (dynamic_plugins_.find(plugin_name) != dynamic_plugins_.end()) {
                 destroy_fn(probe.release());
                 FreeLibrary(handle);
-                return Error(Error::Code::AlreadyExists, "Plugin already loaded");
+                return Result<void>(Error(Error::Code::AlreadyExists, "Plugin already loaded"));
             }
             dynamic_plugins_[plugin_name] = std::move(record);
             factories_[plugin_type][plugin_name] = [create_fn, destroy_fn]() {
@@ -240,7 +240,7 @@ namespace regimeflow::plugins
             std::lock_guard<std::mutex> lock(mutex_);
             auto it = dynamic_plugins_.find(name);
             if (it == dynamic_plugins_.end()) {
-                return Error(Error::Code::NotFound, "Plugin not loaded");
+                return Result<void>(Error(Error::Code::NotFound, "Plugin not loaded"));
             }
             plugin = it->second;
             dynamic_plugins_.erase(it);

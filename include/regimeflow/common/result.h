@@ -5,8 +5,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <optional>
-#include <source_location>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -19,7 +20,51 @@
 #include <format>
 #endif
 
+#if defined(__has_include)
+#  if __has_include(<source_location>)
+#    include <source_location>
+#    if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
+#      define REGIMEFLOW_HAS_SOURCE_LOCATION 1
+#    endif
+#  endif
+#endif
+
+#ifndef REGIMEFLOW_HAS_SOURCE_LOCATION
+#  define REGIMEFLOW_HAS_SOURCE_LOCATION 0
+#endif
+
 namespace regimeflow {
+
+#if REGIMEFLOW_HAS_SOURCE_LOCATION
+using SourceLocation = std::source_location;
+#else
+struct SourceLocation {
+    const char* file = "unknown";
+    std::uint_least32_t line_number = 0;
+
+    [[nodiscard]] constexpr const char* file_name() const noexcept { return file; }
+    [[nodiscard]] constexpr std::uint_least32_t line() const noexcept { return line_number; }
+
+#  if defined(__has_builtin)
+#    if __has_builtin(__builtin_FILE) && __has_builtin(__builtin_LINE)
+    [[nodiscard]] static constexpr SourceLocation current(const char* file_name = __builtin_FILE(),
+                                                          const std::uint_least32_t line = __builtin_LINE()) noexcept {
+        return SourceLocation{file_name, line};
+    }
+#    else
+    [[nodiscard]] static constexpr SourceLocation current(const char* file_name = "unknown",
+                                                          const std::uint_least32_t line = 0) noexcept {
+        return SourceLocation{file_name, line};
+    }
+#    endif
+#  else
+    [[nodiscard]] static constexpr SourceLocation current(const char* file_name = "unknown",
+                                                          const std::uint_least32_t line = 0) noexcept {
+        return SourceLocation{file_name, line};
+    }
+#  endif
+};
+#endif
 
 /**
  * @brief Structured error information returned by Result.
@@ -49,7 +94,7 @@ struct Error {
     Code code = Code::Unknown;
     std::string message;
     std::optional<std::string> details;
-    std::source_location location;
+    SourceLocation location;
 
     /**
      * @brief Construct an unknown error with current source location.
@@ -58,7 +103,7 @@ struct Error {
         : code(Code::Unknown),
           message(),
           details(std::nullopt),
-          location(std::source_location::current()) {}
+          location(SourceLocation::current()) {}
 
     /**
      * @brief Construct an error with explicit code and message.
@@ -67,7 +112,7 @@ struct Error {
      * @param loc Source location where error was created.
      */
     Error(Code c, std::string msg,
-          std::source_location loc = std::source_location::current())
+          SourceLocation loc = SourceLocation::current())
         : code(c), message(std::move(msg)), location(loc) {}
 
     /**
@@ -182,7 +227,7 @@ public:
         if (is_ok()) {
             return Result<std::invoke_result_t<F, T>>(f(value()));
         }
-        return error();
+        return Result<std::invoke_result_t<F, T>>(error());
     }
 
     /**
@@ -196,7 +241,7 @@ public:
         if (is_ok()) {
             return f(value());
         }
-        return error();
+        return std::invoke_result_t<F, T>(error());
     }
 
     /**

@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 ### Fixed
+- Made `Result` error returns explicit across optional feature paths so GCC, Clang, and MSVC builds do not rely on invalid implicit conversions.
+- Reworked `ConfigValue` storage to avoid recursive container completeness issues on older libstdc++ toolchains used in Linux wheel builds.
+- Added a `source_location` fallback for older Linux wheel toolchains that do not ship the C++20 header yet.
+- Set the default macOS deployment target to 10.15 for native and wheel builds so plugin registry filesystem code compiles consistently.
+- Fixed the vcpkg package dependency metadata so Boost.Asio/Beast headers are available when WebSocket support is enabled.
+### Fixed
 - Align standalone wheel workflows with CI so cibuildwheel disables IBAPI and fetches dependencies on all platforms.
 - Remove invalid manifest-mode `vcpkg install protobuf:x64-windows` from wheel workflows.
 - Reduce Python wheel builds to the bindings-only feature set and stop pinning disabled `protobuf@21` on macOS CI.
