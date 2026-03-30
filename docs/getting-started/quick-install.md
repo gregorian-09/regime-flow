@@ -50,6 +50,16 @@ target_link_libraries(your_target PRIVATE
     RegimeFlow::regimeflow_strategy)
 ```
 
+If you want a cleaner team-wide setup, use this repository as a custom git
+registry in your consumer `vcpkg-configuration.json`, then install with:
+
+```bash
+vcpkg install regimeflow
+```
+
+That is the next step after overlay-port validation, and it is the path to a
+future official-registry submission.
+
 ## System Packages
 
 - **Linux**: `.deb` and `.rpm` artifacts are provided via GitHub Releases.

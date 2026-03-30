@@ -1,0 +1,8 @@
+{
+  "default": {
+    "regimeflow": {
+      "baseline": "1.0.1",
+      "port-version": 0
+    }
+  }
+}
