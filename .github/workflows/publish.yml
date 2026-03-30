@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   build_wheels:
@@ -88,6 +87,8 @@ jobs:
         uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3
         with:
           packages-dir: dist
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
 
   build_linux_packages:
     name: Build Linux packages (deb + rpm)

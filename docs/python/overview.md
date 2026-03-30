@@ -1,93 +1,205 @@
 # Python Overview
 
-The Python package (`python/regimeflow`) exposes the backtest engine, strategies, data sources, and reporting utilities. The module is backed by the compiled `_core` extension built from `python/bindings.cpp`.
+The `regimeflow` Python package is the research-facing surface of RegimeFlow.
+It is the layer you use when you want to:
 
-## Key Types
+- run backtests from Python
+- write custom Python strategies
+- export reports and dataframes
+- work with parity checks and research sessions
+- generate charts and dashboards
+- drive walk-forward optimization from Python
 
-- `BacktestConfig` for configuration and YAML loading.
-- `BacktestEngine` for running a strategy over historical data.
-- `Strategy` base class for Python strategies.
-- `analysis` helpers for performance summaries.
+This page is intentionally Python-first. It describes the package as a Python
+library, not as a generic wrapper around the native engine.
 
-## BacktestConfig Fields
+## Main Use Cases
 
-These fields are defined in `python/bindings.cpp`:
+### 1. Run Backtests In Python
 
-- `data_source` string, default `csv`.
-- `data_config` dict.
-- `symbols` list of strings.
-- `start_date`, `end_date` as `YYYY-MM-DD`.
-- `bar_type` string, default `1d`.
-- `initial_capital`, `currency`.
-- `regime_detector`, `regime_params`.
-- `plugins_search_paths`, `plugins_load`.
-- `execution_model`, `execution_params`.
-- `slippage_model`, `slippage_params`.
-- `commission_model`, `commission_params`.
-- `risk_params`.
-- `strategy_params`.
-
-`BacktestConfig.from_yaml(path)` loads the YAML file into this structure.
-
-`execution_params` can carry the full execution block used by the C++ engine, which lets Python backtests opt into richer execution behavior without relying only on the legacy flat slippage/commission fields. This includes simulation controls such as `execution_params["simulation"]["tick_mode"] = "real_ticks"`, `execution_params["simulation"]["synthetic_tick_profile"] = "ohlc_4tick"`, or `execution_params["simulation"]["bar_mode"] = "intrabar_ohlc"`, session controls such as `execution_params["session"]["start_hhmm"] = "09:30"`, `execution_params["session"]["weekdays"] = ["mon", "tue", "wed", "thu", "fri"]`, `execution_params["session"]["closed_dates"] = ["2026-12-25"]`, and `execution_params["session"]["halted_symbols"] = ["AAPL"]`, execution policy controls such as `execution_params["policy"]["price_drift_action"] = "requote"`, queue controls such as `execution_params["queue"]["enabled"] = True`, `execution_params["queue"]["depth_mode"] = "full_depth"`, `execution_params["queue"]["aging_fraction"] = 0.25`, `execution_params["queue"]["replenishment_fraction"] = 0.5`, account controls such as `execution_params["account"]["margin"]["initial_margin_ratio"] = 0.5`, `execution_params["account"]["enforcement"]["stop_out_action"] = "liquidate_worst_first"`, `execution_params["account"]["financing"]["short_borrow_bps_per_day"] = 12.0`, plus transaction-cost variants such as `execution_params["transaction_cost"]["type"] = "maker_taker"`.
-
-`engine.portfolio.equity_curve()` now includes account-state columns in addition to the core exposure columns, including `initial_margin`, `maintenance_margin`, `available_funds`, `margin_excess`, `buying_power`, `margin_call`, and `stop_out`.
-
-`BacktestResults` now also exposes:
-
-- `results.account_curve()` for snapshot-level account history
-- `results.account_state()` for the latest recorded account state
-- `results.venue_fill_summary()` for per-venue execution diagnostics
-
-The browser-based strategy tester dashboard belongs to the Python visualization layer. The C++ side exposes terminal dashboards, TUI-style tester tools, and JSON snapshots, but not the web UI itself.
-
-`BacktestConfig` also has convenience helpers for the richer execution controls:
-
-- `set_session_window(...)`
-- `set_session_halts(...)`
-- `set_session_calendar(...)`
-- `set_queue_dynamics(...)`
-- `set_account_margin(...)`
-- `set_account_enforcement(...)`
-- `set_account_financing(...)`
-
-## Python Strategy Contract
-
-A Python strategy must implement the same lifecycle methods as the C++ strategy interface. The core ones are:
-
-- `initialize(ctx)`
-- `on_bar(bar)`
-- `on_tick(tick)`
-- `on_order_book(book)`
-- `on_order_update(order)`
-- `on_fill(fill)`
-
-## Example
+Load a YAML config, run a strategy, and inspect results:
 
 ```python
 import regimeflow as rf
 
-cfg = rf.BacktestConfig.from_yaml("quickstart.yaml")
+cfg = rf.BacktestConfig.from_yaml("examples/backtest_basic/config.yaml")
 engine = rf.BacktestEngine(cfg)
 results = engine.run("moving_average_cross")
-
-print(results.report_json())
 ```
 
-## Research Session And Parity
+### 2. Write A Python Strategy
 
-`regimeflow.research` adds a notebook-friendly workflow and parity checks:
+Subclass `regimeflow.Strategy` and implement whichever callbacks your workflow needs.
 
 ```python
 import regimeflow as rf
 
-session = rf.research.ResearchSession(config_path="quickstart.yaml")
-report = session.parity_check(live_config_path="examples/live_paper_alpaca/config.yaml")
-print(report.status, report.warnings)
+class MyStrategy(rf.Strategy):
+    def initialize(self, ctx):
+        self.ctx = ctx
+
+    def on_bar(self, bar):
+        pass
 ```
 
-## Next Steps
+### 3. Analyze Results With Pandas/NumPy
 
-- `python/cli.md`
+Use built-in helpers instead of re-parsing raw JSON everywhere.
+
+```python
+summary = rf.analysis.performance_summary(results)
+equity = results.equity_curve()
+trades = results.trades()
+times, equity_np = rf.analysis.equity_to_numpy(results)
+```
+
+### 4. Export Reports And Dashboards
+
+Use the analysis and visualization modules for JSON, CSV, HTML, charts, and dashboards.
+
+```python
+html = rf.analysis.report_html(results)
+rf.visualization.export_dashboard_html(results, "strategy_tester_report.html")
+```
+
+### 5. Run Parity And Research Sessions
+
+Use the research helpers when you want a notebook-friendly wrapper around backtest configs and parity checks.
+
+```python
+session = rf.research.ResearchSession(config_path="examples/backtest_basic/config.yaml")
+report = session.parity_check(live_config_path="examples/live_paper_alpaca/config.yaml")
+```
+
+### 6. Run Walk-Forward Optimization
+
+Use the exported walk-forward types directly from Python when you want rolling-window parameter selection.
+
+## Top-Level Package Surface
+
+The top-level `regimeflow` package exports these primary symbols:
+
+| Category | Symbols |
+| --- | --- |
+| Core config/helpers | `Config`, `load_config`, `Timestamp` |
+| Order model | `Order`, `OrderSide`, `OrderType`, `OrderStatus`, `TimeInForce`, `Fill` |
+| Regime state | `RegimeType`, `RegimeState`, `RegimeTransition` |
+| Backtest runtime | `BacktestConfig`, `BacktestEngine`, `BacktestResults`, `Portfolio`, `Position` |
+| Market data types | `Bar`, `Tick`, `Quote`, `OrderBook`, `BookLevel`, `BarType` |
+| Strategy layer | `Strategy`, `StrategyContext`, `register_strategy` |
+| Walk-forward | `ParameterDef`, `WalkForwardConfig`, `WalkForwardOptimizer`, `WalkForwardResults`, `WindowResult` |
+| Package modules | `analysis`, `config`, `data`, `metrics`, `research`, `visualization` |
+
+## Package Modules
+
+### `regimeflow.analysis`
+
+Performance summaries, dataframe helpers, report export, notebook helpers, and NumPy adapters.
+
+### `regimeflow.data`
+
+CSV loaders, dataframe conversion helpers, timezone normalization, and simple bar-filling utilities.
+
+### `regimeflow.metrics`
+
+Validation-oriented helpers such as independent regime-attribution checks.
+
+### `regimeflow.research`
+
+Parity workflows and notebook-facing session helpers.
+
+### `regimeflow.visualization`
+
+Charts, dashboards, interactive dashboards, and HTML export.
+
+### `regimeflow.config`
+
+Thin Python access to the raw config object and config loader.
+
+## BacktestConfig In Practice
+
+`BacktestConfig` is the center of most Python workflows.
+
+You use it to control:
+
+- data source and source-specific configuration
+- symbols and time ranges
+- capital and currency
+- regime detector and regime parameters
+- plugins and plugin search paths
+- execution model and execution parameters
+- slippage and commission settings
+- risk parameters
+- strategy parameters
+
+The Python bindings expose richer execution controls as configuration helpers,
+including session windows, queue dynamics, account margin, account enforcement,
+and financing assumptions.
+
+## Strategy Contract
+
+The Python strategy callbacks are the same callbacks the engine understands conceptually.
+Implement only the hooks you need:
+
+- `initialize`
+- `on_start`
+- `on_stop`
+- `on_bar`
+- `on_tick`
+- `on_quote`
+- `on_order_book`
+- `on_order_update`
+- `on_fill`
+- `on_regime_change`
+- `on_end_of_day`
+- `on_timer`
+
+This lets a Python strategy remain event-driven instead of becoming a loose script
+wrapped around a single loop.
+
+## Results Contract
+
+`BacktestResults` gives you several distinct surfaces:
+
+- summary-level metrics
+- full serialized reports
+- equity/account curves
+- trade tables
+- regime metrics and regime history
+- venue fill summary
+- dashboard/tester payloads
+
+Common methods:
+
+- `report_json()`
+- `report_csv()`
+- `equity_curve()`
+- `account_curve()`
+- `trades()`
+- `account_state()`
+- `venue_fill_summary()`
+- `regime_metrics()`
+- `regime_history()`
+- `dashboard_snapshot()`
+- `tester_report()`
+- `tester_journal()`
+
+## Python-Only Boundary
+
+The browser-based dashboard belongs to the Python layer.
+
+That is an intentional boundary:
+
+- the native engine produces results and snapshot data
+- the Python package provides the dashboard and charting surface
+
+For Python users, that means reporting and visualization are first-class workflows,
+not separate tooling bolted on after the fact.
+
+## Where To Go Next
+
 - `python/workflow.md`
-- `guide/backtesting.md`
+- `python/cli.md`
+- `tutorials/python-usage.md`
+- `api/python.md`
+- `python/bindings-coverage.md`

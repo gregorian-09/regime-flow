@@ -5,23 +5,39 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "regimeflow"
 version = "1.0.1"
-description = "Regime-adaptive backtesting framework"
-readme = "README.md"
+description = "Regime-aware quantitative backtesting and research bindings for the RegimeFlow C++ engine"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
-    {name = "RegimeFlow Team", email = "team@regimeflow.io"}
+    {name = "Gregorian Rayne", email = "gregorianrayne09@gmail.com"}
+]
+maintainers = [
+    {name = "Gregorian Rayne", email = "gregorianrayne09@gmail.com"}
+]
+keywords = [
+    "quantitative-finance",
+    "backtesting",
+    "algorithmic-trading",
+    "regime-detection",
+    "walk-forward-optimization",
+    "execution-modeling",
+    "pybind11",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: C++",
+    "Topic :: Scientific/Engineering",
     "Topic :: Office/Business :: Financial :: Investment",
 ]
 dependencies = [
@@ -51,9 +67,10 @@ full = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/regimeflow/regimeflow"
-Documentation = "https://docs.regimeflow.io"
-Repository = "https://github.com/regimeflow/regimeflow"
+Homepage = "https://github.com/gregorian-09/regime-flow"
+Documentation = "https://gregorian-09.github.io/regime-flow/"
+Repository = "https://github.com/gregorian-09/regime-flow"
+Issues = "https://github.com/gregorian-09/regime-flow/issues"
 
 [project.scripts]
 regimeflow-backtest = "regimeflow.cli:main"

@@ -70,6 +70,7 @@ nav:
     - Walk-Forward Optimization: guide/walkforward.md
   - Python:
     - Python Overview: python/overview.md
+    - Python Binding Coverage: python/bindings-coverage.md
     - Python CLI: python/cli.md
     - Python Workflow: python/workflow.md
   - Live Trading:
