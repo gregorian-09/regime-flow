@@ -167,7 +167,7 @@ namespace regimeflow::plugins
     }
 
     const std::vector<HookManager::Entry>& HookManager::hooks_for(const HookType type) const {
-        static constexpr std::vector<Entry> empty;
+        static const std::vector<Entry> empty;
         const auto it = hooks_.find(type);
         if (it == hooks_.end()) {
             return empty;

@@ -12,6 +12,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added a `source_location` fallback for older Linux wheel toolchains that do not ship the C++20 header yet.
 - Set the default macOS deployment target to 10.15 for native and wheel builds so plugin registry filesystem code compiles consistently.
 - Fixed the vcpkg package dependency metadata so Boost.Asio/Beast headers are available when WebSocket support is enabled.
+- Removed a `constexpr std::vector` use that broke GCC 10 in the manylinux wheel build.
 ### Fixed
 - Align standalone wheel workflows with CI so cibuildwheel disables IBAPI and fetches dependencies on all platforms.
 - Remove invalid manifest-mode `vcpkg install protobuf:x64-windows` from wheel workflows.
