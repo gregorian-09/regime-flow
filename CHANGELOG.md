@@ -8,6 +8,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 ### Fixed
 - Align standalone wheel workflows with CI so cibuildwheel disables IBAPI and fetches dependencies on all platforms.
+- Remove invalid manifest-mode `vcpkg install protobuf:x64-windows` from wheel workflows.
 
 ## [1.0.1] - 2026-02-20
 ### Fixed
