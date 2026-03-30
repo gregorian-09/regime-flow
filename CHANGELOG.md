@@ -7,7 +7,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 ### Fixed
-- (none)
+- Align standalone wheel workflows with CI so cibuildwheel disables IBAPI and fetches dependencies on all platforms.
 
 ## [1.0.1] - 2026-02-20
 ### Fixed
