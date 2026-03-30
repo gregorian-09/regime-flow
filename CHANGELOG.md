@@ -19,6 +19,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added the missing member-template disambiguator in live config flattening so GCC 10 wheel builds accept `ConfigValue::get_if`.
 - Require Protobuf 3.21.12-compatible headers for the bundled IB API sources and fetch that version when dependency fetching is enabled.
 - Build macOS wheels on native Intel and Apple Silicon runners instead of cross-linking arm64 Homebrew OpenSSL into x86_64 wheels.
+- Switched the Intel macOS wheel job to the explicit `macos-15-intel` runner label so GitHub schedules the native x86_64 wheel build reliably.
 
 ## [1.0.1] - 2026-02-20
 ### Fixed
