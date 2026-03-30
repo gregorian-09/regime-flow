@@ -278,6 +278,88 @@ jobs:
       if: matrix.build_type == 'Release'
       run: cd build && ctest --output-on-failure
 
+  vcpkg-consumer:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-24.04
+          triplet: x64-linux
+        - os: macos-14
+          triplet: arm64-osx
+        - os: windows-2022
+          triplet: x64-windows
+
+    steps:
+    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      with:
+        submodules: recursive
+
+    - name: Install Linux prerequisites
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build git
+
+    - name: Install macOS prerequisites
+      if: runner.os == 'macOS'
+      run: |
+        brew install cmake ninja
+
+    - name: Install Windows prerequisites
+      if: runner.os == 'Windows'
+      run: choco install cmake ninja --yes --no-progress
+
+    - name: Setup MSVC
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@5c330b455f564f5da8d76ddd421de0e33f763f03
+
+    - name: Bootstrap vcpkg (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git vcpkg
+        ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+    - name: Bootstrap vcpkg (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git vcpkg
+        .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+    - name: Configure consumer (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cmake -S packaging/vcpkg-consumer -B build-vcpkg-consumer -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+          -DVCPKG_OVERLAY_PORTS="${{ github.workspace }}/ports" \
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+
+    - name: Configure consumer (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ninja = (Get-Command ninja).Source
+        cmake -S packaging/vcpkg-consumer -B build-vcpkg-consumer -G Ninja `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_MAKE_PROGRAM="$ninja" `
+          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+          -DVCPKG_OVERLAY_PORTS="${{ github.workspace }}\ports" `
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+
+    - name: Build consumer
+      run: cmake --build build-vcpkg-consumer --config Release
+
+    - name: Run consumer (Unix)
+      if: runner.os != 'Windows'
+      run: ./build-vcpkg-consumer/regimeflow_vcpkg_consumer
+
+    - name: Run consumer (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: .\build-vcpkg-consumer\regimeflow_vcpkg_consumer.exe
+
   analysis-linux:
     runs-on: ubuntu-24.04
 

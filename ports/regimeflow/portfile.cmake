@@ -1,3 +1,10 @@
+vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+        curl ENABLE_CURL
+        openssl ENABLE_OPENSSL
+        postgres ENABLE_POSTGRES
+)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO gregorian-09/regime-flow
@@ -11,6 +18,11 @@ vcpkg_cmake_configure(
         -DBUILD_TESTS=OFF
         -DBUILD_BENCHMARKS=OFF
         -DBUILD_PYTHON_BINDINGS=OFF
+        -DENABLE_IBAPI=OFF
+        -DENABLE_ZMQ=OFF
+        -DENABLE_REDIS=OFF
+        -DENABLE_KAFKA=OFF
+        ${FEATURE_OPTIONS}
 )
 
 vcpkg_cmake_install()

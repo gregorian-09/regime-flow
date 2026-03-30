@@ -32,6 +32,11 @@ if(BUILD_PYTHON)
     set(BUILD_PYTHON_BINDINGS ON)
 endif()
 
+set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM OFF)
+set(REGIMEFLOW_PACKAGE_NEEDS_CURL OFF)
+set(REGIMEFLOW_PACKAGE_NEEDS_OPENSSL OFF)
+set(REGIMEFLOW_PACKAGE_NEEDS_POSTGRES OFF)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -105,6 +110,7 @@ install(TARGETS
     regimeflow_data
     regimeflow_regime
     regimeflow_execution
+    regimeflow_strategy
     regimeflow_risk
     regimeflow_metrics
     regimeflow_engine

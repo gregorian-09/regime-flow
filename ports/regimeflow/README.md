@@ -1,17 +1,43 @@
-# vcpkg Port (Local)
+# vcpkg Port (Overlay)
 
-This port is intended for local testing or as a starting point before upstreaming to the official vcpkg registry.
+This port is intended for local testing, CI validation, and custom-registry work
+before upstreaming to the official vcpkg registry.
 
-## Steps
-
-1. Replace `REPLACE_WITH_SOURCE_SHA512` with the SHA512 of the source tarball.
-2. Test with:
+## Current Install Path
 
 ```bash
-vcpkg install regimeflow --overlay-ports=ports
+vcpkg install regimeflow --overlay-ports=/path/to/regime-flow/ports
 ```
+
+## Consumer Integration
+
+```cmake
+find_package(RegimeFlow CONFIG REQUIRED)
+target_link_libraries(your_target PRIVATE
+    RegimeFlow::regimeflow_engine
+    RegimeFlow::regimeflow_strategy)
+```
+
+## Features
+
+Default features:
+
+- `curl`
+- `openssl`
+
+Optional features:
+
+- `postgres`
+
+## Release Maintenance
+
+1. Update `REF` to the release tag.
+2. Update the `SHA512` source hash.
+3. Validate the port with the sample consumer in CI on Windows, Linux, and macOS.
+4. Keep `ports/regimeflow/vcpkg.json` features aligned with the CMake option surface.
 
 ## Notes
 
 - The port disables tests and Python bindings by default.
-- Update `v1.0.1` and checksums when releasing.
+- The port disables IB, ZeroMQ, Redis, and Kafka integrations for deterministic cross-platform packaging.
+- The current public path is overlay-port usage. Publishing to a custom registry or the official vcpkg registry is the next step.

@@ -154,8 +154,13 @@ if(ENABLE_POSTGRES)
 find_package(PostgreSQL QUIET)
 if(PostgreSQL_FOUND)
     target_compile_definitions(regimeflow_data PRIVATE REGIMEFLOW_USE_LIBPQ)
-    target_include_directories(regimeflow_data PRIVATE ${PostgreSQL_INCLUDE_DIRS})
-    target_link_libraries(regimeflow_data PRIVATE ${PostgreSQL_LIBRARIES})
+    if(TARGET PostgreSQL::PostgreSQL)
+        target_link_libraries(regimeflow_data PRIVATE PostgreSQL::PostgreSQL)
+    else()
+        target_include_directories(regimeflow_data PRIVATE ${PostgreSQL_INCLUDE_DIRS})
+        target_link_libraries(regimeflow_data PRIVATE ${PostgreSQL_LIBRARIES})
+    endif()
+    set(REGIMEFLOW_PACKAGE_NEEDS_POSTGRES ON PARENT_SCOPE)
 endif()
 endif()
 
@@ -163,8 +168,13 @@ if(ENABLE_CURL)
 find_package(CURL QUIET)
 if(CURL_FOUND)
     target_compile_definitions(regimeflow_data PRIVATE REGIMEFLOW_USE_CURL)
-    target_include_directories(regimeflow_data PRIVATE ${CURL_INCLUDE_DIRS})
-    target_link_libraries(regimeflow_data PRIVATE ${CURL_LIBRARIES})
+    if(TARGET CURL::libcurl)
+        target_link_libraries(regimeflow_data PRIVATE CURL::libcurl)
+    else()
+        target_include_directories(regimeflow_data PRIVATE ${CURL_INCLUDE_DIRS})
+        target_link_libraries(regimeflow_data PRIVATE ${CURL_LIBRARIES})
+    endif()
+    set(REGIMEFLOW_PACKAGE_NEEDS_CURL ON PARENT_SCOPE)
 endif()
 endif()
 
@@ -173,6 +183,7 @@ if(Boost_FOUND)
     target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_BOOST_BEAST)
     target_include_directories(regimeflow_data PRIVATE ${Boost_INCLUDE_DIRS})
     target_link_libraries(regimeflow_data PRIVATE Boost::system)
+    set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
 endif()
 
 if(ENABLE_OPENSSL)
@@ -180,6 +191,7 @@ find_package(OpenSSL QUIET)
 if(OpenSSL_FOUND)
     target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_OPENSSL)
     target_link_libraries(regimeflow_data PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    set(REGIMEFLOW_PACKAGE_NEEDS_OPENSSL ON PARENT_SCOPE)
 endif()
 endif()
 
@@ -215,9 +227,12 @@ regimeflow_target_public_include(regimeflow_engine)
 target_link_libraries(regimeflow_engine
     PUBLIC
         regimeflow_common
+        regimeflow_data
+        regimeflow_execution
         regimeflow_risk
         regimeflow_metrics
         regimeflow_regime
+        regimeflow_plugins
 )
 
 add_library(regimeflow_execution
@@ -521,8 +536,12 @@ endif()
 
 if(CURL_FOUND)
     target_compile_definitions(regimeflow_live PRIVATE REGIMEFLOW_USE_CURL)
-    target_include_directories(regimeflow_live PRIVATE ${CURL_INCLUDE_DIRS})
-    target_link_libraries(regimeflow_live PRIVATE ${CURL_LIBRARIES})
+    if(TARGET CURL::libcurl)
+        target_link_libraries(regimeflow_live PRIVATE CURL::libcurl)
+    else()
+        target_include_directories(regimeflow_live PRIVATE ${CURL_INCLUDE_DIRS})
+        target_link_libraries(regimeflow_live PRIVATE ${CURL_LIBRARIES})
+    endif()
 endif()
 
 add_executable(regimeflow_live_cli tools/live_main.cpp)

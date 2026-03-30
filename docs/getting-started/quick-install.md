@@ -32,10 +32,22 @@ If you prefer native binaries, use GitHub Releases. Each release includes platfo
 brew install regimeflow/regimeflow/regimeflow
 ```
 
-## vcpkg (Windows)
+## vcpkg (Windows, Linux, macOS)
 
-```powershell
-vcpkg install regimeflow
+Today the `vcpkg` path is an overlay port:
+
+```bash
+git clone https://github.com/gregorian-09/regime-flow.git
+vcpkg install regimeflow --overlay-ports=/path/to/regime-flow/ports
+```
+
+In your consumer project:
+
+```cmake
+find_package(RegimeFlow CONFIG REQUIRED)
+target_link_libraries(your_target PRIVATE
+    RegimeFlow::regimeflow_engine
+    RegimeFlow::regimeflow_strategy)
 ```
 
 ## System Packages
