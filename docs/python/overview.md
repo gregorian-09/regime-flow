@@ -11,7 +11,7 @@ It is the layer you use when you want to:
 - drive walk-forward optimization from Python
 
 This page is intentionally Python-first. It describes the package as a Python
-library, not as a generic wrapper around the native engine.
+library.
 
 ## Main Use Cases
 
@@ -202,4 +202,3 @@ not separate tooling bolted on after the fact.
 - `python/cli.md`
 - `tutorials/python-usage.md`
 - `api/python.md`
-- `python/bindings-coverage.md`

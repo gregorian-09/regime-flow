@@ -629,7 +629,6 @@ Project documentation:
 - Python overview: <https://gregorian-09.github.io/regime-flow/python/overview/>
 - Python workflow: <https://gregorian-09.github.io/regime-flow/python/workflow/>
 - Python tutorial: <https://gregorian-09.github.io/regime-flow/tutorials/python-usage/>
-- Python bindings coverage: <https://gregorian-09.github.io/regime-flow/python/bindings-coverage/>
 - API design: <https://gregorian-09.github.io/regime-flow/api/python/>
 
 Repository:

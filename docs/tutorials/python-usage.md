@@ -150,4 +150,3 @@ From `results`:
 2. `python/workflow.md`
 3. `python/cli.md`
 4. `api/python.md`
-5. `python/bindings-coverage.md`

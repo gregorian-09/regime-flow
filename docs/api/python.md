@@ -370,4 +370,3 @@ Use this module when your Python workflow needs:
 - `python/workflow.md`
 - `python/cli.md`
 - `tutorials/python-usage.md`
-- `python/bindings-coverage.md`
