@@ -1,6 +1,7 @@
 # Live Broker Operations
 
 This runbook covers the minimum operational workflow for broker secrets, paper validation, and rotation.
+Use `docs/_maintainer/broker-validation-report-template.md` to record every paper/demo validation run.
 
 ## 1. Inject Secrets
 
