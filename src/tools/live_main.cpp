@@ -118,15 +118,15 @@ namespace
                                            const std::string& prefix) -> void {
             for (const auto& [k, v] : object) {
                 const std::string full_key = prefix.empty() ? k : prefix + "." + k;
-                if (const auto* nested = v.get_if<regimeflow::ConfigValue::Object>()) {
+                if (const auto* nested = v.template get_if<regimeflow::ConfigValue::Object>()) {
                     self(self, *nested, full_key);
-                } else if (const auto* s = v.get_if<std::string>()) {
+                } else if (const auto* s = v.template get_if<std::string>()) {
                     out[full_key] = *s;
-                } else if (const auto* b = v.get_if<bool>()) {
+                } else if (const auto* b = v.template get_if<bool>()) {
                     out[full_key] = *b ? "true" : "false";
-                } else if (const auto* i = v.get_if<int64_t>()) {
+                } else if (const auto* i = v.template get_if<int64_t>()) {
                     out[full_key] = std::to_string(*i);
-                } else if (const auto* d = v.get_if<double>()) {
+                } else if (const auto* d = v.template get_if<double>()) {
                     out[full_key] = std::to_string(*d);
                 }
             }

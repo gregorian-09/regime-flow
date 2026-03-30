@@ -70,15 +70,15 @@ namespace
                                     const std::string& prefix) -> void {
             for (const auto& [name, value] : current) {
                 const std::string full_key = prefix.empty() ? name : prefix + "." + name;
-                if (const auto* nested = value.get_if<regimeflow::ConfigValue::Object>()) {
+                if (const auto* nested = value.template get_if<regimeflow::ConfigValue::Object>()) {
                     self(self, *nested, full_key);
-                } else if (const auto* str = value.get_if<std::string>()) {
+                } else if (const auto* str = value.template get_if<std::string>()) {
                     out[full_key] = *str;
-                } else if (const auto* boolean = value.get_if<bool>()) {
+                } else if (const auto* boolean = value.template get_if<bool>()) {
                     out[full_key] = *boolean ? "true" : "false";
-                } else if (const auto* integer = value.get_if<int64_t>()) {
+                } else if (const auto* integer = value.template get_if<int64_t>()) {
                     out[full_key] = std::to_string(*integer);
-                } else if (const auto* number = value.get_if<double>()) {
+                } else if (const auto* number = value.template get_if<double>()) {
                     out[full_key] = std::to_string(*number);
                 }
             }
