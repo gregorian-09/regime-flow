@@ -76,7 +76,18 @@ Issues = "https://github.com/gregorian-09/regime-flow/issues"
 regimeflow-backtest = "regimeflow.cli:main"
 
 [tool.scikit-build]
-cmake.args = ["-DBUILD_PYTHON_BINDINGS=ON"]
+cmake.args = [
+    "-DBUILD_PYTHON_BINDINGS=ON",
+    "-DBUILD_TESTS=OFF",
+    "-DBUILD_BENCHMARKS=OFF",
+    "-DENABLE_IBAPI=OFF",
+    "-DENABLE_POSTGRES=OFF",
+    "-DENABLE_CURL=OFF",
+    "-DENABLE_OPENSSL=OFF",
+    "-DENABLE_ZMQ=OFF",
+    "-DENABLE_REDIS=OFF",
+    "-DENABLE_KAFKA=OFF",
+]
 cmake.source-dir = ".."
 wheel.packages = ["regimeflow"]
 
