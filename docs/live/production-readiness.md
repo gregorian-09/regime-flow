@@ -73,7 +73,7 @@ This mode is intentionally manual because it mutates the paper account state.
 ### Binance
 
 - Binance Spot documents `GTC`, `IOC`, and `FOK` as the main time-in-force values for spot orders.
-- Binance also provides Spot Testnet and Demo Mode environments. Current official examples include `https://api.binance.com/api`, `wss://stream.binance.com:9443/ws`, `https://demo-api.binance.com/api`, `wss://demo-stream.binance.com/ws`, and `wss://stream.testnet.binance.vision/ws`.
+- Binance also provides Spot Testnet and Demo Mode environments. Current official examples include `https://api.binance.com`, `wss://stream.binance.com:9443/ws`, `https://demo-api.binance.com`, `wss://demo-stream.binance.com/ws`, and `wss://stream.testnet.binance.vision/ws`.
 - Use environment variables instead of hardcoding those URLs in committed config.
 
 ### Interactive Brokers

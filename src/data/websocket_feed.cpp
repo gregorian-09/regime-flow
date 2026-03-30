@@ -437,20 +437,26 @@ namespace regimeflow::data
 
     void WebSocketFeed::disconnect() {
 #ifdef REGIMEFLOW_USE_BOOST_BEAST
+        connected_ = false;
         if (ws_) {
             boost::beast::error_code ec;
-            ws_->close(boost::beast::websocket::close_code::normal, ec);
+            auto& socket = boost::beast::get_lowest_layer(*ws_).socket();
+            socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+            ec.clear();
+            socket.close(ec);
         }
 #ifdef REGIMEFLOW_USE_OPENSSL
         if (ws_tls_) {
             boost::beast::error_code ec;
-            ws_tls_->close(boost::beast::websocket::close_code::normal, ec);
+            auto& socket = boost::beast::get_lowest_layer(*ws_tls_).socket();
+            socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+            ec.clear();
+            socket.close(ec);
         }
         ws_tls_.reset();
 #endif
         ws_.reset();
 #endif
-        connected_ = false;
     }
 
     bool WebSocketFeed::is_connected() const {

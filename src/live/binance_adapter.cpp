@@ -42,6 +42,16 @@ namespace regimeflow::live
             return value;
         }
 
+        std::string normalize_base_url(std::string value) {
+            while (!value.empty() && value.back() == '/') {
+                value.pop_back();
+            }
+            if (value.size() >= 4 && value.ends_with("/api")) {
+                value.resize(value.size() - 4);
+            }
+            return value;
+        }
+
         const common::JsonValue* find_field(const common::JsonValue::Object& obj,
                                             const std::string& key) {
             const auto it = obj.find(key);
@@ -173,7 +183,9 @@ namespace regimeflow::live
 
     }  // namespace
 
-    BinanceAdapter::BinanceAdapter(Config config) : config_(std::move(config)) {}
+    BinanceAdapter::BinanceAdapter(Config config) : config_(std::move(config)) {
+        config_.base_url = normalize_base_url(std::move(config_.base_url));
+    }
 
     Result<void> BinanceAdapter::connect() {
         connected_ = true;

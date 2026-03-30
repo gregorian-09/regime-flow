@@ -367,12 +367,20 @@ namespace
         return config.broker_asset_class == "crypto" ? 0.001 : 1.0;
     }
 
+    std::string render_error(const regimeflow::Error& error) {
+        std::string rendered = regimeflow::live::redact_sensitive_values(error.to_string());
+        if (error.details && !error.details->empty()) {
+            rendered.append(" details=")
+                .append(regimeflow::live::redact_sensitive_values(*error.details));
+        }
+        return rendered;
+    }
+
     int run_validation(const ValidationOptions& options) {
         load_dotenv(".env");
         const auto config_result = load_live_config(options.config_path);
         if (config_result.is_err()) {
-            std::cerr << "Config error: "
-                      << regimeflow::live::redact_sensitive_values(config_result.error().to_string()) << "\n";
+            std::cerr << "Config error: " << render_error(config_result.error()) << "\n";
             return 1;
         }
         const auto& cfg = config_result.value();
@@ -392,15 +400,13 @@ namespace
         });
 
         if (const auto connect = broker->connect(); connect.is_err()) {
-            std::cerr << "Connect failed: "
-                      << regimeflow::live::redact_sensitive_values(connect.error().to_string()) << "\n";
+            std::cerr << "Connect failed: " << render_error(connect.error()) << "\n";
             return 1;
         }
 
         const auto disconnect_guard = [&]() {
             if (const auto disconnect = broker->disconnect(); disconnect.is_err()) {
-                std::cerr << "Disconnect warning: "
-                          << regimeflow::live::redact_sensitive_values(disconnect.error().to_string()) << "\n";
+                std::cerr << "Disconnect warning: " << render_error(disconnect.error()) << "\n";
             }
         };
 
@@ -440,8 +446,7 @@ namespace
             const auto submit = broker->submit_order(order);
             if (submit.is_err()) {
                 disconnect_guard();
-                std::cerr << "Submit failed: "
-                          << regimeflow::live::redact_sensitive_values(submit.error().to_string()) << "\n";
+                std::cerr << "Submit failed: " << render_error(submit.error()) << "\n";
                 return 1;
             }
             const std::string broker_order_id = submit.value();
@@ -458,8 +463,7 @@ namespace
             }
             if (const auto cancel = broker->cancel_order(broker_order_id); cancel.is_err()) {
                 disconnect_guard();
-                std::cerr << "Cancel failed: "
-                          << regimeflow::live::redact_sensitive_values(cancel.error().to_string()) << "\n";
+                std::cerr << "Cancel failed: " << render_error(cancel.error()) << "\n";
                 return 1;
             }
             const bool cleared = wait_for(*broker, std::chrono::seconds(options.timeout_seconds), [&]() {
@@ -483,8 +487,7 @@ namespace
             const auto buy_submit = broker->submit_order(buy);
             if (buy_submit.is_err()) {
                 disconnect_guard();
-                std::cerr << "Entry submit failed: "
-                          << regimeflow::live::redact_sensitive_values(buy_submit.error().to_string()) << "\n";
+                std::cerr << "Entry submit failed: " << render_error(buy_submit.error()) << "\n";
                 return 1;
             }
 
@@ -519,8 +522,7 @@ namespace
             const auto sell_submit = broker->submit_order(sell);
             if (sell_submit.is_err()) {
                 disconnect_guard();
-                std::cerr << "Exit submit failed: "
-                          << regimeflow::live::redact_sensitive_values(sell_submit.error().to_string()) << "\n";
+                std::cerr << "Exit submit failed: " << render_error(sell_submit.error()) << "\n";
                 return 1;
             }
 

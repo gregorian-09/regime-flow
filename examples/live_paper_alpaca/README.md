@@ -46,6 +46,16 @@ Lifecycle validation before a longer paper session:
   --mode submit_cancel_reconcile --quantity 1
 ```
 
+If the market-data feed is quiet or the session is outside normal trading hours,
+pass an explicit passive `--limit-price` so the lifecycle check does not wait on
+an immediate price update:
+
+```bash
+./build/bin/regimeflow_live_validate \
+  --config examples/live_paper_alpaca/config.yaml \
+  --mode submit_cancel_reconcile --quantity 1 --limit-price 1
+```
+
 Optional round-trip fill validation on paper only:
 
 ```bash

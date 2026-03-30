@@ -41,7 +41,7 @@ Mounted-secret variants:
 - `BINANCE_SECRET_KEY`
   Binance secret key expected by the current live adapter.
 - `BINANCE_BASE_URL`
-  Spot REST base URL. Demo Mode example: `https://demo-api.binance.com/api`
+  Spot REST base URL. Demo Mode example: `https://demo-api.binance.com`
 - `BINANCE_STREAM_URL`
   Spot market stream URL. Demo Mode example: `wss://demo-stream.binance.com/ws`
 - `BINANCE_RECV_WINDOW_MS`

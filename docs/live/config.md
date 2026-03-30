@@ -119,9 +119,9 @@ metrics:
 - `binance` can be pointed at Spot Testnet or Demo Mode by setting `BINANCE_BASE_URL`
   and `BINANCE_STREAM_URL` in the environment.
   Current official examples:
-  `https://api.binance.com/api`,
+  `https://api.binance.com`,
   `wss://stream.binance.com:9443/ws`,
-  `https://demo-api.binance.com/api`,
+  `https://demo-api.binance.com`,
   `wss://demo-stream.binance.com/ws`,
   and `wss://stream.testnet.binance.vision/ws`.
 - `ib` can be configured from `IB_HOST`, `IB_PORT`, and `IB_CLIENT_ID`, then extended with `defaults.*` and `contracts.<symbol>.*` contract metadata for FX, futures, options, and non-US equities. Interactive Brokers can still block login or API access based on account policy, jurisdiction, IP origin, or other compliance controls; that boundary is external to RegimeFlow.

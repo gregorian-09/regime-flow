@@ -23,7 +23,7 @@ export ALPACA_STREAM_URL=wss://stream.data.alpaca.markets/v2/iex
 ```bash
 export BINANCE_API_KEY_FILE=/var/run/secrets/binance/api_key
 export BINANCE_SECRET_KEY_FILE=/var/run/secrets/binance/secret_key
-export BINANCE_BASE_URL=https://demo-api.binance.com/api
+export BINANCE_BASE_URL=https://demo-api.binance.com
 export BINANCE_STREAM_URL=wss://demo-stream.binance.com/ws
 ```
 
@@ -59,6 +59,12 @@ Safe submit/cancel/reconcile validation:
 ```
 
 If the broker does not stream a usable price quickly enough, pass an explicit passive `--limit-price`.
+
+Example:
+
+```bash
+./build/bin/regimeflow_live_validate --config examples/live_paper_alpaca/config.yaml --mode submit_cancel_reconcile --quantity 1 --limit-price 1
+```
 
 Optional round-trip fill validation on paper/demo only:
 
