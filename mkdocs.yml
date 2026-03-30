@@ -6,11 +6,19 @@ repo_name: RegimeFlow
 docs_dir: docs
 theme:
   name: material
+  custom_dir: docs/overrides
+  font: false
+  palette:
+  - scheme: default
+    primary: custom
+    accent: custom
   features:
   - navigation.sections
   - navigation.top
   - navigation.tracking
   - navigation.indexes
+  - navigation.expand
+  - navigation.path
   - content.code.copy
   - content.code.annotate
   - content.tabs.link
@@ -35,6 +43,7 @@ extra_javascript:
   - assets/auto-render.min.js
   - assets/katex-init.js
 extra_css:
+  - assets/site-theme.css
   - assets/katex.min.css
   - assets/diagram-theme.css
 plugins:

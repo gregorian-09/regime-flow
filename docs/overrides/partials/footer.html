@@ -1,0 +1,53 @@
+<footer class="md-footer">
+  <div class="rf-footer">
+    <div class="md-grid rf-footer__grid">
+      <div class="rf-footer__brand">
+        <div class="rf-logo rf-logo--footer" aria-label="{{ config.site_name }}">
+          <span class="rf-logo__mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" focusable="false">
+              <defs>
+                <linearGradient id="rf-logo-gradient-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#b8f0d0"></stop>
+                  <stop offset="100%" stop-color="#42ba8d"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)"></rect>
+              <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient-footer)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+              <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+            </svg>
+          </span>
+          <span class="rf-logo__text">
+            <strong>RegimeFlow</strong>
+            <small>Documentation</small>
+          </span>
+        </div>
+        <p>
+          C++ and Python quantitative trading infrastructure with regime-aware backtesting,
+          live execution boundaries, and code-aligned reference material.
+        </p>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Start</h4>
+        <a href="{{ 'getting-started/quick-install/' | url }}">Quick Install</a>
+        <a href="{{ 'getting-started/quickstart/' | url }}">Quickstart</a>
+        <a href="{{ 'guide/backtesting/' | url }}">Backtesting</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Reference</h4>
+        <a href="{{ 'reference/configuration/' | url }}">Configuration</a>
+        <a href="{{ 'api/index/' | url }}">API Design</a>
+        <a href="{{ 'live/brokers/' | url }}">Broker Support</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Project</h4>
+        <a href="{{ config.repo_url }}">GitHub</a>
+        <a href="{{ 'live/production-readiness/' | url }}">Production Readiness</a>
+        <a href="{{ 'tutorials/examples/' | url }}">Examples</a>
+      </div>
+    </div>
+  </div>
+</footer>
