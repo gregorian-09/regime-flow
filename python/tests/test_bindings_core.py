@@ -223,8 +223,10 @@ def test_backtest_config_accepts_nested_execution_policy():
     if build_python in sys.path:
         sys.path.remove(build_python)
     sys.path.insert(0, build_python)
-    sys.modules.pop("_core", None)
-    core = importlib.import_module("_core")
+    core = sys.modules.get("regimeflow._core")
+    if core is None:
+        sys.modules.pop("_core", None)
+        core = importlib.import_module("_core")
 
     cfg = core.engine.BacktestConfig.from_dict(
         {

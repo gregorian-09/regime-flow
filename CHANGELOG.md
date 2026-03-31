@@ -12,6 +12,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Matched the dynamic plugin test's `destroy_plugin` ABI to the registry callback type so sanitizer builds no longer trip on an invalid function-pointer call.
 - Let vcpkg consumer CI build the overlay port from the current workspace instead of the last published tag.
 - Raised the Intel macOS wheel deployment target to 15.0 to match the hosted runner's OpenSSL binaries during delocate repair.
+- Avoided re-importing the native Python extension under a second module name in the native binding tests.
+- Exported Boost websocket include and link requirements from `regimeflow_data` so vcpkg consumer builds compile live headers correctly.
 - Made `python/regimeflow/_core.py` importable on Python 3.9 wheel test environments by postponing annotation evaluation.
 - Fixed fetched Protobuf linkage for bundled IBAPI builds so macOS arm64 links against the fetched library instead of a stale imported target.
 - Suppressed third-party hiredis C99 flexible-array warnings in sanitizer builds without weakening project-wide warning settings.
