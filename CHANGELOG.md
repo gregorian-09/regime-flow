@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 ### Fixed
+- Made `python/regimeflow/_core.py` importable on Python 3.9 wheel test environments by postponing annotation evaluation.
+- Fixed fetched Protobuf linkage for bundled IBAPI builds so macOS arm64 links against the fetched library instead of a stale imported target.
+- Suppressed third-party hiredis C99 flexible-array warnings in sanitizer builds without weakening project-wide warning settings.
+### Fixed
 - Made `Result` error returns explicit across optional feature paths so GCC, Clang, and MSVC builds do not rely on invalid implicit conversions.
 - Reworked `ConfigValue` storage to avoid recursive container completeness issues on older libstdc++ toolchains used in Linux wheel builds.
 - Added a `source_location` fallback for older Linux wheel toolchains that do not ship the C++20 header yet.
