@@ -25,7 +25,7 @@ jobs:
             cibw_archs_linux: auto64
             cibw_archs_macos: x86_64
             cibw_archs_windows: auto64
-            macos_deployment_target: 10.15
+            macos_deployment_target: 15.0
           - label: macos-14-arm64
             runner: macos-14
             cibw_archs_linux: auto64

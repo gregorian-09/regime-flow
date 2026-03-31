@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import importlib
+import importlib.machinery
+import importlib.util
 import os
 import sys
 from pathlib import Path
 
 _DLL_DIR_HANDLES = []
+_NATIVE_MODULE_NAME = f"{__package__}._native_core" if __package__ else "regimeflow._native_core"
 
 
 def _add_dll_dir(path: Path) -> None:
@@ -46,49 +48,67 @@ def _configure_windows_dll_search() -> None:
             _add_dll_dir(Path(entry))
 
 
+def _is_core_binary(path: Path) -> bool:
+    if not path.exists() or not path.is_file():
+        return False
+    name = path.name
+    return name.startswith("_core") and any(
+        name.endswith(suffix) for suffix in importlib.machinery.EXTENSION_SUFFIXES
+    )
+
+
 def _contains_core_binary(path: Path) -> bool:
     if not path.exists() or not path.is_dir():
         return False
-    return any(path.glob("_core*.so")) or any(path.glob("_core*.pyd"))
+    return any(_is_core_binary(entry) for entry in path.iterdir())
 
-
-def _prefer_core_path() -> Path | None:
+def _find_core_binary() -> Path:
+    here = Path(__file__).resolve().parent
+    search_roots: list[Path] = [here]
     test_root = os.environ.get("REGIMEFLOW_TEST_ROOT")
     if test_root:
         root = Path(test_root)
-        for candidate in (root / "build" / "python", root / "build" / "lib"):
-            if _contains_core_binary(candidate):
-                return candidate
+        search_roots.extend(
+            (
+                root / "build" / "python",
+                root / "build" / "lib",
+                root / "build" / "python" / "Release",
+                root / "build" / "python" / "Debug",
+            )
+        )
 
     for entry in sys.path:
         try:
             candidate = Path(entry)
         except TypeError:
             continue
-        if _contains_core_binary(candidate):
-            return candidate
-    return None
+        search_roots.append(candidate)
+        search_roots.append(candidate / "regimeflow")
+
+    for root in search_roots:
+        if not root.exists() or not root.is_dir():
+            continue
+        for candidate in sorted(root.iterdir()):
+            if _is_core_binary(candidate):
+                return candidate
+
+    raise ImportError("Failed to locate the compiled RegimeFlow _core extension")
 
 
 def _import_core():
-    preferred = _prefer_core_path()
-    if preferred is not None:
-        preferred_str = str(preferred)
-        if preferred_str in sys.path:
-            sys.path.remove(preferred_str)
-        sys.path.insert(0, preferred_str)
+    module_path = _find_core_binary()
+    existing = sys.modules.get(_NATIVE_MODULE_NAME)
+    if existing is not None and Path(getattr(existing, "__file__", "")).resolve() == module_path.resolve():
+        return existing
 
-        existing = sys.modules.get("_core")
-        existing_file = getattr(existing, "__file__", "")
-        if existing is not None and existing_file:
-            try:
-                if not Path(existing_file).resolve().is_relative_to(preferred.resolve()):
-                    sys.modules.pop("_core", None)
-            except Exception:
-                if preferred_str not in existing_file:
-                    sys.modules.pop("_core", None)
+    spec = importlib.util.spec_from_file_location(_NATIVE_MODULE_NAME, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Failed to load native RegimeFlow module from {module_path}")
 
-    return importlib.import_module("_core")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[_NATIVE_MODULE_NAME] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 _configure_windows_dll_search()
