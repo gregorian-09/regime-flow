@@ -8,6 +8,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 ### Fixed
 - Loaded the packaged Python extension from its actual wheel/build location instead of assuming a top-level `_core` module.
+- Renamed the pure-Python package bootstrap module so the compiled `_core` extension keeps the module name expected by Python's extension loader.
 - Matched the dynamic plugin test's `destroy_plugin` ABI to the registry callback type so sanitizer builds no longer trip on an invalid function-pointer call.
 - Let vcpkg consumer CI build the overlay port from the current workspace instead of the last published tag.
 - Raised the Intel macOS wheel deployment target to 15.0 to match the hosted runner's OpenSSL binaries during delocate repair.

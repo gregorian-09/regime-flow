@@ -20,17 +20,17 @@ if "__path__" in globals():
             _normalized_path.append(_entry)
     __path__ = _normalized_path
 
-_CORE_MODULE_NAME = f"{__name__}._core"
+_CORE_MODULE_NAME = f"{__name__}._bootstrap"
 _core_spec = importlib.util.spec_from_file_location(
-    _CORE_MODULE_NAME, os.path.join(_LOCAL_PACKAGE_DIR, "_core.py")
+    _CORE_MODULE_NAME, os.path.join(_LOCAL_PACKAGE_DIR, "_bootstrap.py")
 )
 if _core_spec is None or _core_spec.loader is None:
-    raise ImportError("Failed to load regimeflow._core wrapper")
+    raise ImportError("Failed to load regimeflow bootstrap wrapper")
 _core = importlib.util.module_from_spec(_core_spec)
 sys.modules[_CORE_MODULE_NAME] = _core
 _core_spec.loader.exec_module(_core)
 
-from ._core import (
+from ._bootstrap import (
     Config,
     load_config,
     Timestamp,

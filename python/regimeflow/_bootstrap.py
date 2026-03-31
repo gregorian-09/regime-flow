@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import importlib.machinery
 import importlib.util
 import os
 import sys
 from pathlib import Path
 
 _DLL_DIR_HANDLES = []
-_NATIVE_MODULE_NAME = f"{__package__}._native_core" if __package__ else "regimeflow._native_core"
 
 
 def _add_dll_dir(path: Path) -> None:
@@ -52,15 +50,8 @@ def _is_core_binary(path: Path) -> bool:
     if not path.exists() or not path.is_file():
         return False
     name = path.name
-    return name.startswith("_core") and any(
-        name.endswith(suffix) for suffix in importlib.machinery.EXTENSION_SUFFIXES
-    )
+    return name.startswith("_core") and any(name.endswith(suffix) for suffix in (".so", ".pyd"))
 
-
-def _contains_core_binary(path: Path) -> bool:
-    if not path.exists() or not path.is_dir():
-        return False
-    return any(_is_core_binary(entry) for entry in path.iterdir())
 
 def _find_core_binary() -> Path:
     here = Path(__file__).resolve().parent
@@ -97,16 +88,18 @@ def _find_core_binary() -> Path:
 
 def _import_core():
     module_path = _find_core_binary()
-    existing = sys.modules.get(_NATIVE_MODULE_NAME)
-    if existing is not None and Path(getattr(existing, "__file__", "")).resolve() == module_path.resolve():
-        return existing
+    for module_name in (f"{__package__}._core", "_core"):
+        existing = sys.modules.get(module_name)
+        if existing is not None and Path(getattr(existing, "__file__", "")).resolve() == module_path.resolve():
+            return existing
 
-    spec = importlib.util.spec_from_file_location(_NATIVE_MODULE_NAME, module_path)
+    spec = importlib.util.spec_from_file_location(f"{__package__}._core", module_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Failed to load native RegimeFlow module from {module_path}")
 
     module = importlib.util.module_from_spec(spec)
-    sys.modules[_NATIVE_MODULE_NAME] = module
+    sys.modules[f"{__package__}._core"] = module
+    sys.modules["_core"] = module
     spec.loader.exec_module(module)
     return module
 
