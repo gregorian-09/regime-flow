@@ -8,17 +8,18 @@
 #include <mutex>
 #include <thread>
 
+#if defined(_WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 #if defined(REGIMEFLOW_USE_ZMQ)
 #include <zmq.hpp>
 #endif
 
 #if defined(REGIMEFLOW_USE_REDIS)
-#if defined(_WIN32)
-#include <process.h>
-#else
 #include <poll.h>
-#include <unistd.h>
-#endif
 #include <hiredis/hiredis.h>
 #endif
 

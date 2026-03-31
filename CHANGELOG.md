@@ -20,6 +20,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Require Protobuf 3.21.12-compatible headers for the bundled IB API sources and fetch that version when dependency fetching is enabled.
 - Build macOS wheels on native Intel and Apple Silicon runners instead of cross-linking arm64 Homebrew OpenSSL into x86_64 wheels.
 - Switched the Intel macOS wheel job to the explicit `macos-15-intel` runner label so GitHub schedules the native x86_64 wheel build reliably.
+- Fixed the wheel/publish sdist artifact path so release workflows upload the generated source tarball from `python/dist`.
+- Matched the arm64 macOS wheel deployment target to the OpenSSL bottle baseline on `macos-14`, avoiding delocate failures during wheel repair.
+- Made `src/live/mq_adapter.cpp` include process-id headers independently of the Redis feature flag so macOS consumer builds compile without `REGIMEFLOW_USE_REDIS`.
 
 ## [1.0.1] - 2026-02-20
 ### Fixed
