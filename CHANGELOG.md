@@ -37,6 +37,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Removed the Windows wheel vcpkg toolchain override so cibuildwheel can resolve Python development components correctly.
 - Broke the shared-library link cycle between `regimeflow_execution` and `regimeflow_engine` and forced `regimeflow_plugins` to build after `regimeflow_common` on Windows shared builds.
 - Enabled CMake's Windows auto-export path for shared builds so vcpkg Windows consumer builds consistently generate the import libraries their dependent DLLs link against.
+- Applied Windows auto-export explicitly per library target so vcpkg shared consumers do not rely on a global CMake variable being propagated into subdirectory targets.
 
 ## [1.0.1] - 2026-02-20
 ### Fixed

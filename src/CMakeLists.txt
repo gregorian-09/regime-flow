@@ -122,7 +122,14 @@ function(regimeflow_target_public_include target)
     target_include_directories(${target} PUBLIC ${REGIMEFLOW_PUBLIC_INCLUDE})
 endfunction()
 
+function(regimeflow_enable_windows_exports target)
+    if(WIN32 AND BUILD_SHARED_LIBS)
+        set_target_properties(${target} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif()
+endfunction()
+
 regimeflow_target_public_include(regimeflow_common)
+regimeflow_enable_windows_exports(regimeflow_common)
 
 add_library(regimeflow_data
     data/alpaca_data_client.cpp
@@ -158,6 +165,7 @@ add_library(regimeflow_data
 )
 
 regimeflow_target_public_include(regimeflow_data)
+regimeflow_enable_windows_exports(regimeflow_data)
 
 target_link_libraries(regimeflow_data
     PUBLIC
@@ -257,6 +265,7 @@ add_library(regimeflow_engine
 )
 
 regimeflow_target_public_include(regimeflow_engine)
+regimeflow_enable_windows_exports(regimeflow_engine)
 
 target_link_libraries(regimeflow_engine
     PUBLIC
@@ -282,6 +291,7 @@ add_library(regimeflow_execution
 )
 
 regimeflow_target_public_include(regimeflow_execution)
+regimeflow_enable_windows_exports(regimeflow_execution)
 
 target_link_libraries(regimeflow_execution
     PUBLIC
@@ -301,6 +311,7 @@ add_library(regimeflow_strategy
 )
 
 regimeflow_target_public_include(regimeflow_strategy)
+regimeflow_enable_windows_exports(regimeflow_strategy)
 
 target_link_libraries(regimeflow_strategy
     PUBLIC
@@ -317,6 +328,7 @@ add_library(regimeflow_risk
 )
 
 regimeflow_target_public_include(regimeflow_risk)
+regimeflow_enable_windows_exports(regimeflow_risk)
 
 target_link_libraries(regimeflow_risk
     PUBLIC
@@ -339,6 +351,7 @@ add_library(regimeflow_metrics
 )
 
 regimeflow_target_public_include(regimeflow_metrics)
+regimeflow_enable_windows_exports(regimeflow_metrics)
 
 target_link_libraries(regimeflow_metrics
     PUBLIC
@@ -355,6 +368,7 @@ add_library(regimeflow_regime
 )
 
 regimeflow_target_public_include(regimeflow_regime)
+regimeflow_enable_windows_exports(regimeflow_regime)
 
 target_link_libraries(regimeflow_regime
     PUBLIC
@@ -368,6 +382,7 @@ add_library(regimeflow_plugins
 )
 
 regimeflow_target_public_include(regimeflow_plugins)
+regimeflow_enable_windows_exports(regimeflow_plugins)
 
 target_link_libraries(regimeflow_plugins
     PUBLIC
@@ -385,6 +400,7 @@ add_library(regimeflow_walkforward
 )
 
 regimeflow_target_public_include(regimeflow_walkforward)
+regimeflow_enable_windows_exports(regimeflow_walkforward)
 
 target_link_libraries(regimeflow_walkforward
     PUBLIC
@@ -413,6 +429,7 @@ endif()
 add_library(regimeflow_live ${REGIMEFLOW_LIVE_SOURCES})
 
 regimeflow_target_public_include(regimeflow_live)
+regimeflow_enable_windows_exports(regimeflow_live)
 
 target_link_libraries(regimeflow_live
     PUBLIC
