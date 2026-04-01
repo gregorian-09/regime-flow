@@ -187,7 +187,6 @@ jobs:
 
   build-windows:
     runs-on: windows-2022
-    timeout-minutes: 120
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
@@ -281,19 +280,15 @@ jobs:
 
   vcpkg-consumer:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.timeout_minutes }}
     strategy:
       matrix:
         include:
         - os: ubuntu-24.04
           triplet: x64-linux
-          timeout_minutes: 60
         - os: macos-14
           triplet: arm64-osx
-          timeout_minutes: 60
         - os: windows-2022
           triplet: x64-windows
-          timeout_minutes: 120
 
     steps:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
