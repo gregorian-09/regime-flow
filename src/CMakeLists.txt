@@ -286,7 +286,6 @@ regimeflow_target_public_include(regimeflow_execution)
 target_link_libraries(regimeflow_execution
     PUBLIC
         regimeflow_common
-        regimeflow_engine
         regimeflow_plugins
 )
 
@@ -374,6 +373,9 @@ target_link_libraries(regimeflow_plugins
     PUBLIC
         regimeflow_common
 )
+if(WIN32 AND BUILD_SHARED_LIBS)
+    add_dependencies(regimeflow_plugins regimeflow_common)
+endif()
 if(UNIX AND NOT APPLE)
     target_link_libraries(regimeflow_plugins PUBLIC ${CMAKE_DL_LIBS})
 endif()
