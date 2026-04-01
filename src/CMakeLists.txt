@@ -384,13 +384,6 @@ add_library(regimeflow_plugins
 regimeflow_target_public_include(regimeflow_plugins)
 regimeflow_enable_windows_exports(regimeflow_plugins)
 
-target_link_libraries(regimeflow_plugins
-    PUBLIC
-        regimeflow_common
-)
-if(WIN32 AND BUILD_SHARED_LIBS)
-    add_dependencies(regimeflow_plugins regimeflow_common)
-endif()
 if(UNIX AND NOT APPLE)
     target_link_libraries(regimeflow_plugins PUBLIC ${CMAKE_DL_LIBS})
 endif()
