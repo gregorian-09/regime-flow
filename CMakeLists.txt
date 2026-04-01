@@ -55,6 +55,9 @@ add_compile_options(
 
 if(WIN32)
     add_compile_definitions(_WIN32_WINNT=0x0601 _WIN32_WINDOWS=0x0601)
+    if(BUILD_SHARED_LIBS)
+        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif()
 endif()
 
 if(ENABLE_WERROR)
