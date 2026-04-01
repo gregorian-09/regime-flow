@@ -10,30 +10,35 @@ jobs:
   build_wheels:
     name: Build wheels (${{ matrix.label }})
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ matrix.timeout_minutes }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - label: ubuntu-latest
             runner: ubuntu-latest
+            timeout_minutes: 90
             cibw_archs_linux: x86_64
             cibw_archs_macos: auto64
             cibw_archs_windows: auto64
             macos_deployment_target: 10.15
           - label: macos-15-intel-x86_64
             runner: macos-15-intel
+            timeout_minutes: 90
             cibw_archs_linux: auto64
             cibw_archs_macos: x86_64
             cibw_archs_windows: auto64
             macos_deployment_target: 15.0
           - label: macos-14-arm64
             runner: macos-14
+            timeout_minutes: 90
             cibw_archs_linux: auto64
             cibw_archs_macos: arm64
             cibw_archs_windows: auto64
             macos_deployment_target: 14.0
           - label: windows-latest
             runner: windows-latest
+            timeout_minutes: 120
             cibw_archs_linux: auto64
             cibw_archs_macos: auto64
             cibw_archs_windows: AMD64
