@@ -1,8 +1,5 @@
 import os
 import sys
-import importlib
-import pathlib
-
 import pytest
 
 TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
@@ -215,18 +212,8 @@ def test_backtest_engine_prepare_and_step():
 
 
 def test_backtest_config_accepts_nested_execution_policy():
-    candidates = sorted(pathlib.Path(TEST_ROOT, "build", "python").glob("_core*.so"))
-    if not candidates:
-        candidates = sorted(pathlib.Path(TEST_ROOT, "build", "python").glob("_core*.pyd"))
-    assert candidates, "built _core extension not found"
-
-    if build_python in sys.path:
-        sys.path.remove(build_python)
-    sys.path.insert(0, build_python)
     core = sys.modules.get("regimeflow._core")
-    if core is None:
-        sys.modules.pop("_core", None)
-        core = importlib.import_module("_core")
+    assert core is not None, "regimeflow._core should already be loaded via regimeflow import"
 
     cfg = core.engine.BacktestConfig.from_dict(
         {

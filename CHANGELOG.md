@@ -13,7 +13,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Let vcpkg consumer CI build the overlay port from the current workspace instead of the last published tag.
 - Raised the Intel macOS wheel deployment target to 15.0 to match the hosted runner's OpenSSL binaries during delocate repair.
 - Avoided re-importing the native Python extension under a second module name in the native binding tests.
-- Exported Boost websocket include and link requirements from `regimeflow_data` so vcpkg consumer builds compile live headers correctly.
+- Exported Boost websocket requirements from `regimeflow_data` via Boost imported targets so consumer installs no longer leak build-tree include paths.
 - Made `python/regimeflow/_core.py` importable on Python 3.9 wheel test environments by postponing annotation evaluation.
 - Fixed fetched Protobuf linkage for bundled IBAPI builds so macOS arm64 links against the fetched library instead of a stale imported target.
 - Suppressed third-party hiredis C99 flexible-array warnings in sanitizer builds without weakening project-wide warning settings.
@@ -33,6 +33,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Fixed the wheel/publish sdist artifact path so release workflows upload the generated source tarball from `python/dist`.
 - Matched the arm64 macOS wheel deployment target to the OpenSSL bottle baseline on `macos-14`, avoiding delocate failures during wheel repair.
 - Made `src/live/mq_adapter.cpp` include process-id headers independently of the Redis feature flag so macOS consumer builds compile without `REGIMEFLOW_USE_REDIS`.
+- Stopped Python native binding tests from assuming a CMake build-tree `_core` artifact exists when the package is installed editable in CI.
+- Removed the Windows wheel vcpkg toolchain override so cibuildwheel can resolve Python development components correctly.
 
 ## [1.0.1] - 2026-02-20
 ### Fixed

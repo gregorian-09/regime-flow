@@ -206,8 +206,17 @@ if(Boost_FOUND)
 endif()
 if(Boost_FOUND AND REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND)
     target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_BOOST_BEAST)
-    target_include_directories(regimeflow_data PUBLIC ${Boost_INCLUDE_DIRS})
-    target_link_libraries(regimeflow_data PUBLIC Boost::system)
+    if(TARGET Boost::headers)
+        target_link_libraries(regimeflow_data PUBLIC Boost::headers Boost::system)
+    elseif(TARGET Boost::boost)
+        target_link_libraries(regimeflow_data PUBLIC Boost::boost Boost::system)
+    else()
+        target_include_directories(regimeflow_data
+            PUBLIC
+                $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+        )
+        target_link_libraries(regimeflow_data PUBLIC Boost::system)
+    endif()
     set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
 endif()
 
