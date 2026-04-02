@@ -288,7 +288,7 @@ jobs:
         - os: macos-14
           triplet: arm64-osx
         - os: windows-2022
-          triplet: x64-windows-static
+          triplet: x64-windows-static-md
 
     steps:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
@@ -345,11 +345,18 @@ jobs:
         REGIMEFLOW_VCPKG_SOURCE_PATH: ${{ github.workspace }}
       run: |
         $ninja = (Get-Command ninja).Source
+        $crt = "MultiThreadedDLL"
+        if ("${{ matrix.triplet }}" -like "*-static" -and "${{ matrix.triplet }}" -notlike "*-static-md") {
+          $crt = "MultiThreaded"
+        } elseif ("${{ matrix.triplet }}" -like "*-static-md") {
+          $crt = "MultiThreadedDLL"
+        }
         cmake -S packaging/vcpkg-consumer -B build-vcpkg-consumer -G Ninja `
           -DCMAKE_BUILD_TYPE=Release `
           -DCMAKE_MAKE_PROGRAM="$ninja" `
           -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" `
           -DVCPKG_OVERLAY_PORTS="${{ github.workspace }}\ports" `
+          -DCMAKE_MSVC_RUNTIME_LIBRARY="$crt" `
           -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
 
     - name: Build consumer
