@@ -137,16 +137,16 @@ jobs:
             VERSION="${GITHUB_REF_NAME#v}"
           else
             VERSION="$(python - <<'PY'
-import re
-from pathlib import Path
+            import re
+            from pathlib import Path
 
-text = Path("CMakeLists.txt").read_text(encoding="utf-8")
-match = re.search(r"project\(RegimeFlow VERSION\s+([0-9]+(?:\.[0-9]+)*)\s+LANGUAGES\s+CXX\)", text)
-if not match:
-    raise SystemExit("Failed to resolve project version from CMakeLists.txt")
-print(match.group(1))
-PY
-)"
+            text = Path("CMakeLists.txt").read_text(encoding="utf-8")
+            match = re.search(r"project\(RegimeFlow VERSION\s+([0-9]+(?:\.[0-9]+)*)\s+LANGUAGES\s+CXX\)", text)
+            if not match:
+                raise SystemExit("Failed to resolve project version from CMakeLists.txt")
+            print(match.group(1))
+            PY
+            )"
           fi
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
 
