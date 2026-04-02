@@ -169,6 +169,10 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           TOPDIR="$PWD/rpmbuild"
           mkdir -p "$TOPDIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+          git archive --format=tar.gz \
+            --prefix="regime-flow-${VERSION}/" \
+            -o "$TOPDIR/SOURCES/v${VERSION}.tar.gz" \
+            HEAD
           SPEC="$TOPDIR/SPECS/regimeflow.spec"
           sed "s/^Version:.*/Version:        ${VERSION}/" packaging/rpm/regimeflow.spec > "$SPEC"
           rpmbuild -ba --nodeps "$SPEC" --define "_topdir ${TOPDIR}"
