@@ -136,17 +136,11 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" == v* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="$(python - <<'PY'
-            import re
-            from pathlib import Path
-
-            text = Path("CMakeLists.txt").read_text(encoding="utf-8")
-            match = re.search(r"project\(RegimeFlow VERSION\s+([0-9]+(?:\.[0-9]+)*)\s+LANGUAGES\s+CXX\)", text)
-            if not match:
-                raise SystemExit("Failed to resolve project version from CMakeLists.txt")
-            print(match.group(1))
-            PY
-            )"
+            VERSION="$(python -c 'import pathlib, re; text = pathlib.Path("CMakeLists.txt").read_text(encoding="utf-8"); match = re.search(r"project\\(RegimeFlow VERSION\\s+([0-9]+(?:\\.[0-9]+)*)\\s+LANGUAGES\\s+CXX\\)", text); print(match.group(1) if match else "")')"
+            if [[ -z "${VERSION}" ]]; then
+              echo "Failed to resolve project version from CMakeLists.txt" >&2
+              exit 1
+            fi
           fi
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
 
