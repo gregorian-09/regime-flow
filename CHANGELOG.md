@@ -11,6 +11,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Switched the Windows vcpkg consumer smoke test to `x64-windows-static` so CI validates package consumption without the unstable DLL/import-library packaging path.
 - Switched the Windows vcpkg consumer smoke test to `x64-windows-static-md` and matched the consumer CRT setting so MSVC no longer rejects the packaged static libraries with runtime-library mismatches.
 - Fixed Windows secret hygiene tests by closing audit log files before deletion and by generating helper scripts plus command invocation that work correctly with Windows batch files and quoted paths.
+- Updated the Publish workflow to pin `softprops/action-gh-release` to a valid upstream release commit so Linux package publication can start correctly.
 - Simplified the vcpkg consumer smoke app to link the exported engine target only, avoiding a missing `RegimeFlow::regimeflow_strategy` package target on Windows.
 - Removed the unused POSIX-only `poll.h` include from the Redis queue adapter so Windows MSVC builds compile cleanly.
 - Simplified the vcpkg consumer smoke executable to exercise the exported common target only, avoiding missing transitive engine/strategy symbols in consumer builds.

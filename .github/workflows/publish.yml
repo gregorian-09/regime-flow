@@ -160,7 +160,7 @@ jobs:
           find "$TOPDIR/RPMS" -name "*.rpm" -exec cp {} dist/ \\;
 
       - name: Upload Linux packages to release
-        uses: softprops/action-gh-release@9d7c3b0e4c5bb44f8de8c4c7f71e9b8c1a4f1f8f
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
         with:
           files: dist/*
 
