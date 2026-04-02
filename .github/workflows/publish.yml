@@ -171,7 +171,7 @@ jobs:
           mkdir -p "$TOPDIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
           SPEC="$TOPDIR/SPECS/regimeflow.spec"
           sed "s/^Version:.*/Version:        ${VERSION}/" packaging/rpm/regimeflow.spec > "$SPEC"
-          rpmbuild -ba "$SPEC" --define "_topdir ${TOPDIR}"
+          rpmbuild -ba --nodeps "$SPEC" --define "_topdir ${TOPDIR}"
           mkdir -p dist
           find "$TOPDIR/RPMS" -name "*.rpm" -exec cp {} dist/ \\;
 
