@@ -1,7 +1,8 @@
 #include <regimeflow/common/config.h>
-#include <regimeflow/engine/backtest_engine.h>
 
 int main() {
-    regimeflow::engine::BacktestEngine engine{100000.0, "USD"};
-    return engine.portfolio().cash() > 0.0 ? 0 : 1;
+    regimeflow::Config config;
+    config.set("name", "smoke");
+    const auto value = config.get_as<std::string>("name");
+    return value && *value == "smoke" ? 0 : 1;
 }
