@@ -1,7 +1,9 @@
 name: Publish
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: read
@@ -129,21 +131,6 @@ jobs:
     steps:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
 
-      - name: Resolve package version
-        id: version
-        shell: bash
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" == v* ]]; then
-            VERSION="${GITHUB_REF_NAME#v}"
-          else
-            VERSION="$(python -c 'import pathlib, re; text = pathlib.Path("CMakeLists.txt").read_text(encoding="utf-8"); match = re.search(r"project\\(RegimeFlow VERSION\\s+([0-9]+(?:\\.[0-9]+)*)\\s+LANGUAGES\\s+CXX\\)", text); print(match.group(1) if match else "")')"
-            if [[ -z "${VERSION}" ]]; then
-              echo "Failed to resolve project version from CMakeLists.txt" >&2
-              exit 1
-            fi
-          fi
-          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
-
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -168,7 +155,7 @@ jobs:
 
       - name: Build .deb package
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${GITHUB_REF_NAME#v}"
           PKGROOT="/tmp/regimeflow-deb"
           mkdir -p "${PKGROOT}/DEBIAN"
           cp -r /tmp/regimeflow/* "${PKGROOT}/"
@@ -179,7 +166,7 @@ jobs:
 
       - name: Build .rpm package
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${GITHUB_REF_NAME#v}"
           TOPDIR="$PWD/rpmbuild"
           mkdir -p "$TOPDIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
           SPEC="$TOPDIR/SPECS/regimeflow.spec"

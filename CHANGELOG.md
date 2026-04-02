@@ -17,6 +17,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Fixed the manual publish version fallback to parse `CMakeLists.txt` reliably, so Linux package metadata no longer ends up with an empty version field on workflow_dispatch runs.
 - Corrected the `publish.yml` version-resolution script indentation so GitHub Actions can parse and register the workflow again after the manual-dispatch fallback change.
 - Replaced the publish workflow's Bash heredoc version parser with a single-line Python command because Bash here-document terminators cannot be space-indented inside the YAML `run` block.
+- Changed the Publish workflow to run only on `v*` tag pushes, so release packaging and publication always derive their version from the release tag instead of a branch or manual-dispatch fallback.
 - Opted all GitHub Actions workflows into Node 24 for JavaScript-based actions so runner deprecation warnings about Node 20 no longer appear.
 - Simplified the vcpkg consumer smoke app to link the exported engine target only, avoiding a missing `RegimeFlow::regimeflow_strategy` package target on Windows.
 - Removed the unused POSIX-only `poll.h` include from the Redis queue adapter so Windows MSVC builds compile cleanly.
