@@ -19,7 +19,6 @@
 #endif
 
 #if defined(REGIMEFLOW_USE_REDIS)
-#include <poll.h>
 #include <hiredis/hiredis.h>
 #endif
 

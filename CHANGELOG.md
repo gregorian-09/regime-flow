@@ -10,6 +10,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Removed the unnecessary `regimeflow_plugins -> regimeflow_common` binary link so Windows shared vcpkg consumer builds no longer fail waiting for `regimeflow_common.lib`.
 - Switched the Windows vcpkg consumer smoke test to `x64-windows-static` so CI validates package consumption without the unstable DLL/import-library packaging path.
 - Simplified the vcpkg consumer smoke app to link the exported engine target only, avoiding a missing `RegimeFlow::regimeflow_strategy` package target on Windows.
+- Removed the unused POSIX-only `poll.h` include from the Redis queue adapter so Windows MSVC builds compile cleanly.
+- Simplified the vcpkg consumer smoke executable to exercise package linkage without direct strategy-factory calls, avoiding missing transitive strategy symbols in consumer builds.
 - Loaded the packaged Python extension from its actual wheel/build location instead of assuming a top-level `_core` module.
 - Renamed the pure-Python package bootstrap module so the compiled `_core` extension keeps the module name expected by Python's extension loader.
 - Matched the dynamic plugin test's `destroy_plugin` ABI to the registry callback type so sanitizer builds no longer trip on an invalid function-pointer call.
