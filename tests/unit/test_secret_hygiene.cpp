@@ -47,7 +47,7 @@ namespace regimeflow::test
             std::optional<std::string> original_;
         };
 
-        std::filesystem::path write_helper_script(std::string_view stem, std::string_view body) {
+        std::filesystem::path write_helper_script(std::string_view stem, std::string_view output) {
             const auto path = std::filesystem::temp_directory_path()
                 / (std::string(stem)
                    + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
@@ -60,9 +60,13 @@ namespace regimeflow::test
             {
                 std::ofstream out(path);
 #if defined(_WIN32)
-                out << "@echo off\r\n" << body << "\r\n";
+                out << "@echo off\r\n"
+                    << "echo " << output << "\r\n";
 #else
-                out << "#!/bin/sh\n" << body << "\n";
+                out << "#!/bin/sh\n"
+                    << "cat <<'EOF'\n"
+                    << output << "\n"
+                    << "EOF\n";
 #endif
             }
 #if !defined(_WIN32)
@@ -119,17 +123,19 @@ namespace regimeflow::test
             / ("regimeflow_audit_secret_test_"
                + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".log");
 
-        live::AuditLogger logger(temp_path.string());
-        auto result = logger.log_error("broker rejected super-secret-key during handshake");
-        ASSERT_TRUE(result.is_ok());
+        {
+            live::AuditLogger logger(temp_path.string());
+            auto result = logger.log_error("broker rejected super-secret-key during handshake");
+            ASSERT_TRUE(result.is_ok());
 
-        std::ifstream input(temp_path);
-        ASSERT_TRUE(input.good());
-        std::string content((std::istreambuf_iterator<char>(input)),
-                            std::istreambuf_iterator<char>());
+            std::ifstream input(temp_path);
+            ASSERT_TRUE(input.good());
+            std::string content((std::istreambuf_iterator<char>(input)),
+                                std::istreambuf_iterator<char>());
 
-        EXPECT_EQ(content.find("super-secret-key"), std::string::npos);
-        EXPECT_NE(content.find("***"), std::string::npos);
+            EXPECT_EQ(content.find("super-secret-key"), std::string::npos);
+            EXPECT_NE(content.find("***"), std::string::npos);
+        }
 
         std::filesystem::remove(temp_path);
     }
@@ -141,21 +147,23 @@ namespace regimeflow::test
             / ("regimeflow_audit_structured_error_test_"
                + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".log");
 
-        live::AuditLogger logger(temp_path.string());
-        Error error(Error::Code::BrokerError, "Broker rejected request");
-        error.details = "category=rejection;operation=submit_order;http_status=422";
-        ASSERT_TRUE(logger.log_error(error, "binance.rest_post", {{"broker", "binance"}}).is_ok());
+        {
+            live::AuditLogger logger(temp_path.string());
+            Error error(Error::Code::BrokerError, "Broker rejected request");
+            error.details = "category=rejection;operation=submit_order;http_status=422";
+            ASSERT_TRUE(logger.log_error(error, "binance.rest_post", {{"broker", "binance"}}).is_ok());
 
-        std::ifstream input(temp_path);
-        ASSERT_TRUE(input.good());
-        std::string content((std::istreambuf_iterator<char>(input)),
-                            std::istreambuf_iterator<char>());
+            std::ifstream input(temp_path);
+            ASSERT_TRUE(input.good());
+            std::string content((std::istreambuf_iterator<char>(input)),
+                                std::istreambuf_iterator<char>());
 
-        EXPECT_NE(content.find("code=broker"), std::string::npos);
-        EXPECT_NE(content.find("source=binance.rest_post"), std::string::npos);
-        EXPECT_NE(content.find("broker=binance"), std::string::npos);
-        EXPECT_NE(content.find("details=category=rejection;operation=submit_order;http_status=422"),
-                  std::string::npos);
+            EXPECT_NE(content.find("code=broker"), std::string::npos);
+            EXPECT_NE(content.find("source=binance.rest_post"), std::string::npos);
+            EXPECT_NE(content.find("broker=binance"), std::string::npos);
+            EXPECT_NE(content.find("details=category=rejection;operation=submit_order;http_status=422"),
+                      std::string::npos);
+        }
 
         std::filesystem::remove(temp_path);
     }
@@ -164,7 +172,7 @@ namespace regimeflow::test
         ScopedEnv vault_bin_guard("REGIMEFLOW_VAULT_BIN");
         live::reset_sensitive_values_for_tests();
 
-        const auto helper = write_helper_script("regimeflow_vault_helper_", "printf 'resolved-from-vault'");
+        const auto helper = write_helper_script("regimeflow_vault_helper_", "resolved-from-vault");
 #if defined(_WIN32)
         _putenv_s("REGIMEFLOW_VAULT_BIN", helper.string().c_str());
 #else
@@ -185,11 +193,11 @@ namespace regimeflow::test
         live::reset_sensitive_values_for_tests();
 
         const auto aws_helper = write_helper_script("regimeflow_aws_helper_",
-                                                    "printf '{\"api_key\":\"aws-key\",\"secret_key\":\"aws-secret\"}'");
+                                                    "{\"api_key\":\"aws-key\",\"secret_key\":\"aws-secret\"}");
         const auto gcloud_helper = write_helper_script("regimeflow_gcloud_helper_",
-                                                       "printf '{\"token\":\"gcp-token\"}'");
+                                                       "{\"token\":\"gcp-token\"}");
         const auto az_helper = write_helper_script("regimeflow_az_helper_",
-                                                   "printf '{\"password\":\"azure-password\"}'");
+                                                   "{\"password\":\"azure-password\"}");
 #if defined(_WIN32)
         _putenv_s("REGIMEFLOW_AWS_BIN", aws_helper.string().c_str());
         _putenv_s("REGIMEFLOW_GCLOUD_BIN", gcloud_helper.string().c_str());
@@ -221,7 +229,7 @@ namespace regimeflow::test
         live::reset_sensitive_values_for_tests();
 
         const auto aws_helper = write_helper_script("regimeflow_aws_config_helper_",
-                                                    "printf '{\"api_key\":\"resolved-api-key\"}'");
+                                                    "{\"api_key\":\"resolved-api-key\"}");
 #if defined(_WIN32)
         _putenv_s("REGIMEFLOW_AWS_BIN", aws_helper.string().c_str());
 #else

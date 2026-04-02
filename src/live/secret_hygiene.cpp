@@ -188,7 +188,11 @@ namespace regimeflow::live
                 first = false;
                 command << shell_quote(arg);
             }
+#if defined(_WIN32)
+            return "\"" + command.str() + "\"";
+#else
             return command.str();
+#endif
         }
 
         std::optional<std::string> run_command_capture(const std::vector<std::string>& args) {
