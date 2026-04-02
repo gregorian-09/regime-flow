@@ -14,6 +14,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Updated the Publish workflow to pin `softprops/action-gh-release` to a valid upstream release commit so Linux package publication can start correctly.
 - Reduced wheel and Linux package publish builds to the core packaging feature set so Publish no longer fails on optional IBAPI, ZeroMQ, Redis, Kafka, PostgreSQL, curl, or OpenSSL dependencies that are not provisioned in the release runners.
 - Made the publish package version resolution robust for manual workflow_dispatch runs by falling back to the project version when the workflow is not running on a `v*` tag.
+- Opted all GitHub Actions workflows into Node 24 for JavaScript-based actions so runner deprecation warnings about Node 20 no longer appear.
 - Simplified the vcpkg consumer smoke app to link the exported engine target only, avoiding a missing `RegimeFlow::regimeflow_strategy` package target on Windows.
 - Removed the unused POSIX-only `poll.h` include from the Redis queue adapter so Windows MSVC builds compile cleanly.
 - Simplified the vcpkg consumer smoke executable to exercise the exported common target only, avoiding missing transitive engine/strategy symbols in consumer builds.
