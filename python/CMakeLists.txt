@@ -30,9 +30,17 @@ if(WIN32)
     set(_REGIMEFLOW_VCPKG_DEBUG_BIN "${CMAKE_SOURCE_DIR}/vcpkg_installed/${_REGIMEFLOW_VCPKG_TRIPLET}/debug/bin")
     add_custom_command(TARGET _core POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/python
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${_REGIMEFLOW_VCPKG_BIN} ${CMAKE_BINARY_DIR}/python
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${_REGIMEFLOW_VCPKG_DEBUG_BIN} ${CMAKE_BINARY_DIR}/python
     )
+    if(EXISTS "${_REGIMEFLOW_VCPKG_BIN}")
+        add_custom_command(TARGET _core POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${_REGIMEFLOW_VCPKG_BIN} ${CMAKE_BINARY_DIR}/python
+        )
+    endif()
+    if(EXISTS "${_REGIMEFLOW_VCPKG_DEBUG_BIN}")
+        add_custom_command(TARGET _core POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${_REGIMEFLOW_VCPKG_DEBUG_BIN} ${CMAKE_BINARY_DIR}/python
+        )
+    endif()
 endif()
 
 target_link_libraries(_core

@@ -177,7 +177,7 @@ jobs:
           sed "s/^Version:.*/Version:        ${VERSION}/" packaging/rpm/regimeflow.spec > "$SPEC"
           rpmbuild -ba --nodeps "$SPEC" --define "_topdir ${TOPDIR}"
           mkdir -p dist
-          find "$TOPDIR/RPMS" -name "*.rpm" -exec cp {} dist/ \\;
+          find "$TOPDIR/RPMS" -name "*.rpm" -exec cp -t dist {} +
 
       - name: Upload Linux packages to release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
