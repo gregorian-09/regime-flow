@@ -21,6 +21,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Taught the Ubuntu-based RPM packaging job to use `rpmbuild --nodeps`, because its build toolchain is provisioned by `apt` and therefore not visible to the RPM database used for `BuildRequires` checks.
 - Added an explicit `git archive` source tarball for the RPM publish job so `rpmbuild` has the `Source0` payload that `%autosetup` expects in `rpmbuild/SOURCES`.
 - Replaced Fedora-specific `%cmake` RPM macros with plain `cmake` commands in the spec so the Ubuntu-based publish job can build the RPM package without distro macro packages.
+- Fixed the RPM `%files` manifest to match the actual install layout on Ubuntu runners, packaging static libraries from `%{_libdir}` instead of nonexistent `/usr/bin` and `/usr/lib64` paths.
 - Opted all GitHub Actions workflows into Node 24 for JavaScript-based actions so runner deprecation warnings about Node 20 no longer appear.
 - Simplified the vcpkg consumer smoke app to link the exported engine target only, avoiding a missing `RegimeFlow::regimeflow_strategy` package target on Windows.
 - Removed the unused POSIX-only `poll.h` include from the Redis queue adapter so Windows MSVC builds compile cleanly.

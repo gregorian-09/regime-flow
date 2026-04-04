@@ -39,8 +39,7 @@ DESTDIR=%{buildroot} cmake --install build
 
 %files
 %license LICENSE
-%{_bindir}/*
-%{_libdir}/*
+%{_libdir}/*.a
 %{_includedir}/regimeflow
 %{_libdir}/cmake/RegimeFlow
 
