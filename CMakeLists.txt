@@ -7,6 +7,8 @@ project(RegimeFlow VERSION 1.0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(GNUInstallDirs)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
@@ -112,7 +114,7 @@ if(BUILD_DOCS AND EXISTS "${CMAKE_SOURCE_DIR}/docs")
     add_subdirectory(docs)
 endif()
 
-install(DIRECTORY include/regimeflow DESTINATION include)
+install(DIRECTORY include/regimeflow DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(TARGETS
     regimeflow_common
     regimeflow_data
@@ -125,9 +127,9 @@ install(TARGETS
     regimeflow_walkforward
     regimeflow_plugins
     EXPORT RegimeFlowTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 include(CMakePackageConfigHelpers)
@@ -140,17 +142,17 @@ write_basic_package_version_file(
 configure_package_config_file(
     ${CMAKE_SOURCE_DIR}/cmake/RegimeFlowConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/RegimeFlowConfig.cmake
-    INSTALL_DESTINATION lib/cmake/RegimeFlow
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RegimeFlow
 )
 
 install(EXPORT RegimeFlowTargets
     FILE RegimeFlowTargets.cmake
     NAMESPACE RegimeFlow::
-    DESTINATION lib/cmake/RegimeFlow
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RegimeFlow
 )
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/RegimeFlowConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/RegimeFlowConfigVersion.cmake
-    DESTINATION lib/cmake/RegimeFlow
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RegimeFlow
 )

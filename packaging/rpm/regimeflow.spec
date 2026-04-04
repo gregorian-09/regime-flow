@@ -20,6 +20,7 @@ RegimeFlow is a quantitative trading platform that combines regime detection, ba
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE:STRING=Release \
   -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \
+  -DCMAKE_INSTALL_LIBDIR:PATH=%{_lib} \
   -DREGIMEFLOW_FETCH_DEPS=ON \
   -DBUILD_TESTS=OFF \
   -DBUILD_BENCHMARKS=OFF \
