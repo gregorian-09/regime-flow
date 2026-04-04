@@ -17,11 +17,25 @@ RegimeFlow is a quantitative trading platform that combines regime detection, ba
 %autosetup -n regime-flow-%{version}
 
 %build
-%cmake -DBUILD_TESTS=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_PYTHON_BINDINGS=OFF
-%cmake_build
+cmake -S . -B build \
+  -DCMAKE_BUILD_TYPE:STRING=Release \
+  -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \
+  -DREGIMEFLOW_FETCH_DEPS=ON \
+  -DBUILD_TESTS=OFF \
+  -DBUILD_BENCHMARKS=OFF \
+  -DBUILD_PYTHON_BINDINGS=OFF \
+  -DENABLE_IBAPI=OFF \
+  -DENABLE_ZMQ=OFF \
+  -DENABLE_REDIS=OFF \
+  -DENABLE_KAFKA=OFF \
+  -DENABLE_POSTGRES=OFF \
+  -DENABLE_CURL=OFF \
+  -DENABLE_OPENSSL=OFF
+cmake --build build --parallel %{?_smp_build_ncpus}
 
 %install
-%cmake_install
+rm -rf %{buildroot}
+DESTDIR=%{buildroot} cmake --install build
 
 %files
 %license LICENSE
