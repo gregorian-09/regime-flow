@@ -204,6 +204,7 @@ jobs:
           createrepo_c "$YUM_DIR"
 
       - name: Sign apt/yum repos
+        id: sign_repos
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
@@ -213,7 +214,19 @@ jobs:
           APT_DIR="$REPO_ROOT/apt"
           YUM_DIR="$REPO_ROOT/yum"
 
-          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::GPG_PRIVATE_KEY is not configured. Publishing unsigned apt/yum metadata."
+            exit 0
+          fi
+
+          printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+          if ! gpg --batch --list-secret-keys --with-colons | grep -q '^sec:'; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No secret signing key is available after GPG import. Publishing unsigned apt/yum metadata."
+            exit 0
+          fi
 
           # APT signing
           pushd "$APT_DIR"
@@ -227,7 +240,12 @@ jobs:
           gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
             --armor --detach-sign -o "$YUM_DIR/repodata/repomd.xml.asc" "$YUM_DIR/repodata/repomd.xml"
 
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
       - name: Publish public key
+        if: steps.sign_repos.outputs.signed == 'true'
+        env:
+          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
         run: |
           echo "${GPG_PUBLIC_KEY}" > repo/apt/repo-signing-public.asc
           echo "${GPG_PUBLIC_KEY}" > repo/yum/repo-signing-public.asc

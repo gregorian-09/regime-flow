@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "regimeflow"
-version = "1.0.7"
+version = "1.0.8"
 description = "Regime-aware quantitative backtesting and research bindings for the RegimeFlow C++ engine"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.9"

@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Fixed
+- Fixed Windows wheel builds by including `windows.h` before `psapi.h` in `src/live/live_engine.cpp`.
+- Made publish repo signing tolerant of missing or misconfigured GPG secret keys so package publication can continue unsigned when no secret signing key is available in CI.
 - Removed the unnecessary `regimeflow_plugins -> regimeflow_common` binary link so Windows shared vcpkg consumer builds no longer fail waiting for `regimeflow_common.lib`.
 - Switched the Windows vcpkg consumer smoke test to `x64-windows-static` so CI validates package consumption without the unstable DLL/import-library packaging path.
 - Switched the Windows vcpkg consumer smoke test to `x64-windows-static-md` and matched the consumer CRT setting so MSVC no longer rejects the packaged static libraries with runtime-library mismatches.
@@ -25,7 +28,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Switched CMake installs to `GNUInstallDirs` and taught the RPM build to pass `CMAKE_INSTALL_LIBDIR=%{_lib}`, so RPM packages now install under the distro-correct library directory instead of a hardcoded `/usr/lib`.
 - Fixed the publish workflow's RPM artifact collection command so it copies generated `.rpm` files with a valid `find -exec` form instead of failing after a successful RPM build.
 - Guarded the Windows Python extension post-build DLL copy step so wheel builds do not fail when no `vcpkg_installed/<triplet>/bin` directories exist in the source tree.
-- Bumped the project, Python package, and Linux package metadata versions to `1.0.7` so built artifacts match the intended release tag series.
+- Bumped the project, Python package, and Linux package metadata versions to `1.0.8` so built artifacts match the intended release tag series.
 - Opted all GitHub Actions workflows into Node 24 for JavaScript-based actions so runner deprecation warnings about Node 20 no longer appear.
 - Simplified the vcpkg consumer smoke app to link the exported engine target only, avoiding a missing `RegimeFlow::regimeflow_strategy` package target on Windows.
 - Removed the unused POSIX-only `poll.h` include from the Redis queue adapter so Windows MSVC builds compile cleanly.
