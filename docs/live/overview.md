@@ -53,11 +53,13 @@
 
 ## Entry Point
 
-The CLI is implemented in `src/tools/live_main.cpp`:
+Primary source-build entry point:
 
 ```bash
 ./build/bin/regimeflow_live --config <path>
 ```
+
+On Windows, use `build\bin\regimeflow_live.exe --config <path>`.
 
 The live CLI loads `.env` automatically if present and merges environment variables with `live.broker_config`.
 
@@ -110,7 +112,7 @@ You can also point the tracker at a backtest report JSON via `metrics.live.basel
 
 ## Next Steps
 
-- `live/config.md`
-- `live/brokers.md`
-- `live/production-readiness.md`
-- `live/resilience.md`
+- [Live Config](config.md)
+- [Brokers](brokers.md)
+- [Production Readiness](production-readiness.md)
+- [Resilience](resilience.md)

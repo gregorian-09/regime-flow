@@ -1,22 +1,52 @@
 # Quickstart (Backtest)
 
-This quickstart runs a backtest using the Python CLI, which is the fastest path for quant research and iteration.
+This quickstart assumes you already have a source checkout and want a first backtest run from that checkout. If you want the fastest install path instead, use [Quick Install](quick-install.md).
 
-## 1. Build And Activate
+## Assumptions
+
+- You have a local clone of the repository.
+- You can build the project with CMake.
+- You want to run the Python CLI against a local source build.
+
+## 1. Build The Project
+
+### Unix-like shells
 
 ```bash
 cmake -S . -B build
 cmake --build build --target all
+```
 
+### Windows PowerShell
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Release --target ALL_BUILD
+```
+
+## 2. Prepare The Python Environment
+
+### Unix-like shells
+
+```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e python
 export PYTHONPATH=python:build/lib
 ```
 
-## 2. Create A Minimal Backtest Config
+### Windows PowerShell
 
-Save this to `quickstart.yaml`:
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e python
+$env:PYTHONPATH = "python;build\lib"
+```
+
+## 3. Create A Minimal Backtest Config
+
+Save this as `quickstart.yaml`:
 
 ```yaml
 data_source: csv
@@ -57,31 +87,30 @@ risk_params:
     max_position_pct: 0.2
 ```
 
-## 3. Run The Backtest
+## 4. Run The Backtest
 
-Use a built-in strategy name:
+Primary CLI style:
 
 ```bash
-.venv/bin/python -m regimeflow.cli \
+regimeflow-backtest \
   --config quickstart.yaml \
   --strategy moving_average_cross \
   --print-summary
 ```
 
-To run a custom Python strategy, pass `module:Class`:
+Alternative module style:
 
 ```bash
-.venv/bin/python -m regimeflow.cli \
+python -m regimeflow.cli \
   --config quickstart.yaml \
-  --strategy my_strategies:MyStrategy
+  --strategy moving_average_cross \
+  --print-summary
 ```
 
-## 4. Inspect Outputs
-
-You can export reports and curves:
+## 5. Export Outputs
 
 ```bash
-.venv/bin/python -m regimeflow.cli \
+regimeflow-backtest \
   --config quickstart.yaml \
   --strategy moving_average_cross \
   --output-json out/report.json \
@@ -90,19 +119,20 @@ You can export reports and curves:
   --output-trades out/trades.csv
 ```
 
-## 5. Run A Parity Check Before Live
-
-Compare your backtest configuration to a live config to catch mismatches early:
+## 6. Optional: Compare Backtest And Live Configs
 
 ```bash
-regimeflow_parity_check \
+./build/bin/regimeflow_parity_check \
   --backtest-config quickstart.yaml \
   --live-config examples/live_paper_alpaca/config.yaml
 ```
 
-## Next Steps
+On Windows, use `build\bin\regimeflow_parity_check.exe`.
 
-- `guide/backtesting.md`
-- `guide/data-sources.md`
-- `guide/strategies.md`
-- `guide/risk-management.md`
+## What To Read Next
+
+- [Backtesting](../guide/backtesting.md)
+- [Strategies](../guide/strategies.md)
+- [Regime Detection](../guide/regime-detection.md)
+- [Configuration](../reference/configuration.md)
+- [Troubleshooting](troubleshooting.md)

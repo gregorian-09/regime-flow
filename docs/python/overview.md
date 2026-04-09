@@ -13,6 +13,8 @@ It is the layer you use when you want to:
 This page is intentionally Python-first. It describes the package as a Python
 library.
 
+If you are installing for the first time, start with [Quick Install](../getting-started/quick-install.md). If you are building from a checkout, use [Installation](../getting-started/installation.md).
+
 ## Main Use Cases
 
 ### 1. Run Backtests In Python
@@ -116,6 +118,13 @@ Charts, dashboards, interactive dashboards, and HTML export.
 
 Thin Python access to the raw config object and config loader.
 
+## Related Pages
+
+- [Quick Install](../getting-started/quick-install.md)
+- [Installation](../getting-started/installation.md)
+- [Python Workflow](workflow.md)
+- [Python CLI](cli.md)
+
 ## BacktestConfig In Practice
 
 `BacktestConfig` is the center of most Python workflows.
@@ -198,7 +207,7 @@ not separate tooling bolted on after the fact.
 
 ## Where To Go Next
 
-- `python/workflow.md`
-- `python/cli.md`
-- `tutorials/python-usage.md`
-- `api/python.md`
+- [Python Workflow](workflow.md)
+- [Python CLI](cli.md)
+- [Python Usage](../tutorials/python-usage.md)
+- [Python API Reference](../api/python.md)

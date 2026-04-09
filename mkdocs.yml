@@ -59,6 +59,7 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Install: getting-started/quick-install.md
     - Quickstart (Backtest): getting-started/quickstart.md
+    - Troubleshooting: getting-started/troubleshooting.md
     - Project Layout: getting-started/project-layout.md
   - Quant Guide:
     - Backtesting: guide/backtesting.md

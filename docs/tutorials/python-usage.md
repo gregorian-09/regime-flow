@@ -146,7 +146,7 @@ From `results`:
 
 ## Recommended Reading Order
 
-1. `python/overview.md`
-2. `python/workflow.md`
-3. `python/cli.md`
-4. `api/python.md`
+1. [Python Overview](../python/overview.md)
+2. [Python Workflow](../python/workflow.md)
+3. [Python CLI](../python/cli.md)
+4. [Python API Reference](../api/python.md)

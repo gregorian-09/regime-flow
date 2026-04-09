@@ -1,84 +1,122 @@
 # Installation
 
-This page covers a clean, production-style install for local development and research. RegimeFlow builds with CMake and C++20, and optionally produces Python bindings.
+This page is the source of truth for prerequisites, supported install paths, optional dependencies, and platform notes.
 
-## Requirements
+## Support Matrix
 
-- **C++20 compiler**: GCC or Clang.
-- **CMake 3.20+**.
-- **Python 3.12+** if you want bindings and the Python CLI.
-- Optional dependencies depending on features:
-  - OpenSSL for TLS.
-  - libcurl for HTTP data sources.
-  - PostgreSQL client libs for database data sources.
-  - ZeroMQ, Redis, Kafka, IB API for live integrations.
+| Surface | Support level | Notes |
+| --- | --- | --- |
+| Python wheels | Recommended | Python `3.9+`; fastest route for quant research users. |
+| Source build | Recommended | C++20 core, plugins, tests, and optional live integrations. |
+| vcpkg overlay/custom registry | Supported | Intended for CMake consumers on Windows, Linux, and macOS. |
+| Linux `.deb` / `.rpm` artifacts | Release artifact | Built in release CI; useful for deployment-style installs. |
+| Homebrew | Experimental | Verify formula freshness against the current release tag. |
 
-## Build (C++ Core)
+## Minimum Requirements
+
+- CMake `3.20+`
+- C++20 compiler
+- Python `3.9+` for wheels, bindings, and the Python CLI
+- `vcpkg` recommended when you want a consistent native dependency path
+
+## Platform Notes
+
+| Platform | Compiler | Notes |
+| --- | --- | --- |
+| Linux x86_64 | GCC 10+, Clang | Primary source-build and wheel target. |
+| Windows x64 | MSVC 2022 | CI-supported; prefer PowerShell examples where relevant. |
+| macOS arm64 | Apple Clang | CI-supported. |
+| macOS x86_64 | Apple Clang | CI-supported. |
+
+## Optional Native Dependencies
+
+Enable these only if your workflow needs them:
+
+- `ENABLE_OPENSSL=ON` for TLS and secure WebSocket support
+- `ENABLE_CURL=ON` for HTTP data sources and clients
+- `ENABLE_POSTGRES=ON` for PostgreSQL-backed data sources
+- `ENABLE_ZMQ=ON` for ZeroMQ adapters
+- `ENABLE_REDIS=ON` for Redis adapters
+- `ENABLE_KAFKA=ON` for Kafka adapters
+- `ENABLE_IBAPI=ON` for Interactive Brokers support
+- `REGIMEFLOW_FETCH_DEPS=ON` to let RegimeFlow fetch lightweight missing dependencies in supported builds
+
+## Recommended Source Build
+
+### Unix-like shells
 
 ```bash
-cmake -S . -B build
+git clone https://github.com/gregorian-09/regime-flow.git
+cd regime-flow
+
+git clone https://github.com/microsoft/vcpkg.git vcpkg
+./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+cmake -S . -B build \
+  -DCMAKE_TOOLCHAIN_FILE="$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake"
+cmake --build build --target all
+ctest --test-dir build --output-on-failure
+```
+
+### Windows PowerShell
+
+```powershell
+git clone https://github.com/gregorian-09/regime-flow.git
+Set-Location regime-flow
+
+git clone https://github.com/microsoft/vcpkg.git vcpkg
+.\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+cmake -S . -B build `
+  -DCMAKE_TOOLCHAIN_FILE="$PWD\vcpkg\scripts\buildsystems\vcpkg.cmake"
+cmake --build build --config Release --target ALL_BUILD
+ctest --test-dir build -C Release --output-on-failure
+```
+
+## Lean Build With Optional Integrations Disabled
+
+Use this when you want the core engine and Python bindings without the live-integration dependency surface.
+
+```bash
+cmake -S . -B build \
+  -DREGIMEFLOW_FETCH_DEPS=ON \
+  -DENABLE_IBAPI=OFF \
+  -DENABLE_ZMQ=OFF \
+  -DENABLE_REDIS=OFF \
+  -DENABLE_KAFKA=OFF \
+  -DENABLE_POSTGRES=OFF
 cmake --build build --target all
 ```
 
-Build with GCC or Clang explicitly:
+## Python Bindings From Source
 
-```bash
-cmake -S . -B build-gcc -DCMAKE_CXX_COMPILER=g++
-cmake --build build-gcc --target all
-
-cmake -S . -B build-clang -DCMAKE_CXX_COMPILER=clang++
-cmake --build build-clang --target all
-```
-
-## Build With Python Bindings
-
-Bindings are enabled by default via `BUILD_PYTHON_BINDINGS`.
-
-```bash
-cmake -S . -B build -DBUILD_PYTHON_BINDINGS=ON
-cmake --build build --target all
-```
-
-The compiled module is written to `build/lib` as `_core.*.so` and is used by the Python package in `python/`.
-
-## Optional Build Flags
-
-These are defined in `CMakeLists.txt`:
-
-- `-DBUILD_TESTS=ON` to build tests.
-- `-DBUILD_PYTHON_BINDINGS=ON` for Python bindings.
-- `-DENABLE_OPENSSL=ON` for TLS and WSS support.
-- `-DENABLE_CURL=ON` for HTTP data sources.
-- `-DENABLE_POSTGRES=ON` for Postgres data sources.
-- `-DENABLE_ZMQ=ON`, `-DENABLE_REDIS=ON`, `-DENABLE_KAFKA=ON` for message queue adapters.
-- `-DENABLE_IBAPI=ON` for Interactive Brokers adapter.
-
-## Python Environment
-
-Create a virtual environment and install the Python package:
+### Unix-like shells
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e python
-```
-
-To run the bindings from the repo without installing, add the module path:
-
-```bash
 export PYTHONPATH=python:build/lib
 ```
 
-## Verify
+### Windows PowerShell
 
-Run the tests for the chosen build directory:
-
-```bash
-ctest --test-dir build --output-on-failure
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e python
+$env:PYTHONPATH = "python;build\lib"
 ```
 
-## Next Steps
+## Verification
 
-- `getting-started/quickstart.md`
-- `python/overview.md`
-- `guide/backtesting.md`
+- C++ tests: `ctest --test-dir build --output-on-failure`
+- Python tests: `pytest python/tests`
+- Python package smoke: `python -c "import regimeflow; print(regimeflow.__version__)"`
+
+## Related Pages
+
+- [Quick Install](quick-install.md)
+- [Quickstart (Backtest)](quickstart.md)
+- [Troubleshooting](troubleshooting.md)
+- [Environment And Flags](../reference/environment-and-flags.md)

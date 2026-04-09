@@ -1,68 +1,56 @@
 # Quick Install
 
-If you want to run RegimeFlow quickly without a full developer setup, use these install paths.
+This page is for the fastest working install paths. If you want prerequisites, feature flags, or source-build detail, go to [Installation](installation.md).
 
-## Python (Fastest)
+## Pick The Fastest Path
+
+| Audience | Recommended path | Support level |
+| --- | --- | --- |
+| Python research user | `pip install regimeflow` | Recommended |
+| CMake consumer | vcpkg overlay/custom registry | Supported |
+| Linux deployment user | release `.deb` / `.rpm` artifacts | Release artifact |
+| Homebrew user | tap formula | Experimental |
+
+## Python Wheels
+
+This is the fastest way to run a backtest.
 
 ```bash
 pip install regimeflow
-python -c "import regimeflow; print(regimeflow.__version__)"
+regimeflow-backtest --help
 ```
 
-This installs prebuilt wheels for supported platforms. It is the fastest path to a working backtest.
-
-## CLI Entry Point
-
-After install, the CLI is available as:
+Alternative invocation if you prefer the module form:
 
 ```bash
-regimeflow-backtest --config path/to/config.yaml --strategy moving_average_cross
+python -m regimeflow.cli --help
 ```
 
-## Prebuilt Binaries (Optional)
+For package details and workflow examples, see [Python Overview](../python/overview.md) and [Python Workflow](../python/workflow.md).
 
-If you prefer native binaries, use GitHub Releases. Each release includes platform‑specific artifacts and checksums.
+## vcpkg
 
-- Download: `https://github.com/gregorian-09/regime-flow/releases`
-- Linux packages: `.deb` and `.rpm` artifacts are attached to each release.
+Today the vcpkg path is an overlay port or custom registry path.
 
-## Homebrew (macOS)
-
-```bash
-brew install regimeflow/regimeflow/regimeflow
-```
-
-## vcpkg (Windows, Linux, macOS)
-
-Today the `vcpkg` path is an overlay port:
+### Overlay port
 
 ```bash
 git clone https://github.com/gregorian-09/regime-flow.git
 vcpkg install regimeflow --overlay-ports=/path/to/regime-flow/ports
 ```
 
-In your consumer project:
+### Consumer CMake usage
 
 ```cmake
 find_package(RegimeFlow CONFIG REQUIRED)
-target_link_libraries(your_target PRIVATE
-    RegimeFlow::regimeflow_engine
-    RegimeFlow::regimeflow_strategy)
+target_link_libraries(your_target PRIVATE RegimeFlow::regimeflow_engine)
 ```
 
-If you want a cleaner team-wide setup, use this repository as a custom git
-registry in your consumer `vcpkg-configuration.json`, then install with:
+## Linux Release Artifacts
 
-```bash
-vcpkg install regimeflow
-```
+Linux releases publish `.deb` and `.rpm` artifacts. Treat them as release artifacts, not as a substitute for the source-build docs.
 
-That is the next step after overlay-port validation, and it is the path to a
-future official-registry submission.
-
-## System Packages
-
-- **Linux**: `.deb` and `.rpm` artifacts are provided via GitHub Releases.
+- Releases: `https://github.com/gregorian-09/regime-flow/releases`
 
 ### APT (Debian/Ubuntu)
 
@@ -93,7 +81,16 @@ REPO
 sudo dnf install regimeflow
 ```
 
-## Next Steps
+## Homebrew
 
-- `getting-started/quickstart.md`
-- `python/overview.md`
+```bash
+brew install regimeflow/regimeflow/regimeflow
+```
+
+Treat the Homebrew tap as experimental until you confirm that the formula version matches the current release.
+
+## What To Read Next
+
+- [Quickstart (Backtest)](quickstart.md)
+- [Installation](installation.md)
+- [Troubleshooting](troubleshooting.md)

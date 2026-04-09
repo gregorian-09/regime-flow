@@ -74,3 +74,5 @@ bin/act
 /dist/
 regimeflow_tests.exe_*.dmp
 /data/
+# Maintainer scratch files
+progress.md
