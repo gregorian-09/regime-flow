@@ -1,8 +1,8 @@
 class Regimeflow < Formula
   desc "Regime-adaptive backtesting framework"
   homepage "https://github.com/gregorian-09/regime-flow"
-  url "https://github.com/gregorian-09/regime-flow/archive/refs/tags/v1.0.1.tar.gz"
-  sha256 "666c64d2e75059d25306c2ccd8237692dfe88ff964577aa04cb0095230bae725"
+  url "https://github.com/gregorian-09/regime-flow/archive/refs/tags/v1.0.9.tar.gz"
+  sha256 "d7903a3f24b0cb299e71b808b923d5041360b0ef264f3edc42cbf642e58480c8"
   license "MIT"
 
   depends_on "cmake" => :build

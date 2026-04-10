@@ -1,6 +1,6 @@
 {
   "name": "regimeflow",
-  "version": "1.0.1",
+  "version": "1.0.9",
   "description": "Regime-aware C++ backtesting and research libraries",
   "homepage": "https://github.com/gregorian-09/regime-flow",
   "license": "MIT",
