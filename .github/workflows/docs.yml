@@ -19,9 +19,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6ef61257f24cfc65daed0615f20872d07fbc
+      - uses: actions/checkout@v5.0.1
       - name: Set up Python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548
+        uses: actions/setup-python@v6.1.0
         with:
           python-version: '3.11'
       - name: Install MkDocs
@@ -31,7 +31,7 @@ jobs:
       - name: Build site
         run: mkdocs build -f mkdocs.yml -d site
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
+        uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: site
 
