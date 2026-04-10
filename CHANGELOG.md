@@ -11,6 +11,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Expanded the public README with prerequisites, installation paths, platform support, a working example, and links to the published docs site.
 - Added `CONTRIBUTING.md` with contributor build, test, and plugin-development guidance.
 - Removed `progress.md` from the repository root to keep the public repo surface focused on user and contributor documentation.
+- Moved Python packaging to the repository root so source distributions include the native CMake project they need to build.
+
+### Fixed
+- Fixed `pip install regimeflow` source builds by generating sdists from the repository root instead of the `python/` subdirectory.
+- Updated editable-install docs and release workflows to use `pip install -e .` and root-level Python packaging metadata.
 
 ## [1.0.9] - 2026-04-10
 

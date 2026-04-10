@@ -7,7 +7,7 @@ If `pip install regimeflow` works but your source checkout does not, you are lik
 Use one path at a time:
 
 - wheel install: `pip install regimeflow`
-- source checkout: `pip install -e python` plus `PYTHONPATH` / PowerShell equivalent when needed
+- source checkout: `pip install -e .` plus `PYTHONPATH` / PowerShell equivalent when needed
 
 ## Missing Optional Dependencies
 

@@ -4,7 +4,7 @@
 [![Docs](https://github.com/gregorian-09/regime-flow/actions/workflows/docs.yml/badge.svg)](https://github.com/gregorian-09/regime-flow/actions/workflows/docs.yml)
 [![Release](https://img.shields.io/github/v/release/gregorian-09/regime-flow)](https://github.com/gregorian-09/regime-flow/releases)
 [![License](https://img.shields.io/github/license/gregorian-09/regime-flow)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](python/pyproject.toml)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](pyproject.toml)
 
 RegimeFlow is a regime-aware quantitative trading stack for backtesting, live execution, and research automation. It combines a C++20 engine, Python bindings, regime detection workflows, live broker adapters, risk controls, and a dynamic plugin system across Linux, Windows, and macOS.
 

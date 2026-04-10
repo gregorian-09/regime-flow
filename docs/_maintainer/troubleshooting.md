@@ -7,7 +7,7 @@ This page lists common errors and how to resolve them.
 **Symptom**: `ModuleNotFoundError: No module named 'regimeflow'`.
 
 - Ensure the virtual environment is active.
-- Install the package: `pip install -e python`.
+- Install the package: `pip install -e .`.
 - Or set `PYTHONPATH=python:build/lib` if running directly from the repo.
 
 ## Missing `_core` Module

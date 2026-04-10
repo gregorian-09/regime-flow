@@ -54,7 +54,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@ee63bf16da6cddfb925f542f2c7b59ad50e93969
         with:
-          package-dir: python
+          package-dir: .
           output-dir: wheelhouse
         env:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
@@ -95,7 +95,7 @@ jobs:
       - name: Build sdist
         run: |
           python -m pip install --upgrade pip build
-          python -m build --sdist python
+          python -m build --sdist .
 
       - name: Upload sdist
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

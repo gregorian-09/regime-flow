@@ -31,7 +31,7 @@ cmake --build build --config Release --target ALL_BUILD
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-pip install -e python
+pip install -e .
 export PYTHONPATH=python:build/lib
 ```
 
@@ -40,7 +40,7 @@ export PYTHONPATH=python:build/lib
 ```powershell
 py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -e python
+pip install -e .
 $env:PYTHONPATH = "python;build\lib"
 ```
 

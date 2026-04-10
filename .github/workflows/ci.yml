@@ -33,7 +33,7 @@ jobs:
       with:
         python-version: "3.12"
         cache: "pip"
-        cache-dependency-path: python/pyproject.toml
+        cache-dependency-path: pyproject.toml
 
     - name: Install dependencies
       run: |
@@ -128,7 +128,7 @@ jobs:
       with:
         python-version: "3.12"
         cache: "pip"
-        cache-dependency-path: python/pyproject.toml
+        cache-dependency-path: pyproject.toml
 
     - name: Install dependencies
       run: |
@@ -207,7 +207,7 @@ jobs:
       with:
         python-version: "3.12"
         cache: "pip"
-        cache-dependency-path: python/pyproject.toml
+        cache-dependency-path: pyproject.toml
 
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@5c330b455f564f5da8d76ddd421de0e33f763f03
@@ -461,7 +461,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: "pip"
-        cache-dependency-path: python/pyproject.toml
+        cache-dependency-path: pyproject.toml
 
     - name: Install dependencies
       run: |
@@ -508,7 +508,7 @@ jobs:
       with:
         python-version: "3.12"
         cache: "pip"
-        cache-dependency-path: python/pyproject.toml
+        cache-dependency-path: pyproject.toml
 
     - name: Download artifacts
       uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
@@ -517,7 +517,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install cibuildwheel
-        cibuildwheel --platform linux python
+        cibuildwheel --platform linux .
       env:
         CIBW_ENVIRONMENT_LINUX: CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF"
         CIBW_BEFORE_ALL_LINUX: >
