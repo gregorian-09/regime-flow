@@ -12,10 +12,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added `CONTRIBUTING.md` with contributor build, test, and plugin-development guidance.
 - Removed `progress.md` from the repository root to keep the public repo surface focused on user and contributor documentation.
 
-## [1.0.8] - 2026-04-09
+## [1.0.9] - 2026-04-10
 
 ### Changed
-- Aligned the project, Python package, and Linux package metadata with the `1.0.8` release series.
+- Aligned the project, Python package, and Linux package metadata with the `1.0.9` release series.
 - Standardized release packaging around tag-derived versioning so release artifacts follow the published tag.
 
 ### Fixed
