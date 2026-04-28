@@ -11,8 +11,8 @@ else()
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO gregorian-09/regime-flow
-        REF v1.0.9
-        SHA512 fa56b8742dd6daea695b6f8563543b1ab87e65bc6b291cadc1b70625dce3d73de3f148a81f6f006aaf74b4e94a1be1dd3665339797c6ad1e131cac75be9a52ac
+        REF v1.0.10
+        SHA512 54430cf8d89064606d3ed78f2e5917af3fbfd45c6811c6d41eec973eeeb00861ee1c68df7511b60757c348dfb8f54422e198c9fb1efd05e3121244c6e3213e35
     )
 endif()
 
