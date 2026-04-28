@@ -17,10 +17,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Fixed `pip install regimeflow` source builds by generating sdists from the repository root instead of the `python/` subdirectory.
 - Updated editable-install docs and release workflows to use `pip install -e .` and root-level Python packaging metadata.
 
-## [1.0.9] - 2026-04-10
+## [1.0.10] - 2026-04-10
 
 ### Changed
-- Aligned the project, Python package, and Linux package metadata with the `1.0.9` release series.
+- Aligned the project, Python package, and Linux package metadata with the `1.0.10` release series.
 - Standardized release packaging around tag-derived versioning so release artifacts follow the published tag.
 
 ### Fixed
