@@ -57,4 +57,15 @@ target_link_libraries(_core
         Python3::NumPy
 )
 
-install(TARGETS _core DESTINATION regimeflow)
+if(DEFINED SKBUILD_PLATLIB_DIR)
+    set(_REGIMEFLOW_PYTHON_INSTALL_DIR "${SKBUILD_PLATLIB_DIR}/regimeflow")
+elseif(DEFINED Python3_SITEARCH)
+    set(_REGIMEFLOW_PYTHON_INSTALL_DIR "${Python3_SITEARCH}/regimeflow")
+else()
+    set(_REGIMEFLOW_PYTHON_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/python/regimeflow")
+endif()
+
+install(TARGETS _core
+    LIBRARY DESTINATION "${_REGIMEFLOW_PYTHON_INSTALL_DIR}"
+    RUNTIME DESTINATION "${_REGIMEFLOW_PYTHON_INSTALL_DIR}"
+)

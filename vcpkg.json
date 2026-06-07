@@ -1,6 +1,6 @@
 {
   "name": "regimeflow",
-  "version-string": "0.1.0",
+  "version-string": "1.0.11",
   "dependencies": [
     "eigen3",
     "boost",

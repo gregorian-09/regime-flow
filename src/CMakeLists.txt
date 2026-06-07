@@ -1,7 +1,3 @@
-if(POLICY CMP0167)
-    cmake_policy(SET CMP0167 OLD)
-endif()
-
 add_library(regimeflow_common
     common/config.cpp
     common/json.cpp
