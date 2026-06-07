@@ -1,9 +1,9 @@
 #include "regimeflow/engine/portfolio.h"
+#include "test_time.h"
 
 #include <gtest/gtest.h>
 
 using regimeflow::SymbolRegistry;
-using regimeflow::Timestamp;
 using regimeflow::engine::Fill;
 using regimeflow::engine::MarginProfile;
 using regimeflow::engine::Portfolio;
@@ -21,7 +21,7 @@ TEST(PortfolioTest, MarginSnapshotComputesDerivedAccountState) {
     fill.symbol = SymbolRegistry::instance().intern("MARGIN");
     fill.quantity = 1000.0;
     fill.price = 60.0;
-    fill.timestamp = Timestamp::now();
+    fill.timestamp = regimeflow::test::fixed_timestamp();
     portfolio.update_position(fill);
 
     const auto margin = portfolio.margin_snapshot();
@@ -47,7 +47,7 @@ TEST(PortfolioTest, SnapshotCarriesMarginFieldsAndStopOutState) {
     fill.symbol = SymbolRegistry::instance().intern("STOP");
     fill.quantity = 2000.0;
     fill.price = 100.0;
-    fill.timestamp = Timestamp::now();
+    fill.timestamp = regimeflow::test::fixed_timestamp();
     portfolio.update_position(fill);
     portfolio.mark_to_market(fill.symbol, 20.0, fill.timestamp);
 

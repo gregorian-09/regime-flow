@@ -4,16 +4,38 @@
 #include "regimeflow/strategy/strategy_factory.h"
 #include "regimeflow/strategy/strategy.h"
 
+#include "test_time.h"
+
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <filesystem>
 #include <fstream>
 #include <mutex>
+#include <string_view>
 #include <thread>
 
 namespace regimeflow::test
 {
     namespace {
+        template <typename Predicate>
+        bool wait_until(Predicate&& predicate,
+                        const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) {
+            const auto deadline = std::chrono::steady_clock::now() + timeout;
+            do {
+                if (predicate()) {
+                    return true;
+                }
+                std::this_thread::yield();
+            } while (std::chrono::steady_clock::now() < deadline);
+            return predicate();
+        }
+
+        std::string fresh_log_dir(const std::string_view name) {
+            const auto path = std::filesystem::temp_directory_path() / name;
+            std::filesystem::remove_all(path);
+            return path.string();
+        }
     }  // namespace
 
     class MockBrokerAdapter final : public live::BrokerAdapter {
@@ -31,46 +53,57 @@ namespace regimeflow::test
         bool is_connected() const override { return connected_; }
 
         void subscribe_market_data(const std::vector<std::string>& symbols) override {
-            subscribed_ = symbols;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                subscribed_ = symbols;
+            }
+            cv_.notify_all();
         }
 
         void unsubscribe_market_data(const std::vector<std::string>&) override {}
 
         Result<std::string> submit_order(const engine::Order& order) override {
-            std::lock_guard<std::mutex> lock(mutex_);
-            ++submit_count_;
-            last_submitted_order_ = order;
-            std::string broker_id = "B" + std::to_string(submit_count_);
-            if (auto_fill_) {
-                live::ExecutionReport report;
-                report.broker_order_id = broker_id;
-                report.symbol = SymbolRegistry::instance().lookup(order.symbol);
-                report.side = order.side;
-                report.quantity = std::abs(order.quantity);
-                report.price = last_price_ > 0 ? last_price_ : 100.0;
-                report.status = live::LiveOrderStatus::Filled;
-                report.timestamp = Timestamp::now();
-                pending_execs_.push_back(report);
-            } else {
-                live::ExecutionReport report;
-                report.broker_order_id = broker_id;
-                report.symbol = SymbolRegistry::instance().lookup(order.symbol);
-                report.side = order.side;
-                report.quantity = std::abs(order.quantity);
-                report.price = order.limit_price > 0.0 ? order.limit_price : (last_price_ > 0 ? last_price_ : 100.0);
-                report.status = live::LiveOrderStatus::New;
-                report.timestamp = Timestamp::now();
-                open_orders_.push_back(report);
+            std::string broker_id;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                ++submit_count_;
+                last_submitted_order_ = order;
+                broker_id = "B" + std::to_string(submit_count_);
+                if (auto_fill_) {
+                    live::ExecutionReport report;
+                    report.broker_order_id = broker_id;
+                    report.symbol = SymbolRegistry::instance().lookup(order.symbol);
+                    report.side = order.side;
+                    report.quantity = std::abs(order.quantity);
+                    report.price = last_price_ > 0 ? last_price_ : 100.0;
+                    report.status = live::LiveOrderStatus::Filled;
+                    report.timestamp = fixed_timestamp(submit_count_);
+                    pending_execs_.push_back(report);
+                } else {
+                    live::ExecutionReport report;
+                    report.broker_order_id = broker_id;
+                    report.symbol = SymbolRegistry::instance().lookup(order.symbol);
+                    report.side = order.side;
+                    report.quantity = std::abs(order.quantity);
+                    report.price = order.limit_price > 0.0 ? order.limit_price : (last_price_ > 0 ? last_price_ : 100.0);
+                    report.status = live::LiveOrderStatus::New;
+                    report.timestamp = fixed_timestamp(submit_count_);
+                    open_orders_.push_back(report);
+                }
             }
+            cv_.notify_all();
             return Result<std::string>(broker_id);
         }
 
         Result<void> cancel_order(const std::string& broker_order_id) override {
-            std::lock_guard<std::mutex> lock(mutex_);
-            ++cancel_count_;
-            std::erase_if(open_orders_, [&](const live::ExecutionReport& report) {
-                return report.broker_order_id == broker_order_id;
-            });
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                ++cancel_count_;
+                std::erase_if(open_orders_, [&](const live::ExecutionReport& report) {
+                    return report.broker_order_id == broker_order_id;
+                });
+            }
+            cv_.notify_all();
             return Ok();
         }
         Result<void> modify_order(const std::string&, const engine::OrderModification&) override {
@@ -80,13 +113,17 @@ namespace regimeflow::test
         live::AccountInfo get_account_info() override {
             account_calls_.fetch_add(1);
             std::lock_guard<std::mutex> lock(mutex_);
-            return account_info_;
+            auto info = account_info_;
+            cv_.notify_all();
+            return info;
         }
 
         std::vector<live::Position> get_positions() override {
             positions_calls_.fetch_add(1);
             std::lock_guard<std::mutex> lock(mutex_);
-            return positions_;
+            auto positions = positions_;
+            cv_.notify_all();
+            return positions;
         }
         std::vector<live::ExecutionReport> get_open_orders() override {
             std::lock_guard<std::mutex> lock(mutex_);
@@ -94,11 +131,19 @@ namespace regimeflow::test
         }
 
         void on_market_data(std::function<void(const live::MarketDataUpdate&)> cb) override {
-            market_cb_ = std::move(cb);
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                market_cb_ = std::move(cb);
+            }
+            cv_.notify_all();
         }
 
         void on_execution_report(std::function<void(const live::ExecutionReport&)> cb) override {
-            exec_cb_ = std::move(cb);
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                exec_cb_ = std::move(cb);
+            }
+            cv_.notify_all();
         }
 
         void on_position_update(std::function<void(const live::Position&)>) override {}
@@ -109,23 +154,35 @@ namespace regimeflow::test
 
         void poll() override {
             std::vector<live::ExecutionReport> pending;
+            std::function<void(const live::ExecutionReport&)> exec_cb;
             {
                 std::lock_guard<std::mutex> lock(mutex_);
                 pending.swap(pending_execs_);
+                exec_cb = exec_cb_;
             }
-            if (exec_cb_) {
+            if (exec_cb) {
                 for (const auto& report : pending) {
-                    exec_cb_(report);
+                    exec_cb(report);
                 }
             }
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                polled_exec_count_ += static_cast<int>(pending.size());
+            }
+            cv_.notify_all();
         }
 
         void emit_bar(const data::Bar& bar) {
-            last_price_ = bar.close;
-            if (market_cb_) {
+            std::function<void(const live::MarketDataUpdate&)> market_cb;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                last_price_ = bar.close;
+                market_cb = market_cb_;
+            }
+            if (market_cb) {
                 live::MarketDataUpdate update;
                 update.data = bar;
-                market_cb_(update);
+                market_cb(update);
             }
         }
 
@@ -145,32 +202,79 @@ namespace regimeflow::test
         }
 
         void set_account_info(const live::AccountInfo& info) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            account_info_ = info;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                account_info_ = info;
+            }
+            cv_.notify_all();
         }
 
         void set_positions(std::vector<live::Position> positions) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            positions_ = std::move(positions);
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                positions_ = std::move(positions);
+            }
+            cv_.notify_all();
         }
 
         void set_open_orders(std::vector<live::ExecutionReport> open_orders) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            open_orders_ = std::move(open_orders);
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                open_orders_ = std::move(open_orders);
+            }
+            cv_.notify_all();
         }
 
         int account_calls() const { return account_calls_.load(); }
         int positions_calls() const { return positions_calls_.load(); }
 
         void set_auto_fill(const bool value) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            auto_fill_ = value;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                auto_fill_ = value;
+            }
+            cv_.notify_all();
         }
 
         void emit_execution_report(const live::ExecutionReport& report) {
-            if (exec_cb_) {
-                exec_cb_(report);
+            std::function<void(const live::ExecutionReport&)> exec_cb;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                exec_cb = exec_cb_;
             }
+            if (exec_cb) {
+                exec_cb(report);
+            }
+        }
+
+        bool wait_for_callbacks(const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) const {
+            std::unique_lock<std::mutex> lock(mutex_);
+            return cv_.wait_for(lock, timeout, [&] {
+                return static_cast<bool>(market_cb_) && static_cast<bool>(exec_cb_);
+            });
+        }
+
+        bool wait_for_submit_count(const int expected,
+                                   const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) const {
+            std::unique_lock<std::mutex> lock(mutex_);
+            return cv_.wait_for(lock, timeout, [&] { return submit_count_ >= expected; });
+        }
+
+        bool wait_for_reconcile_calls(const int expected_account_calls,
+                                      const int expected_position_calls,
+                                      const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) const {
+            std::unique_lock<std::mutex> lock(mutex_);
+            return cv_.wait_for(lock, timeout, [&] {
+                return account_calls_.load() >= expected_account_calls
+                       && positions_calls_.load() >= expected_position_calls;
+            });
+        }
+
+        bool wait_for_polled_exec_count(
+            const int expected,
+            const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) const {
+            std::unique_lock<std::mutex> lock(mutex_);
+            return cv_.wait_for(lock, timeout, [&] { return polled_exec_count_ >= expected; });
         }
 
     private:
@@ -179,8 +283,10 @@ namespace regimeflow::test
         std::function<void(const live::MarketDataUpdate&)> market_cb_;
         std::function<void(const live::ExecutionReport&)> exec_cb_;
         mutable std::mutex mutex_;
+        mutable std::condition_variable cv_;
         int submit_count_ = 0;
         int cancel_count_ = 0;
+        int polled_exec_count_ = 0;
         double last_price_ = 0.0;
         std::vector<live::ExecutionReport> pending_execs_;
         std::vector<live::ExecutionReport> open_orders_;
@@ -192,7 +298,7 @@ namespace regimeflow::test
         std::optional<engine::Order> last_submitted_order_;
     };
 
-    class BuyOnceStrategy final : public strategy::Strategy {
+    class LiveBuyOnceStrategy final : public strategy::Strategy {
     public:
         void initialize(strategy::StrategyContext&) override {}
 
@@ -201,15 +307,14 @@ namespace regimeflow::test
                 return;
             }
             engine::Order order = engine::Order::market(bar.symbol, engine::OrderSide::Buy, 1.0);
-            ctx_->submit_order(std::move(order));
-            sent_ = true;
+            sent_ = ctx_->submit_order(std::move(order)).is_ok();
         }
 
     private:
         bool sent_ = false;
     };
 
-    class TwoOrderStrategy final : public strategy::Strategy {
+    class LiveTwoOrderStrategy final : public strategy::Strategy {
     public:
         void initialize(strategy::StrategyContext&) override {}
 
@@ -228,7 +333,7 @@ namespace regimeflow::test
         bool sent_ = false;
     };
 
-    class NoopStrategy final : public strategy::Strategy {
+    class LiveNoopStrategy final : public strategy::Strategy {
     public:
         void initialize(strategy::StrategyContext&) override {}
     };
@@ -236,7 +341,7 @@ namespace regimeflow::test
     static data::Bar make_bar(SymbolId symbol, double price) {
         data::Bar bar{};
         bar.symbol = symbol;
-        bar.timestamp = Timestamp::now();
+        bar.timestamp = fixed_timestamp(static_cast<int64_t>(symbol));
         bar.open = bar.high = bar.low = bar.close = price;
         bar.volume = 100;
         return bar;
@@ -244,7 +349,7 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, FeedToStrategyToOrderToAudit) {
         strategy::StrategyFactory::instance().register_creator(
-            "buy_once", [](const Config&) { return std::make_unique<BuyOnceStrategy>(); });
+            "buy_once", [](const Config&) { return std::make_unique<LiveBuyOnceStrategy>(); });
         {
             Config cfg_check;
             cfg_check.set("type", "buy_once");
@@ -262,26 +367,22 @@ namespace regimeflow::test
         cfg.enable_regime_updates = true;
         cfg.max_orders_per_minute = 10;
         cfg.max_order_value = 100000;
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_audit_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_audit_test");
 
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
         auto start_res = engine->start();
         ASSERT_TRUE(start_res.is_ok());
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
 
         SymbolRegistry::instance().intern("DUMMY_LIVE");
         auto symbol = SymbolRegistry::instance().intern("LIVETEST");
         ASSERT_NE(symbol, 0u);
         broker_ptr->emit_bar(make_bar(symbol, 100.0));
 
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
-        while (std::chrono::steady_clock::now() < deadline && broker_ptr->submit_count() < 1) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        }
-        EXPECT_GE(broker_ptr->submit_count(), 1);
+        EXPECT_TRUE(broker_ptr->wait_for_submit_count(1));
+        EXPECT_TRUE(broker_ptr->wait_for_polled_exec_count(1));
 
         engine->stop();
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
         std::filesystem::path log_path = std::filesystem::path(cfg.log_dir) / "audit.log";
         std::ifstream in(log_path);
@@ -293,7 +394,7 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, RateLimitRejectsSecondOrder) {
         strategy::StrategyFactory::instance().register_creator(
-            "two_order", [](const Config&) { return std::make_unique<TwoOrderStrategy>(); });
+            "two_order", [](const Config&) { return std::make_unique<LiveTwoOrderStrategy>(); });
         {
             Config cfg_check;
             cfg_check.set("type", "two_order");
@@ -311,33 +412,41 @@ namespace regimeflow::test
         cfg.max_orders_per_minute = 1;
         cfg.max_orders_per_second = 1;
         cfg.max_order_value = 100000;
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_rate_limit_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_rate_limit_test");
 
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
-        std::atomic<int> errors{0};
-        engine->on_error([&](const std::string&) { errors.fetch_add(1); });
+        std::mutex error_mutex;
+        std::condition_variable error_cv;
+        int errors = 0;
+        engine->on_error([&](const std::string&) {
+            {
+                std::lock_guard<std::mutex> lock(error_mutex);
+                ++errors;
+            }
+            error_cv.notify_all();
+        });
         auto start_res = engine->start();
         ASSERT_TRUE(start_res.is_ok());
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
 
         SymbolRegistry::instance().intern("DUMMY_LIVE2");
         auto symbol = SymbolRegistry::instance().intern("LIMIT");
         ASSERT_NE(symbol, 0u);
         broker_ptr->emit_bar(make_bar(symbol, 50.0));
 
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
-        while (std::chrono::steady_clock::now() < deadline && broker_ptr->submit_count() < 1) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        EXPECT_TRUE(broker_ptr->wait_for_submit_count(1));
+        {
+            std::unique_lock<std::mutex> lock(error_mutex);
+            EXPECT_TRUE(error_cv.wait_for(lock, std::chrono::milliseconds(500), [&] { return errors >= 1; }));
         }
         EXPECT_EQ(broker_ptr->submit_count(), 1);
-        EXPECT_GE(errors.load(), 1);
 
         engine->stop();
     }
 
     TEST(LiveEngineIntegration, ReconciliationRefreshesAccountAndPositions) {
         strategy::StrategyFactory::instance().register_creator(
-            "noop", [](const Config&) { return std::make_unique<NoopStrategy>(); });
+            "noop", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
         auto broker = std::make_unique<MockBrokerAdapter>();
         auto* broker_ptr = broker.get();
 
@@ -350,19 +459,13 @@ namespace regimeflow::test
         cfg.position_reconcile_interval = Duration::milliseconds(20);
         cfg.account_refresh_interval = Duration::milliseconds(20);
         cfg.max_order_value = 100000;
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_reconcile_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_reconcile_test");
 
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
         auto start_res = engine->start();
         ASSERT_TRUE(start_res.is_ok());
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
-        while (std::chrono::steady_clock::now() < deadline) {
-            if (broker_ptr->account_calls() >= 2 && broker_ptr->positions_calls() >= 2) {
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
 
+        EXPECT_TRUE(broker_ptr->wait_for_reconcile_calls(2, 2));
         EXPECT_GE(broker_ptr->account_calls(), 2);
         EXPECT_GE(broker_ptr->positions_calls(), 2);
 
@@ -371,7 +474,7 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, DailyLossLimitDisablesTrading) {
         strategy::StrategyFactory::instance().register_creator(
-            "noop_loss", [](const Config&) { return std::make_unique<NoopStrategy>(); });
+            "noop_loss", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
         auto broker = std::make_unique<MockBrokerAdapter>();
         auto* broker_ptr = broker.get();
 
@@ -382,7 +485,7 @@ namespace regimeflow::test
         cfg.symbols = {"LOSS"};
         cfg.account_refresh_interval = Duration::milliseconds(20);
         cfg.daily_loss_limit = 1000.0;
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_loss_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_loss_test");
 
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
         auto start_res = engine->start();
@@ -394,13 +497,7 @@ namespace regimeflow::test
         info.buying_power = 98000.0;
         broker_ptr->set_account_info(info);
 
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
-        while (std::chrono::steady_clock::now() < deadline) {
-            if (!engine->get_status().trading_enabled) {
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
+        EXPECT_TRUE(wait_until([&] { return !engine->get_status().trading_enabled; }));
 
         EXPECT_FALSE(engine->get_status().trading_enabled);
         engine->stop();
@@ -408,7 +505,7 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, PositionRiskLimitDisablesTrading) {
         strategy::StrategyFactory::instance().register_creator(
-            "noop_risk", [](const Config&) { return std::make_unique<NoopStrategy>(); });
+            "noop_risk", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
         auto broker = std::make_unique<MockBrokerAdapter>();
         auto* broker_ptr = broker.get();
 
@@ -418,7 +515,7 @@ namespace regimeflow::test
         cfg.strategy_config.set("type", "noop_risk");
         cfg.position_reconcile_interval = Duration::milliseconds(20);
         cfg.risk_config.set_path("limits.max_gross_exposure", 5000.0);
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_risk_limit_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_risk_limit_test");
 
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
         auto start_res = engine->start();
@@ -430,13 +527,7 @@ namespace regimeflow::test
         pos.market_value = 100000.0;
         broker_ptr->set_positions({pos});
 
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
-        while (std::chrono::steady_clock::now() < deadline) {
-            if (!engine->get_status().trading_enabled) {
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
+        EXPECT_TRUE(wait_until([&] { return !engine->get_status().trading_enabled; }));
 
         EXPECT_FALSE(engine->get_status().trading_enabled);
         engine->stop();
@@ -444,7 +535,7 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, BinanceAssetPositionsResolveToConfiguredTradingSymbol) {
         strategy::StrategyFactory::instance().register_creator(
-            "noop_binance_positions", [](const Config&) { return std::make_unique<NoopStrategy>(); });
+            "noop_binance_positions", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
         auto broker = std::make_unique<MockBrokerAdapter>();
         auto* broker_ptr = broker.get();
 
@@ -455,7 +546,7 @@ namespace regimeflow::test
         cfg.symbols = {"BTCUSDT"};
         cfg.position_reconcile_interval = Duration::milliseconds(20);
         cfg.account_refresh_interval = Duration::milliseconds(20);
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_binance_position_map_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_binance_position_map_test");
 
         live::AccountInfo info;
         info.equity = 10000.0;
@@ -474,20 +565,19 @@ namespace regimeflow::test
         pos.market_value = 63000.0;
         broker_ptr->set_positions({pos});
 
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
-        bool resolved = false;
-        while (std::chrono::steady_clock::now() < deadline) {
+        const bool resolved = wait_until([&] {
             const auto snapshot = engine->get_dashboard_snapshot();
             if (!snapshot.positions.empty()) {
-                ASSERT_EQ(snapshot.positions.size(), 1u);
+                if (snapshot.positions.size() != 1u) {
+                    return false;
+                }
                 EXPECT_EQ(SymbolRegistry::instance().lookup(snapshot.positions.front().symbol), "BTCUSDT");
                 EXPECT_GE(snapshot.equity, 73000.0 - 1e-6);
                 EXPECT_GE(engine->get_status().equity, 73000.0 - 1e-6);
-                resolved = true;
-                break;
+                return true;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
+            return false;
+        });
 
         EXPECT_TRUE(resolved);
         engine->stop();
@@ -495,7 +585,7 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, DashboardCallbackReceivesSnapshot) {
         strategy::StrategyFactory::instance().register_creator(
-            "noop_dashboard", [](const Config&) { return std::make_unique<NoopStrategy>(); });
+            "noop_dashboard", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
         auto broker = std::make_unique<MockBrokerAdapter>();
         auto* broker_ptr = broker.get();
 
@@ -505,29 +595,35 @@ namespace regimeflow::test
         cfg.strategy_config.set("type", "noop_dashboard");
         cfg.symbols = {"DASH"};
         cfg.max_order_value = 100000;
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_dashboard_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_dashboard_test");
 
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
-        std::atomic<int> updates{0};
+        std::mutex update_mutex;
+        std::condition_variable update_cv;
+        int updates = 0;
         engine->on_dashboard_update([&](const live::LiveTradingEngine::DashboardSnapshot& snapshot) {
-            updates.fetch_add(1);
             EXPECT_GE(snapshot.equity, 0.0);
             EXPECT_GE(snapshot.cash, 0.0);
+            {
+                std::lock_guard<std::mutex> lock(update_mutex);
+                ++updates;
+            }
+            update_cv.notify_all();
         });
         auto start_res = engine->start();
         ASSERT_TRUE(start_res.is_ok());
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
 
         auto symbol = SymbolRegistry::instance().intern("DASH");
         ASSERT_NE(symbol, 0u);
         broker_ptr->emit_bar(make_bar(symbol, 101.0));
 
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
-        while (std::chrono::steady_clock::now() < deadline && updates.load() == 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        {
+            std::unique_lock<std::mutex> lock(update_mutex);
+            EXPECT_TRUE(update_cv.wait_for(lock, std::chrono::milliseconds(500), [&] { return updates > 0; }));
         }
 
-        EXPECT_GT(updates.load(), 0);
+        EXPECT_GT(updates, 0);
         const auto dashboard_json = engine->dashboard_snapshot_json();
         EXPECT_NE(dashboard_json.find("\"buying_power\""), std::string::npos);
         EXPECT_NE(dashboard_json.find("\"initial_margin\""), std::string::npos);
@@ -536,7 +632,7 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, NormalizesBrokerSpecificDefaultsBeforeSubmit) {
         strategy::StrategyFactory::instance().register_creator(
-            "buy_once_normalized", [](const Config&) { return std::make_unique<BuyOnceStrategy>(); });
+            "buy_once_normalized", [](const Config&) { return std::make_unique<LiveBuyOnceStrategy>(); });
         auto broker = std::make_unique<MockBrokerAdapter>();
         auto* broker_ptr = broker.get();
 
@@ -546,19 +642,16 @@ namespace regimeflow::test
         cfg.strategy_config.set("type", "buy_once_normalized");
         cfg.symbols = {"BTCUSDT"};
         cfg.max_order_value = 1000000.0;
-        cfg.log_dir = (std::filesystem::temp_directory_path() / "regimeflow_normalization_test").string();
+        cfg.log_dir = fresh_log_dir("regimeflow_normalization_test");
 
         auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
         ASSERT_TRUE(engine->start().is_ok());
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
 
         const auto lower_symbol = SymbolRegistry::instance().intern("btcusdt");
         broker_ptr->emit_bar(make_bar(lower_symbol, 42000.0));
 
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
-        while (std::chrono::steady_clock::now() < deadline && broker_ptr->submit_count() < 1) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        }
+        ASSERT_TRUE(broker_ptr->wait_for_submit_count(1));
 
         const auto submitted = broker_ptr->last_submitted_order();
         ASSERT_TRUE(submitted.has_value());
@@ -572,10 +665,8 @@ namespace regimeflow::test
 
     TEST(LiveEngineIntegration, RestoresReconciliationJournalMappingsAcrossRestart) {
         strategy::StrategyFactory::instance().register_creator(
-            "buy_once_restore", [](const Config&) { return std::make_unique<BuyOnceStrategy>(); });
-        const auto log_dir = (std::filesystem::temp_directory_path() / "regimeflow_reconciliation_restore_test").string();
-        std::filesystem::remove_all(log_dir);
-
+            "buy_once_restore", [](const Config&) { return std::make_unique<LiveBuyOnceStrategy>(); });
+        const auto log_dir = fresh_log_dir("regimeflow_reconciliation_restore_test");
         auto broker1 = std::make_unique<MockBrokerAdapter>();
         auto* broker1_ptr = broker1.get();
         broker1_ptr->set_auto_fill(false);
@@ -591,13 +682,11 @@ namespace regimeflow::test
         {
             auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker1));
             ASSERT_TRUE(engine->start().is_ok());
+            ASSERT_TRUE(broker1_ptr->wait_for_callbacks());
             const auto symbol = SymbolRegistry::instance().intern("RESTORE");
             broker1_ptr->emit_bar(make_bar(symbol, 100.0));
 
-            auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
-            while (std::chrono::steady_clock::now() < deadline && broker1_ptr->submit_count() < 1) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            }
+            ASSERT_TRUE(broker1_ptr->wait_for_submit_count(1));
             ASSERT_EQ(broker1_ptr->submit_count(), 1);
             engine->stop();
         }
@@ -612,7 +701,7 @@ namespace regimeflow::test
         open_report.quantity = 1.0;
         open_report.price = 100.0;
         open_report.status = live::LiveOrderStatus::New;
-        open_report.timestamp = Timestamp::now();
+        open_report.timestamp = fixed_timestamp(10'000);
         broker2_ptr->set_open_orders({open_report});
         broker2_ptr->set_account_info(live::AccountInfo{100000.0, 100000.0, 100000.0});
         broker2_ptr->set_positions({});
@@ -624,9 +713,8 @@ namespace regimeflow::test
 
             live::ExecutionReport fill = open_report;
             fill.status = live::LiveOrderStatus::Filled;
-            fill.timestamp = Timestamp::now();
+            fill.timestamp = fixed_timestamp(20'000);
             broker2_ptr->emit_execution_report(fill);
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
             engine->stop();
         }
 

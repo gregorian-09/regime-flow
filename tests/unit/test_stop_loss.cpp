@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "test_time.h"
 
 #include "regimeflow/data/memory_data_source.h"
 #include "regimeflow/engine/backtest_engine.h"
@@ -137,7 +138,7 @@ namespace regimeflow::test
     TEST(StopLoss, TimeStopTriggersExit) {
         auto symbol = SymbolRegistry::instance().intern("TIME");
         std::vector<data::Bar> bars;
-        auto base = Timestamp::now();
+        auto base = regimeflow::test::fixed_timestamp();
         data::Bar b1{};
         b1.symbol = symbol;
         b1.timestamp = base;

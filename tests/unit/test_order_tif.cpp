@@ -1,8 +1,8 @@
 #include "regimeflow/engine/order_manager.h"
+#include "test_time.h"
 
 #include <gtest/gtest.h>
 
-using regimeflow::Timestamp;
 using regimeflow::engine::Order;
 using regimeflow::engine::OrderManager;
 using regimeflow::engine::OrderSide;
@@ -25,7 +25,7 @@ TEST(OrderTifTest, GtdAllowsExpireAt) {
                                 OrderSide::Buy,
                                 10.0);
     order.tif = TimeInForce::GTD;
-    order.expire_at = Timestamp::now();
+    order.expire_at = regimeflow::test::fixed_timestamp();
     auto result = manager.submit_order(order);
     EXPECT_TRUE(result.is_ok());
 }

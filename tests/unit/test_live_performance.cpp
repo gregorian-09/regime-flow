@@ -1,4 +1,5 @@
 #include "regimeflow/metrics/live_performance.h"
+#include "test_time.h"
 
 #include <gtest/gtest.h>
 
@@ -7,7 +8,6 @@
 
 using regimeflow::metrics::LivePerformanceConfig;
 using regimeflow::metrics::LivePerformanceTracker;
-using regimeflow::Timestamp;
 
 TEST(LivePerformanceTrackerTest, WritesFiles) {
     auto tmp = std::filesystem::temp_directory_path()
@@ -22,7 +22,7 @@ TEST(LivePerformanceTrackerTest, WritesFiles) {
 
     LivePerformanceTracker tracker(cfg);
     tracker.start(100000.0);
-    tracker.update(Timestamp::now(), 101000.0, 1000.0);
+    tracker.update(regimeflow::test::fixed_timestamp(), 101000.0, 1000.0);
     tracker.flush();
 
     auto csv_path = tmp / "live_drift.csv";

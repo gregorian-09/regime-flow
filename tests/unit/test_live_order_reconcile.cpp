@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "test_time.h"
 
 #include "regimeflow/live/live_order_manager.h"
 
@@ -49,7 +50,7 @@ namespace regimeflow::test
         report.quantity = 10;
         report.price = 100;
         report.status = regimeflow::live::LiveOrderStatus::New;
-        report.timestamp = regimeflow::Timestamp::now();
+        report.timestamp = regimeflow::test::fixed_timestamp();
         broker.open_orders_.push_back(report);
 
         regimeflow::live::LiveOrderManager manager(&broker);
@@ -81,7 +82,7 @@ namespace regimeflow::test
         cancelled.quantity = 1;
         cancelled.price = 100;
         cancelled.status = regimeflow::live::LiveOrderStatus::Cancelled;
-        cancelled.timestamp = regimeflow::Timestamp::now();
+        cancelled.timestamp = regimeflow::test::fixed_timestamp();
         manager.handle_execution_report(cancelled);
 
         regimeflow::live::ExecutionReport new_report = cancelled;

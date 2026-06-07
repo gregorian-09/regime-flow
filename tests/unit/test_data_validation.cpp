@@ -76,7 +76,7 @@ TEST(DataValidation, TickFutureTimestampIsRejected) {
     auto dir = make_temp_dir("tick_future_ts");
     auto path = dir / "AAPL_ticks.csv";
 
-    auto future = (Timestamp::now() + Duration::days(1)).to_string();
+    auto future = Timestamp::from_string("2099-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").to_string();
     write_file(path,
                "timestamp,price,quantity\n" + future + ",10,1\n");
 

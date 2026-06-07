@@ -14,14 +14,16 @@ namespace regimeflow::data
 namespace {
 
 std::filesystem::path temp_mmap_path() {
-    return std::filesystem::temp_directory_path() /
-           ("regimeflow_mmap_writer_" + std::to_string(Timestamp::now().microseconds()) + ".rgmf");
+    return std::filesystem::temp_directory_path() / "regimeflow_mmap_writer_checksum_test.rgmf";
 }
 
 }  // namespace
 
 TEST(MmapWriter, PersistsComputedChecksumInHeader) {
     const auto path = temp_mmap_path();
+    std::error_code cleanup_ec;
+    std::filesystem::remove(path, cleanup_ec);
+
     const auto symbol = SymbolRegistry::instance().intern("AAPL");
     std::vector<Bar> bars{
         Bar{Timestamp(1'000'000), symbol, 100.0, 102.0, 99.0, 101.0, 10'000},

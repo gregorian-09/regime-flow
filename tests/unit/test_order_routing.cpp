@@ -1,6 +1,7 @@
 #include "regimeflow/engine/order.h"
 #include "regimeflow/engine/order_manager.h"
 #include "regimeflow/engine/order_routing.h"
+#include "test_time.h"
 
 #include <gtest/gtest.h>
 
@@ -164,7 +165,7 @@ TEST(SmartOrderRouterTest, SequentialSplitDefersAggregation) {
     fill.symbol = order.symbol;
     fill.quantity = first_child_qty;
     fill.price = 100.0;
-    fill.timestamp = regimeflow::Timestamp::now();
+    fill.timestamp = regimeflow::test::fixed_timestamp();
     manager.process_fill(fill);
 
     const auto parent_after_first = manager.get_order(parent_id);
@@ -237,7 +238,7 @@ TEST(SmartOrderRouterTest, SequentialSplitAggregatesParent) {
     fill.symbol = order.symbol;
     fill.quantity = first_child_qty;
     fill.price = 100.0;
-    fill.timestamp = regimeflow::Timestamp::now();
+    fill.timestamp = regimeflow::test::fixed_timestamp();
     manager.process_fill(fill);
 
     const auto parent_after_first = manager.get_order(parent_id);
