@@ -310,6 +310,7 @@ namespace regimeflow::live
         void handle_execution_report(const ExecutionReport& report);
         void refresh_account_info();
         void refresh_derived_account_state(Timestamp timestamp);
+        void refresh_derived_account_state_locked(Timestamp timestamp);
         void refresh_positions();
         void reconcile_orders() const;
         void apply_positions(const std::vector<Position>& positions, Timestamp timestamp);
@@ -353,6 +354,7 @@ namespace regimeflow::live
         std::atomic<bool> trading_enabled_{false};
         regime::RegimeState current_regime_;
         std::unique_ptr<engine::Portfolio> portfolio_;
+        mutable std::mutex portfolio_mutex_;
 
         std::thread event_loop_thread_;
         std::thread regime_thread_;

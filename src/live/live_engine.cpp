@@ -14,6 +14,7 @@
 #include <charconv>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <sstream>
 #include <type_traits>
 
@@ -381,8 +382,14 @@ namespace regimeflow::live
                 return;
             }
             if (order.is_parent) {
-                if (risk_manager_ && portfolio_) {
-                    auto risk_check = risk_manager_->validate(order, *portfolio_);
+                if (risk_manager_) {
+                    Result<void> risk_check = Ok();
+                    {
+                        std::lock_guard<std::mutex> lock(portfolio_mutex_);
+                        if (portfolio_) {
+                            risk_check = risk_manager_->validate(order, *portfolio_);
+                        }
+                    }
                     if (risk_check.is_err()) {
                         if (error_cb_) {
                             error_cb_(risk_check.error().to_string());
@@ -475,8 +482,14 @@ namespace regimeflow::live
                     return;
                 }
             }
-            if (risk_manager_ && portfolio_) {
-                auto risk_check = risk_manager_->validate(order, *portfolio_);
+            if (risk_manager_) {
+                Result<void> risk_check = Ok();
+                {
+                    std::lock_guard<std::mutex> lock(portfolio_mutex_);
+                    if (portfolio_) {
+                        risk_check = risk_manager_->validate(order, *portfolio_);
+                    }
+                }
                 if (risk_check.is_err()) {
                     if (error_cb_) {
                         error_cb_(risk_check.error().to_string());
@@ -668,13 +681,16 @@ namespace regimeflow::live
         }
 
         auto account = broker_->get_account_info();
-        portfolio_ = std::make_unique<engine::Portfolio>(account.equity);
-        portfolio_->configure_margin(config_.account_margin);
-        last_account_info_ = account;
-        daily_start_equity_ = 0.0;
-        daily_pnl_ = 0.0;
         const Timestamp startup_ts = Timestamp::now();
-        portfolio_->set_cash(account.cash, startup_ts);
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            portfolio_ = std::make_unique<engine::Portfolio>(account.equity);
+            portfolio_->configure_margin(config_.account_margin);
+            last_account_info_ = account;
+            daily_start_equity_ = 0.0;
+            daily_pnl_ = 0.0;
+            portfolio_->set_cash(account.cash, startup_ts);
+        }
 
         auto positions = broker_->get_positions();
         apply_positions(positions, startup_ts);
@@ -766,14 +782,17 @@ namespace regimeflow::live
         EngineStatus status;
         status.connected = broker_ ? broker_->is_connected() : false;
         status.trading_enabled = trading_enabled_;
-        status.current_regime = current_regime_;
         status.open_orders = static_cast<int>(order_manager_->get_open_orders().size());
-        if (last_account_info_.equity > 0.0) {
-            status.equity = last_account_info_.equity;
-        } else {
-            status.equity = portfolio_ ? portfolio_->equity() : 0.0;
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            status.current_regime = current_regime_;
+            if (last_account_info_.equity > 0.0) {
+                status.equity = last_account_info_.equity;
+            } else {
+                status.equity = portfolio_ ? portfolio_->equity() : 0.0;
+            }
+            status.daily_pnl = daily_pnl_;
         }
-        status.daily_pnl = daily_pnl_;
         status.last_update = Timestamp::now();
         return status;
     }
@@ -807,10 +826,15 @@ namespace regimeflow::live
 
     void LiveTradingEngine::close_all_positions() const
     {
-        if (!portfolio_) {
-            return;
+        std::vector<engine::Position> positions;
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            if (!portfolio_) {
+                return;
+            }
+            positions = portfolio_->get_all_positions();
         }
-        for (const auto& position : portfolio_->get_all_positions()) {
+        for (const auto& position : positions) {
             if (position.quantity == 0) {
                 continue;
             }
@@ -957,30 +981,37 @@ namespace regimeflow::live
                 if (config_.enable_regime_updates && regime_detector_) {
                     auto state = regime_detector_->on_bar(data);
                     updated_regime = true;
-                    if (state.regime != current_regime_.regime) {
-                        regime::RegimeTransition transition;
-                        transition.from = current_regime_.regime;
-                        transition.to = state.regime;
-                        transition.timestamp = state.timestamp;
-                        transition.confidence = state.confidence;
+                    std::optional<regime::RegimeTransition> transition;
+                    {
+                        std::lock_guard<std::mutex> lock(portfolio_mutex_);
+                        if (state.regime != current_regime_.regime) {
+                            transition.emplace();
+                            transition->from = current_regime_.regime;
+                            transition->to = state.regime;
+                            transition->timestamp = state.timestamp;
+                            transition->confidence = state.confidence;
+                        }
                         current_regime_ = state;
+                    }
+                    if (transition.has_value()) {
                         if (regime_cb_) {
-                            regime_cb_(transition);
+                            regime_cb_(*transition);
                         }
                         if (audit_logger_) {
-                            audit_logger_->log_regime_change(transition);
+                            audit_logger_->log_regime_change(*transition);
                         }
                         if (strategy_) {
-                            strategy_->on_regime_change(transition);
+                            strategy_->on_regime_change(*transition);
                         }
-                    } else {
-                        current_regime_ = state;
                     }
                 }
                 if (price > 0) {
+                    std::lock_guard<std::mutex> lock(portfolio_mutex_);
                     last_prices_[data.symbol] = price;
-                    portfolio_->mark_to_market(data.symbol, price, data.timestamp);
-                    portfolio_->record_snapshot(data.timestamp);
+                    if (portfolio_) {
+                        portfolio_->mark_to_market(data.symbol, price, data.timestamp);
+                        portfolio_->record_snapshot(data.timestamp);
+                    }
                     snapshot_updated = true;
                 }
                 if (strategy_) {
@@ -992,30 +1023,37 @@ namespace regimeflow::live
                 if (config_.enable_regime_updates && regime_detector_) {
                     auto state = regime_detector_->on_tick(data);
                     updated_regime = true;
-                    if (state.regime != current_regime_.regime) {
-                        regime::RegimeTransition transition;
-                        transition.from = current_regime_.regime;
-                        transition.to = state.regime;
-                        transition.timestamp = state.timestamp;
-                        transition.confidence = state.confidence;
+                    std::optional<regime::RegimeTransition> transition;
+                    {
+                        std::lock_guard<std::mutex> lock(portfolio_mutex_);
+                        if (state.regime != current_regime_.regime) {
+                            transition.emplace();
+                            transition->from = current_regime_.regime;
+                            transition->to = state.regime;
+                            transition->timestamp = state.timestamp;
+                            transition->confidence = state.confidence;
+                        }
                         current_regime_ = state;
+                    }
+                    if (transition.has_value()) {
                         if (regime_cb_) {
-                            regime_cb_(transition);
+                            regime_cb_(*transition);
                         }
                         if (audit_logger_) {
-                            audit_logger_->log_regime_change(transition);
+                            audit_logger_->log_regime_change(*transition);
                         }
                         if (strategy_) {
-                            strategy_->on_regime_change(transition);
+                            strategy_->on_regime_change(*transition);
                         }
-                    } else {
-                        current_regime_ = state;
                     }
                 }
                 if (price > 0) {
+                    std::lock_guard<std::mutex> lock(portfolio_mutex_);
                     last_prices_[data.symbol] = price;
-                    portfolio_->mark_to_market(data.symbol, price, data.timestamp);
-                    portfolio_->record_snapshot(data.timestamp);
+                    if (portfolio_) {
+                        portfolio_->mark_to_market(data.symbol, price, data.timestamp);
+                        portfolio_->record_snapshot(data.timestamp);
+                    }
                     snapshot_updated = true;
                 }
                 if (strategy_) {
@@ -1024,20 +1062,29 @@ namespace regimeflow::live
             } else if constexpr (std::is_same_v<T, data::Quote>) {
                 price = data.mid();
                 snapshot_time = data.timestamp;
-                last_quotes_[data.symbol] = data;
                 if (price > 0) {
+                    std::lock_guard<std::mutex> lock(portfolio_mutex_);
+                    last_quotes_[data.symbol] = data;
                     last_prices_[data.symbol] = price;
-                    portfolio_->mark_to_market(data.symbol, price, data.timestamp);
-                    portfolio_->record_snapshot(data.timestamp);
+                    if (portfolio_) {
+                        portfolio_->mark_to_market(data.symbol, price, data.timestamp);
+                        portfolio_->record_snapshot(data.timestamp);
+                    }
                     snapshot_updated = true;
+                } else {
+                    std::lock_guard<std::mutex> lock(portfolio_mutex_);
+                    last_quotes_[data.symbol] = data;
                 }
             } else if constexpr (std::is_same_v<T, data::OrderBook>) {
                 price = (data.bids[0].price + data.asks[0].price) / 2.0;
                 snapshot_time = data.timestamp;
                 if (price > 0) {
+                    std::lock_guard<std::mutex> lock(portfolio_mutex_);
                     last_prices_[data.symbol] = price;
-                    portfolio_->mark_to_market(data.symbol, price, data.timestamp);
-                    portfolio_->record_snapshot(data.timestamp);
+                    if (portfolio_) {
+                        portfolio_->mark_to_market(data.symbol, price, data.timestamp);
+                        portfolio_->record_snapshot(data.timestamp);
+                    }
                     snapshot_updated = true;
                 }
             }
@@ -1116,9 +1163,12 @@ namespace regimeflow::live
                     }
                 }
             }
-            if (portfolio_) {
-                portfolio_->update_position(fill);
-                portfolio_->record_snapshot(report.timestamp);
+            {
+                std::lock_guard<std::mutex> lock(portfolio_mutex_);
+                if (portfolio_) {
+                    portfolio_->update_position(fill);
+                    portfolio_->record_snapshot(report.timestamp);
+                }
             }
             strategy_order_manager_.process_fill(fill);
             if (report.status == LiveOrderStatus::Filled) {
@@ -1140,19 +1190,29 @@ namespace regimeflow::live
             return;
         }
         auto info = broker_->get_account_info();
-        last_account_info_ = info;
         const Timestamp now = Timestamp::now();
-        if (portfolio_) {
-            portfolio_->set_cash(info.cash, now);
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            last_account_info_ = info;
+            if (portfolio_) {
+                portfolio_->set_cash(info.cash, now);
+                refresh_derived_account_state_locked(now);
+                portfolio_->record_snapshot(now);
+            }
         }
-        refresh_derived_account_state(now);
-        if (portfolio_) {
-            portfolio_->record_snapshot(now);
-        }
+        check_daily_loss_limit();
         update_dashboard_snapshot();
     }
 
     void LiveTradingEngine::refresh_derived_account_state(const Timestamp timestamp) {
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            refresh_derived_account_state_locked(timestamp);
+        }
+        check_daily_loss_limit();
+    }
+
+    void LiveTradingEngine::refresh_derived_account_state_locked(const Timestamp timestamp) {
         if (!portfolio_) {
             return;
         }
@@ -1175,7 +1235,6 @@ namespace regimeflow::live
         if (live_metrics_) {
             live_metrics_->update(timestamp, last_account_info_.equity, daily_pnl_);
         }
-        check_daily_loss_limit();
     }
 
     void LiveTradingEngine::refresh_positions() {
@@ -1204,46 +1263,47 @@ namespace regimeflow::live
 
     void LiveTradingEngine::apply_positions(const std::vector<Position>& positions,
                                             Timestamp timestamp) {
-        if (!portfolio_) {
-            return;
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            if (!portfolio_) {
+                return;
+            }
+            std::unordered_map<SymbolId, engine::Position> mapped;
+            mapped.reserve(positions.size());
+            for (const auto& position : positions) {
+                if (position.symbol.empty() || position.quantity == 0.0) {
+                    continue;
+                }
+                const std::string resolved_symbol = resolve_live_position_symbol(config_, position.symbol);
+                if (resolved_symbol.empty()) {
+                    continue;
+                }
+                SymbolId symbol_id = SymbolRegistry::instance().intern(resolved_symbol);
+                engine::Position pos;
+                pos.symbol = symbol_id;
+                pos.quantity = position.quantity;
+                pos.avg_cost = position.average_price;
+                auto price_it = last_prices_.find(symbol_id);
+                if (price_it != last_prices_.end()) {
+                    pos.current_price = price_it->second;
+                } else if (position.market_value != 0.0) {
+                    pos.current_price = position.market_value / position.quantity;
+                } else {
+                    pos.current_price = position.average_price;
+                }
+                pos.last_update = timestamp;
+                mapped[symbol_id] = pos;
+            }
+            portfolio_->replace_positions(mapped, timestamp);
+            refresh_derived_account_state_locked(timestamp);
+            portfolio_->record_snapshot(timestamp);
         }
-        std::unordered_map<SymbolId, engine::Position> mapped;
-        mapped.reserve(positions.size());
-        for (const auto& position : positions) {
-            if (position.symbol.empty() || position.quantity == 0.0) {
-                continue;
-            }
-            const std::string resolved_symbol = resolve_live_position_symbol(config_, position.symbol);
-            if (resolved_symbol.empty()) {
-                continue;
-            }
-            SymbolId symbol_id = SymbolRegistry::instance().intern(resolved_symbol);
-            engine::Position pos;
-            pos.symbol = symbol_id;
-            pos.quantity = position.quantity;
-            pos.avg_cost = position.average_price;
-            auto price_it = last_prices_.find(symbol_id);
-            if (price_it != last_prices_.end()) {
-                pos.current_price = price_it->second;
-            } else if (position.market_value != 0.0) {
-                pos.current_price = position.market_value / position.quantity;
-            } else {
-                pos.current_price = position.average_price;
-            }
-            pos.last_update = timestamp;
-            mapped[symbol_id] = pos;
-        }
-        portfolio_->replace_positions(mapped, timestamp);
-        refresh_derived_account_state(timestamp);
+        check_daily_loss_limit();
         enforce_portfolio_limits("position_reconcile");
-        portfolio_->record_snapshot(timestamp);
         update_dashboard_snapshot();
     }
 
     void LiveTradingEngine::apply_position_update(const Position& position, Timestamp timestamp) {
-        if (!portfolio_) {
-            return;
-        }
         if (position.symbol.empty()) {
             return;
         }
@@ -1252,18 +1312,25 @@ namespace regimeflow::live
             return;
         }
         SymbolId symbol_id = SymbolRegistry::instance().intern(resolved_symbol);
-        Price current_price = position.average_price;
-        auto price_it = last_prices_.find(symbol_id);
-        if (price_it != last_prices_.end()) {
-            current_price = price_it->second;
-        } else if (position.market_value != 0.0 && position.quantity != 0.0) {
-            current_price = position.market_value / position.quantity;
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            if (!portfolio_) {
+                return;
+            }
+            Price current_price = position.average_price;
+            auto price_it = last_prices_.find(symbol_id);
+            if (price_it != last_prices_.end()) {
+                current_price = price_it->second;
+            } else if (position.market_value != 0.0 && position.quantity != 0.0) {
+                current_price = position.market_value / position.quantity;
+            }
+            portfolio_->set_position(symbol_id, position.quantity, position.average_price,
+                                     current_price, timestamp);
+            refresh_derived_account_state_locked(timestamp);
+            portfolio_->record_snapshot(timestamp);
         }
-        portfolio_->set_position(symbol_id, position.quantity, position.average_price,
-                                 current_price, timestamp);
-        refresh_derived_account_state(timestamp);
+        check_daily_loss_limit();
         enforce_portfolio_limits("position_update");
-        portfolio_->record_snapshot(timestamp);
         update_dashboard_snapshot();
     }
 
@@ -1272,13 +1339,16 @@ namespace regimeflow::live
             return;
         }
         bool breached = false;
-        if (config_.daily_loss_limit > 0.0 && daily_pnl_ <= -config_.daily_loss_limit) {
-            breached = true;
-        }
-        if (!breached && config_.daily_loss_limit_pct > 0.0 && daily_start_equity_ > 0.0) {
-            double pct = daily_pnl_ / daily_start_equity_;
-            if (pct <= -config_.daily_loss_limit_pct) {
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            if (config_.daily_loss_limit > 0.0 && daily_pnl_ <= -config_.daily_loss_limit) {
                 breached = true;
+            }
+            if (!breached && config_.daily_loss_limit_pct > 0.0 && daily_start_equity_ > 0.0) {
+                double pct = daily_pnl_ / daily_start_equity_;
+                if (pct <= -config_.daily_loss_limit_pct) {
+                    breached = true;
+                }
             }
         }
         if (!breached) {
@@ -1302,10 +1372,17 @@ namespace regimeflow::live
     }
 
     void LiveTradingEngine::enforce_portfolio_limits(const std::string& context) {
-        if (!risk_manager_ || !portfolio_) {
+        if (!risk_manager_) {
             return;
         }
-        auto res = risk_manager_->validate_portfolio(*portfolio_);
+        Result<void> res = Ok();
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            if (!portfolio_) {
+                return;
+            }
+            res = risk_manager_->validate_portfolio(*portfolio_);
+        }
         if (res.is_ok()) {
             return;
         }
@@ -1356,6 +1433,7 @@ namespace regimeflow::live
     }
 
     std::optional<Price> LiveTradingEngine::find_last_price(const SymbolId symbol) const {
+        std::lock_guard<std::mutex> lock(portfolio_mutex_);
         if (const auto it = last_prices_.find(symbol); it != last_prices_.end()) {
             return it->second;
         }
@@ -1373,6 +1451,7 @@ namespace regimeflow::live
     }
 
     std::optional<data::Quote> LiveTradingEngine::find_last_quote(const SymbolId symbol) const {
+        std::lock_guard<std::mutex> lock(portfolio_mutex_);
         if (const auto it = last_quotes_.find(symbol); it != last_quotes_.end()) {
             return it->second;
         }
@@ -1485,42 +1564,45 @@ namespace regimeflow::live
     LiveTradingEngine::DashboardSnapshot LiveTradingEngine::build_dashboard_snapshot() {
         DashboardSnapshot snapshot;
         snapshot.timestamp = Timestamp::now();
-        snapshot.current_regime = current_regime_;
-        snapshot.daily_pnl = daily_pnl_;
-        if (portfolio_) {
-            snapshot.equity = portfolio_->equity();
-            snapshot.cash = portfolio_->cash();
-            const auto margin = portfolio_->margin_snapshot();
-            snapshot.buying_power = last_account_info_.buying_power > 0.0
-                                        ? last_account_info_.buying_power
-                                        : margin.buying_power;
-            snapshot.initial_margin = margin.initial_margin;
-            snapshot.maintenance_margin = margin.maintenance_margin;
-            snapshot.available_funds = margin.available_funds;
-            snapshot.margin_excess = margin.margin_excess;
-            snapshot.margin_call = margin.margin_call;
-            snapshot.stop_out = margin.stop_out;
-            snapshot.equity_curve = portfolio_->equity_curve();
-            snapshot.positions = portfolio_->get_all_positions();
-            snapshot.position_count = snapshot.positions.size();
-            const auto fills = portfolio_->get_fills();
-            snapshot.fill_count = fills.size();
-            snapshot.recent_fills = fills;
-            if (snapshot.recent_fills.size() > 10) {
-                snapshot.recent_fills.erase(snapshot.recent_fills.begin(),
-                                            snapshot.recent_fills.end() - 10);
-            }
-            snapshot.venue_summary = engine::summarize_dashboard_venues(fills);
-            for (const auto& fill : fills) {
-                snapshot.total_commission += fill.commission;
-                snapshot.total_transaction_cost += fill.transaction_cost;
-                if (fill.is_maker) {
-                    snapshot.maker_fill_ratio += 1.0;
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            snapshot.current_regime = current_regime_;
+            snapshot.daily_pnl = daily_pnl_;
+            if (portfolio_) {
+                snapshot.equity = portfolio_->equity();
+                snapshot.cash = portfolio_->cash();
+                const auto margin = portfolio_->margin_snapshot();
+                snapshot.buying_power = last_account_info_.buying_power > 0.0
+                                            ? last_account_info_.buying_power
+                                            : margin.buying_power;
+                snapshot.initial_margin = margin.initial_margin;
+                snapshot.maintenance_margin = margin.maintenance_margin;
+                snapshot.available_funds = margin.available_funds;
+                snapshot.margin_excess = margin.margin_excess;
+                snapshot.margin_call = margin.margin_call;
+                snapshot.stop_out = margin.stop_out;
+                snapshot.equity_curve = portfolio_->equity_curve();
+                snapshot.positions = portfolio_->get_all_positions();
+                snapshot.position_count = snapshot.positions.size();
+                const auto fills = portfolio_->get_fills();
+                snapshot.fill_count = fills.size();
+                snapshot.recent_fills = fills;
+                if (snapshot.recent_fills.size() > 10) {
+                    snapshot.recent_fills.erase(snapshot.recent_fills.begin(),
+                                                snapshot.recent_fills.end() - 10);
                 }
-            }
-            snapshot.total_cost = snapshot.total_commission + snapshot.total_transaction_cost;
-            if (!fills.empty()) {
-                snapshot.maker_fill_ratio /= static_cast<double>(fills.size());
+                snapshot.venue_summary = engine::summarize_dashboard_venues(fills);
+                for (const auto& fill : fills) {
+                    snapshot.total_commission += fill.commission;
+                    snapshot.total_transaction_cost += fill.transaction_cost;
+                    if (fill.is_maker) {
+                        snapshot.maker_fill_ratio += 1.0;
+                    }
+                }
+                snapshot.total_cost = snapshot.total_commission + snapshot.total_transaction_cost;
+                if (!fills.empty()) {
+                    snapshot.maker_fill_ratio /= static_cast<double>(fills.size());
+                }
             }
         }
         if (order_manager_) {
