@@ -26,7 +26,16 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
     elseif(MSVC)
         target_compile_options(ibapi PRIVATE /w)
     endif()
-    set(_regimeflow_required_protobuf_version 3.21.12)
+    set(_regimeflow_ibapi_protobuf_version 3.21.12)
+    set(_regimeflow_ibapi_protobuf_version_macro 3021012)
+    file(READ "${IBAPI_PROTO_DIR}/ExecutionRequest.pb.h" _regimeflow_ibapi_proto_probe)
+    if(NOT _regimeflow_ibapi_proto_probe MATCHES "${_regimeflow_ibapi_protobuf_version_macro}[ \t]*< PROTOBUF_MIN_PROTOC_VERSION")
+        message(FATAL_ERROR
+            "Bundled IB API protobuf stubs are not generated for protobuf "
+            "${_regimeflow_ibapi_protobuf_version}; regenerate third_party/ibapi "
+            "stubs or update the pinned protobuf version together.")
+    endif()
+    set(_regimeflow_required_protobuf_version ${_regimeflow_ibapi_protobuf_version})
     set(_regimeflow_protobuf_target "")
     find_package(Protobuf ${_regimeflow_required_protobuf_version} QUIET)
     set(_protobuf_has_required_headers OFF)
