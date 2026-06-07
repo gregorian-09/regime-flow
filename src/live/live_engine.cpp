@@ -265,6 +265,8 @@ namespace regimeflow::live
                 if (it != config.broker_config.end()) cfg.port = std::stoi(it->second);
                 it = config.broker_config.find("client_id");
                 if (it != config.broker_config.end()) cfg.client_id = std::stoi(it->second);
+                it = config.broker_config.find("allow_plaintext_remote");
+                if (it != config.broker_config.end()) cfg.allow_plaintext_remote = parse_bool(it->second);
                 for (const auto& [key, value] : config.broker_config) {
                     if (starts_with(key, "defaults.")) {
                         apply_ib_contract_field(cfg.default_contract,

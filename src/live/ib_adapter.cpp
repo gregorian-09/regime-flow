@@ -68,6 +68,14 @@ namespace regimeflow::live
             return quote.symbol != 0 && quote.bid > 0.0 && quote.ask > 0.0;
         }
 
+        bool is_loopback_host(const std::string& host) {
+            return host.empty()
+                || host == "localhost"
+                || host == "127.0.0.1"
+                || host == "::1"
+                || host == "[::1]";
+        }
+
         void apply_contract_override(IBAdapter::ContractConfig& target,
                                      const IBAdapter::ContractConfig& override_cfg) {
             if (!override_cfg.symbol_override.empty()) {
@@ -143,6 +151,12 @@ namespace regimeflow::live
         if (client_->isConnected() && trading_ready_.load()) {
             connected_ = true;
             return Ok();
+        }
+        if (!config_.allow_plaintext_remote && !is_loopback_host(config_.host)) {
+            return Result<void>(Error(
+                Error::Code::BrokerError,
+                "IB TWS/Gateway uses plaintext TCP; refusing non-loopback host without "
+                "allow_plaintext_remote=true and a protected transport such as SSH, VPN, or stunnel"));
         }
         {
             std::lock_guard<std::mutex> lock(state_mutex_);

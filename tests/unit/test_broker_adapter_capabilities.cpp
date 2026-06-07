@@ -168,6 +168,18 @@ namespace regimeflow::test
         EXPECT_FALSE(adapter.is_connected());
     }
 
+    TEST(BrokerAdapterCapabilities, IbRejectsRemotePlaintextHostByDefault) {
+        live::IBAdapter::Config cfg;
+        cfg.host = "192.0.2.10";
+        live::IBAdapter adapter(std::move(cfg));
+
+        const auto result = adapter.connect();
+
+        ASSERT_TRUE(result.is_err());
+        EXPECT_EQ(result.error().code, Error::Code::BrokerError);
+        EXPECT_NE(result.error().message.find("plaintext TCP"), std::string::npos);
+    }
+
     TEST(BrokerAdapterCapabilities, IbSupportsFxFuturesAndOptionsContractOverrides) {
         live::IBAdapter::Config cfg;
         cfg.default_contract.exchange = "SMART";
