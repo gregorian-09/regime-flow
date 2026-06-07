@@ -5,8 +5,11 @@
 
 #pragma once
 
+#include <algorithm>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -28,7 +31,7 @@ namespace regimeflow::common
          */
         explicit MonotonicArena(size_t block_size = 1 << 20)
             : block_size_(block_size) {
-            blocks_.emplace_back(std::make_unique<uint8_t[]>(block_size_));
+            add_block(block_size_);
         }
 
         /**
@@ -38,16 +41,21 @@ namespace regimeflow::common
          * @return Pointer to allocated memory.
          */
         void* allocate(size_t bytes, size_t alignment = alignof(std::max_align_t)) {
-            size_t current = offset_;
-            size_t aligned = (current + alignment - 1) & ~(alignment - 1);
-            if (aligned + bytes > block_size_) {
-                blocks_.emplace_back(std::make_unique<uint8_t[]>(block_size_));
-                offset_ = 0;
-                aligned = 0;
+            bytes = std::max<size_t>(bytes, 1);
+            alignment = normalize_alignment(alignment);
+            if (bytes > std::numeric_limits<size_t>::max() - alignment) {
+                throw std::bad_alloc();
             }
-            void* ptr = blocks_.back().get() + aligned;
-            offset_ = aligned + bytes;
-            return ptr;
+
+            if (void* ptr = try_allocate(bytes, alignment)) {
+                return ptr;
+            }
+
+            add_block(std::max(block_size_, bytes + alignment - 1));
+            if (void* ptr = try_allocate(bytes, alignment)) {
+                return ptr;
+            }
+            throw std::bad_alloc();
         }
 
         /**
@@ -61,9 +69,47 @@ namespace regimeflow::common
         }
 
     private:
+        struct Block {
+            std::unique_ptr<uint8_t[]> data;
+            size_t size = 0;
+        };
+
+        static size_t normalize_alignment(size_t alignment) {
+            if (alignment == 0) {
+                return alignof(std::max_align_t);
+            }
+            if (!std::has_single_bit(alignment)) {
+                constexpr size_t max_power_of_two = size_t{1} << (std::numeric_limits<size_t>::digits - 1);
+                if (alignment > max_power_of_two) {
+                    throw std::bad_alloc();
+                }
+                return std::bit_ceil(alignment);
+            }
+            return alignment;
+        }
+
+        void add_block(size_t size) {
+            blocks_.push_back(Block{std::make_unique<uint8_t[]>(size), size});
+            offset_ = 0;
+        }
+
+        void* try_allocate(size_t bytes, size_t alignment) {
+            Block& block = blocks_.back();
+            void* ptr = block.data.get() + offset_;
+            size_t space = block.size - offset_;
+            if (std::align(alignment, bytes, ptr, space) == nullptr) {
+                return nullptr;
+            }
+
+            const auto* base = block.data.get();
+            const auto* aligned = static_cast<const uint8_t*>(ptr);
+            offset_ = static_cast<size_t>(aligned - base) + bytes;
+            return ptr;
+        }
+
         size_t block_size_;
         size_t offset_ = 0;
-        std::vector<std::unique_ptr<uint8_t[]>> blocks_;
+        std::vector<Block> blocks_;
     };
 
     template<typename T>
