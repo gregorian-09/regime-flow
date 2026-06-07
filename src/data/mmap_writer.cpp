@@ -110,6 +110,7 @@ namespace regimeflow::data
         std::memcpy(header.checksum, checksum.data(), checksum.size());
 
         out.seekp(0);
+        write_bytes(out, &header, sizeof(header), nullptr);
         return Ok();
     }
 

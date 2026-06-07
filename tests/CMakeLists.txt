@@ -68,6 +68,7 @@ add_executable(regimeflow_tests
     unit/test_performance_metrics.cpp
     unit/test_performance_calculator.cpp
     unit/test_memory.cpp
+    unit/test_mmap_writer.cpp
     unit/test_live_order_reconcile.cpp
     unit/test_live_engine_integration.cpp
     unit/test_live_performance.cpp
