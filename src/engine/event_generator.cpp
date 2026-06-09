@@ -34,7 +34,7 @@ namespace regimeflow::engine
           queue_(queue),
           config_(config) {}
 
-    void EventGenerator::enqueue_all() const
+    void EventGenerator::enqueue_all()
     {
         if (!queue_) {
             return;
