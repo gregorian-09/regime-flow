@@ -6,7 +6,8 @@
   "license": "MIT",
   "default-features": [
     "curl",
-    "openssl"
+    "openssl",
+    "websocket"
   ],
   "dependencies": [
     {
@@ -16,10 +17,7 @@
     {
       "name": "vcpkg-cmake-config",
       "host": true
-    },
-    "boost-asio",
-    "boost-beast",
-    "boost-system"
+    }
   ],
   "features": {
     "curl": {
@@ -38,6 +36,14 @@
       "description": "Enable PostgreSQL-backed data access helpers.",
       "dependencies": [
         "libpq"
+      ]
+    },
+    "websocket": {
+      "description": "Enable Boost.Beast WebSocket streaming support.",
+      "dependencies": [
+        "boost-asio",
+        "boost-beast",
+        "boost-system"
       ]
     }
   }

@@ -71,9 +71,9 @@ namespace regimeflow::live
         }
 #endif
 
-        Error make_alpaca_http_error(const char* operation,
-                                     const long status,
-                                     const std::string& response) {
+        [[maybe_unused]] Error make_alpaca_http_error(const char* operation,
+                                                      const long status,
+                                                      const std::string& response) {
             Error error;
             if (status == 401 || status == 403) {
                 error = Error(Error::Code::BrokerError, "Alpaca authentication failed");

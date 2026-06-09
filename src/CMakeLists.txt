@@ -304,31 +304,25 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
         target_link_libraries(ibapi PUBLIC ${Protobuf_LIBRARIES})
     endif()
     set(IBAPI_NEEDS_BID_COMPAT OFF)
-    if(EXISTS "/usr/local/lib/libbid.a")
-        target_link_libraries(ibapi PUBLIC /usr/local/lib/libbid.a)
-    elseif(EXISTS "/opt/homebrew/lib/libbid.a")
-        target_link_libraries(ibapi PUBLIC /opt/homebrew/lib/libbid.a)
-    else()
-        find_library(IBAPI_BID_LIBRARY NAMES
-            bid
-            bidgcc000
-            bidgcc001
-            bidgcc010
-            bidgcc011
-            bidgcc100
-            bidgcc101
-            bidgcc110
-            bidgcc111
-            bidvc
-            bidvc141
-            bidvc142
-            bidvc143
-            bidvc144
-            HINTS /opt/homebrew/lib /usr/local/lib ${_vcpkg_lib_hints}
-        )
-        if(IBAPI_BID_LIBRARY)
-            target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY})
-        endif()
+    find_library(IBAPI_BID_LIBRARY NAMES
+        bid
+        bidgcc000
+        bidgcc001
+        bidgcc010
+        bidgcc011
+        bidgcc100
+        bidgcc101
+        bidgcc110
+        bidgcc111
+        bidvc
+        bidvc141
+        bidvc142
+        bidvc143
+        bidvc144
+        HINTS /opt/homebrew/lib /usr/local/lib ${_vcpkg_lib_hints}
+    )
+    if(IBAPI_BID_LIBRARY)
+        target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY})
     endif()
     if((APPLE OR WIN32) AND NOT IBAPI_BID_LIBRARY)
         set(IBAPI_NEEDS_BID_COMPAT ON)
@@ -427,31 +421,35 @@ if(CURL_FOUND)
 endif()
 endif()
 
-find_package(Boost QUIET COMPONENTS system)
-set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND OFF)
-if(Boost_FOUND)
-    foreach(_boost_include IN LISTS Boost_INCLUDE_DIRS)
-        if(EXISTS "${_boost_include}/boost/asio/io_context.hpp"
-           AND EXISTS "${_boost_include}/boost/beast/core.hpp")
-            set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND ON)
-            break()
-        endif()
-    endforeach()
-endif()
-if(Boost_FOUND AND REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND)
-    target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_BOOST_BEAST)
-    if(TARGET Boost::headers)
-        target_link_libraries(regimeflow_data PUBLIC Boost::headers Boost::system)
-    elseif(TARGET Boost::boost)
-        target_link_libraries(regimeflow_data PUBLIC Boost::boost Boost::system)
-    else()
-        target_include_directories(regimeflow_data
-            PUBLIC
-                $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-        )
-        target_link_libraries(regimeflow_data PUBLIC Boost::system)
+if(ENABLE_WEBSOCKET)
+    find_package(Boost QUIET COMPONENTS system)
+    set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND OFF)
+    if(Boost_FOUND)
+        foreach(_boost_include IN LISTS Boost_INCLUDE_DIRS)
+            if(EXISTS "${_boost_include}/boost/asio/io_context.hpp"
+               AND EXISTS "${_boost_include}/boost/beast/core.hpp")
+                set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND ON)
+                break()
+            endif()
+        endforeach()
     endif()
-    set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
+    if(Boost_FOUND AND REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND)
+        target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_BOOST_BEAST)
+        if(TARGET Boost::headers)
+            target_link_libraries(regimeflow_data PUBLIC Boost::headers Boost::system)
+        elseif(TARGET Boost::boost)
+            target_link_libraries(regimeflow_data PUBLIC Boost::boost Boost::system)
+        else()
+            target_include_directories(regimeflow_data
+                PUBLIC
+                    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+            )
+            target_link_libraries(regimeflow_data PUBLIC Boost::system)
+        endif()
+        set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
+    elseif(REGIMEFLOW_FETCH_DEPS)
+        message(FATAL_ERROR "ENABLE_WEBSOCKET=ON requires Boost.Asio, Boost.Beast, and Boost.System; install Boost or configure with -DENABLE_WEBSOCKET=OFF.")
+    endif()
 endif()
 
 if(ENABLE_OPENSSL)
@@ -720,6 +718,8 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
                     if(_vcpkg_inc_hints)
                         target_include_directories(regimeflow_live PRIVATE ${_vcpkg_inc_hints})
                     endif()
+                else()
+                    message(FATAL_ERROR "ENABLE_ZMQ=ON requires libzmq/cppzmq; install ZeroMQ or configure with -DENABLE_ZMQ=OFF.")
                 endif()
             endif()
         endif()
@@ -767,7 +767,11 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
                     target_compile_definitions(regimeflow_live PRIVATE REGIMEFLOW_USE_REDIS)
                     target_link_libraries(regimeflow_live PRIVATE hiredis)
                     target_include_directories(regimeflow_live SYSTEM PRIVATE "${HIREDIS_SHIM_DIR}")
+                else()
+                    message(FATAL_ERROR "REGIMEFLOW_FETCH_DEPS=ON fetched hiredis, but no hiredis target was exported.")
                 endif()
+            else()
+                message(FATAL_ERROR "ENABLE_REDIS=ON requires hiredis; install hiredis, enable REGIMEFLOW_FETCH_DEPS, or configure with -DENABLE_REDIS=OFF.")
             endif()
         endif()
     endif()
@@ -796,6 +800,8 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
                     if(_vcpkg_inc_hints)
                         target_include_directories(regimeflow_live PRIVATE ${_vcpkg_inc_hints})
                     endif()
+                else()
+                    message(FATAL_ERROR "ENABLE_KAFKA=ON requires librdkafka; install librdkafka or configure with -DENABLE_KAFKA=OFF.")
                 endif()
             endif()
         endif()

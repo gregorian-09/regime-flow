@@ -123,9 +123,9 @@ namespace regimeflow::live
         }
 #endif
 
-        Error make_binance_http_error(const char* operation,
-                                      const long status,
-                                      const std::string& response) {
+        [[maybe_unused]] Error make_binance_http_error(const char* operation,
+                                                       const long status,
+                                                       const std::string& response) {
             Error error;
             if (status == 401 || status == 403) {
                 error = Error(Error::Code::BrokerError, "Binance authentication failed");
