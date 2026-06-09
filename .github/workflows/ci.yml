@@ -6,8 +6,6 @@ on:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -43,6 +41,7 @@ jobs:
           libeigen3-dev libboost-all-dev \
           libprotobuf-dev protobuf-compiler \
           libssl-dev libcurl4-openssl-dev \
+          libzmq3-dev libhiredis-dev librdkafka-dev \
           libintelrdfpmath-dev
 
     - name: Configure ccache
@@ -132,7 +131,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake ninja eigen boost protobuf ccache hiredis pkg-config
+        brew install cmake ninja eigen boost protobuf ccache hiredis zeromq librdkafka pkg-config
         python -m venv .venv
         . .venv/bin/activate
         python -m pip install --upgrade pip
@@ -390,6 +389,7 @@ jobs:
           libeigen3-dev libboost-all-dev \
           libprotobuf-dev protobuf-compiler \
           libssl-dev libcurl4-openssl-dev \
+          libzmq3-dev libhiredis-dev librdkafka-dev \
           libintelrdfpmath-dev
 
     - name: Configure clang-tidy build
@@ -423,6 +423,7 @@ jobs:
           libeigen3-dev libboost-all-dev \
           libprotobuf-dev protobuf-compiler \
           libssl-dev libcurl4-openssl-dev \
+          libzmq3-dev libhiredis-dev librdkafka-dev \
           libintelrdfpmath-dev
 
     - name: Configure sanitizer build
@@ -519,7 +520,7 @@ jobs:
         python -m pip install cibuildwheel
         cibuildwheel --platform linux .
       env:
-        CIBW_ENVIRONMENT_LINUX: CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF"
+        CIBW_ENVIRONMENT_LINUX: CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF"
         CIBW_BEFORE_ALL_LINUX: >
           python -m pip install cmake &&
           if command -v yum >/dev/null 2>&1; then
