@@ -1,12 +1,12 @@
 #include "regimeflow/data/mmap_reader.h"
 #include "regimeflow/data/mmap_writer.h"
+#include "temp_path_guard.h"
 
 #include <gtest/gtest.h>
 
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <system_error>
 #include <vector>
 
 namespace regimeflow::data
@@ -21,8 +21,7 @@ std::filesystem::path temp_mmap_path() {
 
 TEST(MmapWriter, PersistsComputedChecksumInHeader) {
     const auto path = temp_mmap_path();
-    std::error_code cleanup_ec;
-    std::filesystem::remove(path, cleanup_ec);
+    regimeflow::test::TempPathGuard temp_file(path);
 
     const auto symbol = SymbolRegistry::instance().intern("AAPL");
     std::vector<Bar> bars{
@@ -43,9 +42,6 @@ TEST(MmapWriter, PersistsComputedChecksumInHeader) {
     EXPECT_TRUE(std::ranges::any_of(header.checksum, [](const unsigned char byte) {
         return byte != 0;
     }));
-
-    std::error_code ec;
-    std::filesystem::remove(path, ec);
 }
 
 }  // namespace regimeflow::data

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "regimeflow/regime/hmm.h"
+#include "temp_path_guard.h"
 
 #include <filesystem>
 
@@ -22,7 +23,9 @@ namespace regimeflow::test
         detector.train(data);
         double ll_before = detector.log_likelihood(data);
 
-        auto path = std::filesystem::temp_directory_path() / "regimeflow_hmm_model.txt";
+        regimeflow::test::TempPathGuard temp_model(
+            std::filesystem::temp_directory_path() / "regimeflow_hmm_model.txt");
+        const auto& path = temp_model.path();
         detector.save(path.string());
 
         regimeflow::regime::HMMRegimeDetector loaded(1, 5);
