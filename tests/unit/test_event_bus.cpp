@@ -6,7 +6,6 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
-#include <thread>
 
 namespace regimeflow::test
 {
@@ -64,9 +63,7 @@ namespace regimeflow::test
         msg.payload = std::string("ping");
         bus.publish(std::move(msg));
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        EXPECT_EQ(received.load(), 0);
-
         bus.stop();
+        EXPECT_EQ(received.load(), 0);
     }
 }  // namespace regimeflow::test

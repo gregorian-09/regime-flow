@@ -89,6 +89,12 @@ set_target_properties(regimeflow_test_plugin PROPERTIES
 )
 target_link_libraries(regimeflow_test_plugin PRIVATE regimeflow_plugins regimeflow_common)
 
+add_dependencies(regimeflow_tests regimeflow_test_plugin)
+target_compile_definitions(regimeflow_tests
+    PRIVATE
+        REGIMEFLOW_TEST_PLUGIN_DIR="$<TARGET_FILE_DIR:regimeflow_test_plugin>"
+)
+
 target_link_libraries(regimeflow_tests
     PRIVATE
         GTest::gtest
