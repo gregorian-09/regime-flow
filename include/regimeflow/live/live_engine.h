@@ -284,7 +284,7 @@ namespace regimeflow::live
         /**
          * @brief Close all open positions.
          */
-        void close_all_positions() const;
+        void close_all_positions();
 
         /**
          * @brief Register trade callback.

@@ -824,7 +824,7 @@ namespace regimeflow::live
         trading_enabled_ = false;
     }
 
-    void LiveTradingEngine::close_all_positions() const
+    void LiveTradingEngine::close_all_positions()
     {
         std::vector<engine::Position> positions;
         {
@@ -843,8 +843,14 @@ namespace regimeflow::live
             order.quantity = std::abs(position.quantity);
             order.side = position.quantity > 0 ? engine::OrderSide::Sell : engine::OrderSide::Buy;
             order.type = engine::OrderType::Market;
-            if (broker_) {
-                broker_->submit_order(order);
+            order.metadata["risk_exit"] = "close_all_positions";
+            if (auto result = strategy_order_manager_.submit_order(std::move(order)); result.is_err()) {
+                if (error_cb_) {
+                    error_cb_(result.error().to_string());
+                }
+                if (audit_logger_) {
+                    audit_logger_->log_error(result.error(), "live_engine.close_all_positions");
+                }
             }
         }
     }

@@ -630,6 +630,48 @@ namespace regimeflow::test
         engine->stop();
     }
 
+    TEST(LiveEngineIntegration, CloseAllPositionsSubmitsThroughOrderManager) {
+        strategy::StrategyFactory::instance().register_creator(
+            "noop_close_positions", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
+        auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
+
+        live::AccountInfo info;
+        info.equity = 100000.0;
+        info.cash = 100000.0;
+        info.buying_power = 100000.0;
+        broker_ptr->set_account_info(info);
+
+        live::Position position;
+        position.symbol = "CLOSE";
+        position.quantity = 5.0;
+        position.average_price = 100.0;
+        position.market_value = 500.0;
+        broker_ptr->set_positions({position});
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "mock";
+        cfg.strategy_name = "noop_close_positions";
+        cfg.strategy_config.set("type", "noop_close_positions");
+        cfg.symbols = {"CLOSE"};
+        cfg.max_order_value = 0.0;
+        cfg.log_dir = fresh_log_dir("regimeflow_close_positions_test");
+
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        ASSERT_TRUE(engine->start().is_ok());
+
+        engine->close_all_positions();
+        ASSERT_TRUE(broker_ptr->wait_for_submit_count(1));
+
+        const auto submitted = broker_ptr->last_submitted_order();
+        ASSERT_TRUE(submitted.has_value());
+        EXPECT_EQ(submitted->side, engine::OrderSide::Sell);
+        EXPECT_DOUBLE_EQ(submitted->quantity, 5.0);
+        EXPECT_EQ(submitted->metadata.at("risk_exit"), "close_all_positions");
+
+        engine->stop();
+    }
+
     TEST(LiveEngineIntegration, NormalizesBrokerSpecificDefaultsBeforeSubmit) {
         strategy::StrategyFactory::instance().register_creator(
             "buy_once_normalized", [](const Config&) { return std::make_unique<LiveBuyOnceStrategy>(); });
