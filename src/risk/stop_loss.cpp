@@ -16,8 +16,11 @@ namespace regimeflow::risk
             state = StopState{};
             return;
         }
-        if (state.last_qty == 0 || (state.last_qty > 0 && qty < 0) ||
-            (state.last_qty < 0 && qty > 0)) {
+        const bool new_direction = state.last_qty == 0 || (state.last_qty > 0 && qty < 0) ||
+                                   (state.last_qty < 0 && qty > 0);
+        const bool increased_same_direction =
+            !new_direction && std::abs(qty) > std::abs(state.last_qty);
+        if (new_direction || (state.exit_requested && increased_same_direction)) {
             state.entry_price = position.avg_cost;
             state.entry_time = position.last_update;
             state.highest = position.current_price;
