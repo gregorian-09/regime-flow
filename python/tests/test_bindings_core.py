@@ -4,7 +4,7 @@ import pytest
 
 TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
 if not TEST_ROOT:
-    raise RuntimeError("REGIMEFLOW_TEST_ROOT not set")
+    pytest.skip("REGIMEFLOW_TEST_ROOT not set", allow_module_level=True)
 
 build_python = os.path.join(TEST_ROOT, "build", "python")
 source_python = os.path.join(TEST_ROOT, "python")
