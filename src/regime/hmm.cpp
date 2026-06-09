@@ -448,7 +448,7 @@ namespace regimeflow::regime
         RegimeState state;
         state.timestamp = timestamp;
         state.confidence = *max_it;
-        state.regime = static_cast<RegimeType>(std::min(idx, 3));
+        state.regime = idx < 4 ? static_cast<RegimeType>(idx) : RegimeType::Custom;
         state.probabilities = {0, 0, 0, 0};
         state.probabilities_all = probabilities_;
         state.state_count = probabilities_.size();
