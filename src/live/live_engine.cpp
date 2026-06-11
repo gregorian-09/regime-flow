@@ -512,6 +512,21 @@ namespace regimeflow::live
                     return;
                 }
             }
+            if (config_.dry_run_orders) {
+                if (audit_logger_) {
+                    AuditEvent event;
+                    event.timestamp = now;
+                    event.type = AuditEvent::Type::DryRunOrder;
+                    event.details = "Dry-run order suppressed";
+                    event.metadata["symbol"] = SymbolRegistry::instance().lookup(order.symbol);
+                    event.metadata["order_id"] = std::to_string(order.id);
+                    event.metadata["quantity"] = std::to_string(order.quantity);
+                    audit_logger_->log(event);
+                }
+                add_alert("Dry-run order suppressed before broker submit");
+                strategy_order_manager_.update_order_status(order.id, engine::OrderStatus::Cancelled);
+                return;
+            }
             auto submit_res = order_manager_->submit_order(order);
             if (submit_res.is_ok()) {
                 auto live_order = order_manager_->get_order(submit_res.value());

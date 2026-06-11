@@ -86,6 +86,10 @@ namespace regimeflow::live
          */
         bool paper_trading = true;
         /**
+         * @brief Validate and audit orders without submitting them to the broker.
+         */
+        bool dry_run_orders = false;
+        /**
          * @brief Max orders per minute.
          */
         int max_orders_per_minute = 60;

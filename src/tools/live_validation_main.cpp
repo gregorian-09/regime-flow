@@ -194,6 +194,7 @@ namespace
         cfg.broker_asset_class = get_string(root, "live.broker_asset_class").value_or("equity");
         cfg.symbols = get_string_array(root, "live.symbols");
         cfg.paper_trading = get_bool(root, "live.paper").value_or(true);
+        cfg.dry_run_orders = get_bool(root, "live.dry_run").value_or(cfg.dry_run_orders);
         cfg.strategy_name = get_string(root, "strategy.name").value_or("buy_and_hold");
         cfg.strategy_config = get_object_config(root, "strategy.params");
         cfg.risk_config = get_object_config(root, "live.risk");

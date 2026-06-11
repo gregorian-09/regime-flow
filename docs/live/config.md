@@ -10,6 +10,7 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 ## Core Keys
 
 - `live.paper` boolean for paper trading.
+- `live.dry_run` boolean; validates, audits, and suppresses broker submission.
 - `live.reconnect.enabled` boolean.
 - `live.reconnect.initial_ms` and `live.reconnect.max_ms`.
 - `live.heartbeat.enabled` boolean.

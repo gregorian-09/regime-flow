@@ -100,6 +100,7 @@ namespace regimeflow::live
         case AuditEvent::Type::OrderFilled: return "OrderFilled";
         case AuditEvent::Type::OrderCancelled: return "OrderCancelled";
         case AuditEvent::Type::OrderRejected: return "OrderRejected";
+        case AuditEvent::Type::DryRunOrder: return "DryRunOrder";
         case AuditEvent::Type::PositionOpened: return "PositionOpened";
         case AuditEvent::Type::PositionClosed: return "PositionClosed";
         case AuditEvent::Type::RegimeChange: return "RegimeChange";

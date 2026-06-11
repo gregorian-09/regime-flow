@@ -393,6 +393,44 @@ namespace regimeflow::test
         EXPECT_NE(content.find("OrderFilled"), std::string::npos);
     }
 
+    TEST(LiveEngineIntegration, DryRunOrdersAreAuditedWithoutBrokerSubmit) {
+        strategy::StrategyFactory::instance().register_creator(
+            "buy_once_dry_run", [](const Config&) { return std::make_unique<LiveBuyOnceStrategy>(); });
+        auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "mock";
+        cfg.strategy_name = "buy_once_dry_run";
+        cfg.strategy_config.set("type", "buy_once_dry_run");
+        cfg.symbols = {"DRYRUN"};
+        cfg.max_order_value = 100000;
+        cfg.dry_run_orders = true;
+        cfg.log_dir = fresh_log_dir("regimeflow_dry_run_test");
+
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        ASSERT_TRUE(engine->start().is_ok());
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
+
+        const auto symbol = SymbolRegistry::instance().intern("DRYRUN");
+        broker_ptr->emit_bar(make_bar(symbol, 100.0));
+
+        const auto log_path = std::filesystem::path(cfg.log_dir) / "audit.log";
+        ASSERT_TRUE(wait_until([&] {
+            std::ifstream in(log_path);
+            if (!in.good()) {
+                return false;
+            }
+            const std::string content((std::istreambuf_iterator<char>(in)),
+                                      std::istreambuf_iterator<char>());
+            return content.find("DryRunOrder") != std::string::npos
+                   && content.find("Dry-run order suppressed") != std::string::npos;
+        }));
+        EXPECT_EQ(broker_ptr->submit_count(), 0);
+
+        engine->stop();
+    }
+
     TEST(LiveEngineIntegration, RateLimitRejectsSecondOrder) {
         strategy::StrategyFactory::instance().register_creator(
             "two_order", [](const Config&) { return std::make_unique<LiveTwoOrderStrategy>(); });

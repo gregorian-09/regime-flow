@@ -32,6 +32,13 @@ orders are cancelled when the heartbeat timeout expires.
 
 If `max_orders_per_second` is `0`, broker limits are used when available.
 
+## Dry-Run Order Mode
+
+Set `live.dry_run: true` to run strategy, routing, risk, broker normalization,
+rate-limit, and audit paths without submitting orders to the broker. Dry-run
+orders are logged as `DryRunOrder` audit events and then cancelled internally so
+dashboards do not show them as open broker orders.
+
 ## Reconciliation
 
 `LiveConfig` supports:

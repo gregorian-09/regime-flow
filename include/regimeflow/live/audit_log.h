@@ -29,6 +29,7 @@ namespace regimeflow::live
             OrderFilled,
             OrderCancelled,
             OrderRejected,
+            DryRunOrder,
             PositionOpened,
             PositionClosed,
             RegimeChange,

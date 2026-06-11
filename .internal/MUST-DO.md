@@ -76,9 +76,19 @@ Status:
 
 Create clean plugin templates for strategies, regime detectors, risk modules, and broker adapters.
 
-7. Live dry-run / shadow mode
+7. Live dry-run / shadow mode -- IMPLEMENTED
 
 Run strategies against live market data without sending orders, then compare would-trade behavior against actual portfolio state.
+
+Status:
+
+- Added `LiveConfig::dry_run_orders`.
+- Added `live.dry_run` config parsing in live CLI and validation CLI.
+- Dry-run mode keeps strategy, routing, risk, broker-normalization, rate-limit, and audit paths active.
+- Dry-run mode suppresses the final broker submit and records a `DryRunOrder` audit event.
+- Dry-run orders are cancelled internally after audit so dashboards do not show them as open broker orders.
+- Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
+- Documented `live.dry_run` in `docs/live/config.md` and `docs/live/resilience.md`.
 
 8. Model governance
 
