@@ -7,7 +7,7 @@ License:        MIT
 URL:            https://github.com/gregorian-09/regime-flow
 Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 
-BuildRequires:  cmake, gcc-c++, make
+BuildRequires:  cmake >= 3.20, gcc-c++, make
 Requires:       libstdc++, libgcc
 
 %description
@@ -20,6 +20,7 @@ RegimeFlow is a quantitative trading platform that combines regime detection, ba
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE:STRING=Release \
   -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \
+  -DCMAKE_INSTALL_INCLUDEDIR:PATH=%{_includedir} \
   -DCMAKE_INSTALL_LIBDIR:PATH=%{_lib} \
   -DREGIMEFLOW_FETCH_DEPS=ON \
   -DBUILD_TESTS=OFF \
@@ -40,9 +41,10 @@ DESTDIR=%{buildroot} cmake --install build
 
 %files
 %license LICENSE
-%{_libdir}/*.a
-%{_includedir}/regimeflow
-%{_libdir}/cmake/RegimeFlow
+%{_libdir}/libregimeflow*.a
+%dir %{_includedir}/regimeflow
+%{_includedir}/regimeflow/
+%{_libdir}/cmake/RegimeFlow/
 
 %changelog
 * Thu Feb 26 2026 RegimeFlow Team <team@regimeflow.io> - 1.0.11-1
