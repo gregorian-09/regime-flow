@@ -177,6 +177,14 @@ Security needs several layers.
 - Keep vendored code minimal.
 - Do not vendor Java jars, samples, unrelated clients, or unused language bindings.
 
+Status:
+
+- Added `tools/security/check_supply_chain.py`.
+- The checker requires IB vendor metadata and `SECURITY.md`.
+- The checker blocks disallowed IB payloads such as JARs, Java/Python clients, source `.proto` files, and shared binary payloads.
+- The checker verifies every vendored IB file against `third_party/ibapi/SHA256SUMS`.
+- The checker requires Python typing marker `python/regimeflow/py.typed`.
+
 ### CI-Time Gates
 
 Add gates for:
@@ -189,6 +197,14 @@ Add gates for:
 - compiler warnings
 - sanitizers where possible
 - vendored file allowlist checks
+
+Status:
+
+- Added a `supply-chain` job to `.github/workflows/ci.yml`.
+- Linux, macOS, and Windows CI jobs now depend on the supply-chain gate.
+- The gate validates vendored IB checksums and scope before expensive builds start.
+- The gate also enforces pinned GitHub Actions references.
+- Pinned remaining docs workflow actions in `.github/workflows/docs.yml`.
 
 Recommended tools:
 

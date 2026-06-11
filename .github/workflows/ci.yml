@@ -12,8 +12,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  supply-chain:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      with:
+        submodules: recursive
+
+    - name: Check supply-chain guardrails
+      run: python3 tools/security/check_supply_chain.py
+
   build-linux:
     runs-on: ubuntu-24.04
+    needs: supply-chain
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
     strategy:
@@ -112,6 +123,7 @@ jobs:
 
   build-macos:
     runs-on: macos-14
+    needs: supply-chain
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
     strategy:
@@ -189,6 +201,7 @@ jobs:
 
   build-windows:
     runs-on: windows-2022
+    needs: supply-chain
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
