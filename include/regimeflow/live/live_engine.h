@@ -122,6 +122,14 @@ namespace regimeflow::live
          */
         Duration heartbeat_timeout = Duration::seconds(30);
         /**
+         * @brief Disable trading when market data becomes stale.
+         */
+        bool disable_trading_on_heartbeat_timeout = true;
+        /**
+         * @brief Cancel open live orders when market data becomes stale.
+         */
+        bool cancel_orders_on_heartbeat_timeout = true;
+        /**
          * @brief Enable automatic broker reconnects.
          */
         bool enable_auto_reconnect = true;

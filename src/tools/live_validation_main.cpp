@@ -202,9 +202,17 @@ namespace
         cfg.log_dir = get_string(root, "live.log_dir").value_or("./logs");
         cfg.max_order_value = get_double(root, "live.max_order_value").value_or(cfg.max_order_value);
 
-        if (const auto interval_ms = get_int(root, "live.heartbeat.interval_ms")) {
+        if (!get_bool(root, "live.heartbeat.enabled").value_or(true)) {
+            cfg.heartbeat_timeout = Duration::microseconds(0);
+        } else if (const auto interval_ms = get_int(root, "live.heartbeat.interval_ms")) {
             cfg.heartbeat_timeout = Duration::milliseconds(*interval_ms);
         }
+        cfg.disable_trading_on_heartbeat_timeout =
+            get_bool(root, "live.heartbeat.disable_trading_on_timeout").value_or(
+                cfg.disable_trading_on_heartbeat_timeout);
+        cfg.cancel_orders_on_heartbeat_timeout =
+            get_bool(root, "live.heartbeat.cancel_orders_on_timeout").value_or(
+                cfg.cancel_orders_on_heartbeat_timeout);
 
         if (cfg.broker_type == "alpaca") {
             set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");

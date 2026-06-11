@@ -62,6 +62,16 @@ Track slippage, queue model behavior, spread cost, rejected orders, cancel/fill 
 
 Provide kill switch, stale data detector, duplicate order detector, reconciliation journal, credential hygiene, and audit trails.
 
+Status:
+
+- Implemented fail-closed stale market-data behavior in `LiveTradingEngine::check_heartbeat()`.
+- Added `LiveConfig::disable_trading_on_heartbeat_timeout`.
+- Added `LiveConfig::cancel_orders_on_heartbeat_timeout`.
+- `live.heartbeat.enabled: false` now disables heartbeat checks instead of leaving the default timeout active.
+- Added config parsing in `src/tools/live_main.cpp` and `src/tools/live_validation_main.cpp`.
+- Documented the new gates in `docs/live/resilience.md` and `docs/live/config.md`.
+- Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
+
 6. Plugin SDK
 
 Create clean plugin templates for strategies, regime detectors, risk modules, and broker adapters.

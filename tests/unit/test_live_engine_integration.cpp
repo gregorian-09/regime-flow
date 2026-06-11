@@ -6,6 +6,7 @@
 
 #include "test_time.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -627,6 +628,40 @@ namespace regimeflow::test
         const auto dashboard_json = engine->dashboard_snapshot_json();
         EXPECT_NE(dashboard_json.find("\"buying_power\""), std::string::npos);
         EXPECT_NE(dashboard_json.find("\"initial_margin\""), std::string::npos);
+        engine->stop();
+    }
+
+    TEST(LiveEngineIntegration, HeartbeatTimeoutDisablesTradingWhenMarketDataIsStale) {
+        strategy::StrategyFactory::instance().register_creator(
+            "noop_stale_heartbeat", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
+        auto broker = std::make_unique<MockBrokerAdapter>();
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "mock";
+        cfg.strategy_name = "noop_stale_heartbeat";
+        cfg.strategy_config.set("type", "noop_stale_heartbeat");
+        cfg.symbols = {"STALE"};
+        cfg.log_dir = fresh_log_dir("regimeflow_stale_heartbeat_test");
+        cfg.heartbeat_timeout = Duration::milliseconds(10);
+        cfg.enable_auto_reconnect = false;
+
+        std::vector<std::string> errors;
+        std::mutex errors_mutex;
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        engine->on_error([&](const std::string& error) {
+            std::lock_guard<std::mutex> lock(errors_mutex);
+            errors.push_back(error);
+        });
+
+        ASSERT_TRUE(engine->start().is_ok());
+        ASSERT_TRUE(wait_until([&] { return !engine->get_status().trading_enabled; },
+                               std::chrono::milliseconds(500)));
+        ASSERT_TRUE(wait_until([&] {
+            std::lock_guard<std::mutex> lock(errors_mutex);
+            return std::ranges::find(errors, "Heartbeat timeout: no market data") != errors.end()
+                   && std::ranges::find(errors, "Trading disabled because market data is stale") != errors.end();
+        }, std::chrono::milliseconds(500)));
+
         engine->stop();
     }
 

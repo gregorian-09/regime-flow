@@ -13,6 +13,10 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 - `live.reconnect.enabled` boolean.
 - `live.reconnect.initial_ms` and `live.reconnect.max_ms`.
 - `live.heartbeat.enabled` boolean.
+- `live.heartbeat.interval_ms` stale-data threshold.
+- `live.heartbeat.disable_trading_on_timeout` fail-closed trading gate.
+- `live.heartbeat.cancel_orders_on_timeout` open-order cancellation gate.
+- `live.heartbeat.enabled` boolean.
 - `live.heartbeat.interval_ms` heartbeat timeout in milliseconds.
 - `live.risk` risk configuration block. This is passed to the risk factory.
 - `live.broker_config` key/value map of broker-specific settings.

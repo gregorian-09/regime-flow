@@ -16,8 +16,12 @@ Config keys:
 
 - `live.heartbeat.enabled`.
 - `live.heartbeat.interval_ms`.
+- `live.heartbeat.disable_trading_on_timeout`.
+- `live.heartbeat.cancel_orders_on_timeout`.
 
-The engine reports heartbeat status in the live CLI loop and will log stale conditions.
+The engine reports heartbeat status in the live CLI loop and logs stale conditions.
+By default, stale market data is fail-closed: trading is disabled and open live
+orders are cancelled when the heartbeat timeout expires.
 
 ## Order Rate Limits
 

@@ -178,11 +178,19 @@ namespace
             cfg.reconnect_max = regimeflow::Duration::milliseconds(*ms);
         }
 
-        if (get_bool(root, "live.heartbeat.enabled").value_or(false)) {
+        if (!get_bool(root, "live.heartbeat.enabled").value_or(true)) {
+            cfg.heartbeat_timeout = regimeflow::Duration::microseconds(0);
+        } else {
             if (const auto interval_ms = get_int(root, "live.heartbeat.interval_ms").value_or(0); interval_ms > 0) {
                 cfg.heartbeat_timeout = regimeflow::Duration::milliseconds(interval_ms);
             }
         }
+        cfg.disable_trading_on_heartbeat_timeout =
+            get_bool(root, "live.heartbeat.disable_trading_on_timeout").value_or(
+                cfg.disable_trading_on_heartbeat_timeout);
+        cfg.cancel_orders_on_heartbeat_timeout =
+            get_bool(root, "live.heartbeat.cancel_orders_on_timeout").value_or(
+                cfg.cancel_orders_on_heartbeat_timeout);
 
         cfg.broker_config = get_object_map(root, "live.broker_config");
 

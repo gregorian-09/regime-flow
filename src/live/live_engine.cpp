@@ -1818,11 +1818,24 @@ namespace regimeflow::live
         }
         heartbeat_alerted_ = true;
         add_alert("Heartbeat timeout: no market data");
+        if (config_.disable_trading_on_heartbeat_timeout) {
+            trading_enabled_ = false;
+            add_alert("Trading disabled because market data is stale");
+        }
+        if (config_.cancel_orders_on_heartbeat_timeout && order_manager_) {
+            order_manager_->cancel_all_orders();
+        }
         if (audit_logger_) {
             audit_logger_->log_error("Heartbeat timeout: no market data");
+            if (config_.disable_trading_on_heartbeat_timeout) {
+                audit_logger_->log_error("Trading disabled because market data is stale");
+            }
         }
         if (error_cb_) {
             error_cb_("Heartbeat timeout: no market data");
+            if (config_.disable_trading_on_heartbeat_timeout) {
+                error_cb_("Trading disabled because market data is stale");
+            }
         }
         if (config_.enable_auto_reconnect && broker_) {
             broker_->disconnect();
