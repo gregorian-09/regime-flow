@@ -36,6 +36,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: C++",
     "Topic :: Scientific/Engineering",
     "Topic :: Office/Business :: Financial :: Investment",
@@ -87,6 +88,7 @@ cmake.args = [
     "-DENABLE_ZMQ=OFF",
     "-DENABLE_REDIS=OFF",
     "-DENABLE_KAFKA=OFF",
+    "-DENABLE_WEBSOCKET=OFF",
 ]
 wheel.packages = ["python/regimeflow"]
 sdist.exclude = [
@@ -108,7 +110,7 @@ markers = [
 
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311", "py312", "py313"]
 
 [tool.ruff]
 line-length = 100
