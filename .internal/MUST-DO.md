@@ -88,7 +88,7 @@ If the project vendors IB API source directly, updates must be deliberate and re
 
 Required process:
 
-1. Track IB API as a vendored dependency
+1. Track IB API as a vendored dependency -- IMPLEMENTED
 
 Keep it under `third_party/ibapi`, but record:
 
@@ -99,7 +99,15 @@ Keep it under `third_party/ibapi`, but record:
 - license file
 - protobuf version used
 
-2. Add vendoring metadata
+Status:
+
+- Added `third_party/ibapi/VENDOR.md`.
+- Added `third_party/ibapi/PATCHES.md`.
+- Added `third_party/ibapi/SHA256SUMS`.
+- Current vendored IB API version is recorded as `10.42.01`.
+- Current bundled protobuf stub runtime expectation is recorded as `3.21.12`.
+
+2. Add vendoring metadata -- IMPLEMENTED
 
 Required files:
 
@@ -110,7 +118,7 @@ third_party/ibapi/PATCHES.md
 third_party/ibapi/SHA256SUMS
 ```
 
-3. Automate update checks
+3. Automate update checks -- IMPLEMENTED
 
 Add a script:
 
@@ -126,6 +134,14 @@ The script should:
 - regenerate protobuf files with the pinned protoc version
 - apply local patches
 - run build/tests
+
+Status:
+
+- Added `tools/vendor/update_ibapi.sh`.
+- The script verifies the current vendored tree with `--verify-current`.
+- The script requires a manually reviewed archive checksum before applying updates.
+- The script rejects unused Java/Python/proto/binary payloads in the vendored scope.
+- The script gates bundled protobuf stubs against the pinned protobuf `3.21.12` macro.
 
 4. Avoid blind auto-upgrades
 
