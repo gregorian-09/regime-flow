@@ -45,7 +45,9 @@ namespace regimeflow::test
     }
 #else
     TEST(WebSocketFeedReconnect, SkippedWithoutBeast) {
-        GTEST_SKIP() << "Boost.Beast not available";
+        GTEST_SKIP()
+            << "Skipped because REGIMEFLOW_USE_BOOST_BEAST is not defined; "
+               "configure with -DENABLE_WEBSOCKET=ON and provide Boost.Beast.";
     }
 #endif
 }  // namespace regimeflow::test

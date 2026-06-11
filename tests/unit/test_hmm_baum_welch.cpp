@@ -7,12 +7,14 @@
 
 namespace regimeflow::test
 {
+    constexpr unsigned kSyntheticSequenceSeed = 42U;
+
     static std::vector<regimeflow::regime::FeatureVector> generate_sequence(
         int length,
         const std::vector<std::vector<double>>& transition,
         const std::vector<double>& means,
         const std::vector<double>& vars) {
-        std::mt19937 rng(42);
+        std::mt19937 rng(kSyntheticSequenceSeed);
         std::uniform_real_distribution<double> uni(0.0, 1.0);
         std::vector<std::normal_distribution<double>> normals;
         for (size_t i = 0; i < means.size(); ++i) {

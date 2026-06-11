@@ -14,6 +14,8 @@
 
 namespace
 {
+    constexpr unsigned kDefaultRandomSearchSeed = 1337U;
+
     double clamp_value(const double v, const double min_v, const double max_v) {
         if (v < min_v) return min_v;
         if (v > max_v) return max_v;
@@ -96,7 +98,7 @@ namespace regimeflow::walkforward
             : generate_windows(full_range);
         results.windows.reserve(windows.size());
 
-        std::mt19937 rng(1337);
+        std::mt19937 rng(kDefaultRandomSearchSeed);
 
         for (const auto& [is_range, oos_range] : windows) {
             if (cancelled_.load(std::memory_order_relaxed)) {
