@@ -17,6 +17,47 @@
 namespace regimeflow::live
 {
     /**
+     * @brief Supported time-in-force values for a broker order type.
+     */
+    struct BrokerOrderCapability {
+        engine::OrderType type = engine::OrderType::Market;
+        std::vector<engine::TimeInForce> time_in_force;
+    };
+
+    /**
+     * @brief Static broker capability matrix used for validation and documentation.
+     */
+    struct BrokerCapabilities {
+        std::string broker;
+        std::vector<AssetClass> asset_classes;
+        std::vector<BrokerOrderCapability> order_types;
+        bool supports_fractional_quantity = false;
+        bool supports_short_selling = false;
+        bool supports_crypto = false;
+        bool supports_bracket_orders = false;
+        int max_orders_per_second = 0;
+        int max_messages_per_second = 0;
+
+        /**
+         * @brief Check whether the matrix allows an order type/time-in-force pair.
+         */
+        [[nodiscard]] bool supports(engine::OrderType type, engine::TimeInForce tif) const {
+            for (const auto& capability : order_types) {
+                if (capability.type != type) {
+                    continue;
+                }
+                for (const auto supported_tif : capability.time_in_force) {
+                    if (supported_tif == tif) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            return false;
+        }
+    };
+
+    /**
      * @brief Live order status as reported by brokers.
      */
     enum class LiveOrderStatus {
@@ -140,6 +181,10 @@ namespace regimeflow::live
          */
         [[nodiscard]] virtual bool supports_tif(engine::OrderType type,
                                                 engine::TimeInForce tif) const = 0;
+        /**
+         * @brief Return broker capability metadata for validation and UI surfaces.
+         */
+        [[nodiscard]] virtual BrokerCapabilities capabilities() const { return {}; }
 
         /**
          * @brief Poll broker for updates (if required).

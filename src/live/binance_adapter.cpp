@@ -546,22 +546,27 @@ namespace regimeflow::live
     }
 
     bool BinanceAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
-        if (tif == engine::TimeInForce::GTD) {
-            return false;
-        }
-        if (type == engine::OrderType::Limit) {
-            return tif == engine::TimeInForce::GTC
-                || tif == engine::TimeInForce::IOC
-                || tif == engine::TimeInForce::FOK;
-        }
-        if (type == engine::OrderType::Market) {
+        return capabilities().supports(type, tif);
+    }
+
+    BrokerCapabilities BinanceAdapter::capabilities() const {
+        BrokerCapabilities caps;
+        caps.broker = "binance";
+        caps.asset_classes = {AssetClass::Crypto};
+        caps.supports_fractional_quantity = true;
+        caps.supports_short_selling = false;
+        caps.supports_crypto = true;
+        caps.supports_bracket_orders = false;
+        caps.max_orders_per_second = max_orders_per_second();
+        caps.max_messages_per_second = max_messages_per_second();
+        caps.order_types = {
             // Binance market orders do not carry a timeInForce field on submit.
-            // Accept the engine default Day setting so default market orders remain
-            // broker-compatible without caller-side mutation.
-            return tif == engine::TimeInForce::Day
-                || tif == engine::TimeInForce::IOC;
-        }
-        return false;
+            // Accept Day so default engine market orders remain broker-compatible.
+            {engine::OrderType::Market, {engine::TimeInForce::Day, engine::TimeInForce::IOC}},
+            {engine::OrderType::Limit,
+             {engine::TimeInForce::GTC, engine::TimeInForce::IOC, engine::TimeInForce::FOK}},
+        };
+        return caps;
     }
 
     void BinanceAdapter::poll() {

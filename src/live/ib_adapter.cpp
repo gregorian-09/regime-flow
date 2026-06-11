@@ -359,17 +359,41 @@ namespace regimeflow::live
     }
 
     bool IBAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
-        (void)type;
-        switch (tif) {
-        case engine::TimeInForce::Day:
-        case engine::TimeInForce::GTC:
-        case engine::TimeInForce::IOC:
-        case engine::TimeInForce::FOK:
-        case engine::TimeInForce::GTD:
-            return true;
-        default:
-            return false;
-        }
+        return capabilities().supports(type, tif);
+    }
+
+    BrokerCapabilities IBAdapter::capabilities() const {
+        const std::vector<engine::TimeInForce> core_tifs{
+            engine::TimeInForce::Day,
+            engine::TimeInForce::GTC,
+            engine::TimeInForce::IOC,
+            engine::TimeInForce::FOK,
+            engine::TimeInForce::GTD,
+        };
+
+        BrokerCapabilities caps;
+        caps.broker = "interactive-brokers";
+        caps.asset_classes = {
+            AssetClass::Equity,
+            AssetClass::Futures,
+            AssetClass::Forex,
+            AssetClass::Options,
+        };
+        caps.supports_fractional_quantity = true;
+        caps.supports_short_selling = true;
+        caps.supports_crypto = false;
+        caps.supports_bracket_orders = false;
+        caps.max_orders_per_second = max_orders_per_second();
+        caps.max_messages_per_second = max_messages_per_second();
+        caps.order_types = {
+            {engine::OrderType::Market, core_tifs},
+            {engine::OrderType::Limit, core_tifs},
+            {engine::OrderType::Stop, core_tifs},
+            {engine::OrderType::StopLimit, core_tifs},
+            {engine::OrderType::MarketOnClose, core_tifs},
+            {engine::OrderType::MarketOnOpen, core_tifs},
+        };
+        return caps;
     }
 
     void IBAdapter::poll() {}

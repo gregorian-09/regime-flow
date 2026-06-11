@@ -86,6 +86,16 @@ namespace regimeflow::test
         cfg.enable_streaming = false;
 
         live::AlpacaAdapter adapter(std::move(cfg));
+        const auto capabilities = adapter.capabilities();
+
+        EXPECT_EQ(capabilities.broker, "alpaca");
+        ASSERT_EQ(capabilities.asset_classes.size(), 1u);
+        EXPECT_EQ(capabilities.asset_classes.front(), AssetClass::Equity);
+        EXPECT_TRUE(capabilities.supports_fractional_quantity);
+        EXPECT_TRUE(capabilities.supports_short_selling);
+        EXPECT_FALSE(capabilities.supports_crypto);
+        EXPECT_TRUE(capabilities.supports_bracket_orders);
+        EXPECT_EQ(capabilities.max_orders_per_second, adapter.max_orders_per_second());
 
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::Day));
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::GTC));
@@ -108,6 +118,16 @@ namespace regimeflow::test
         cfg.enable_streaming = false;
 
         live::AlpacaAdapter adapter(std::move(cfg));
+        const auto capabilities = adapter.capabilities();
+
+        ASSERT_EQ(capabilities.asset_classes.size(), 1u);
+        EXPECT_EQ(capabilities.asset_classes.front(), AssetClass::Crypto);
+        EXPECT_TRUE(capabilities.supports_fractional_quantity);
+        EXPECT_FALSE(capabilities.supports_short_selling);
+        EXPECT_TRUE(capabilities.supports_crypto);
+        EXPECT_FALSE(capabilities.supports_bracket_orders);
+        EXPECT_TRUE(capabilities.supports(engine::OrderType::Limit, engine::TimeInForce::GTC));
+        EXPECT_FALSE(capabilities.supports(engine::OrderType::Limit, engine::TimeInForce::Day));
 
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::GTC));
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::IOC));
@@ -121,6 +141,16 @@ namespace regimeflow::test
         cfg.enable_streaming = false;
 
         live::BinanceAdapter adapter(std::move(cfg));
+        const auto capabilities = adapter.capabilities();
+
+        EXPECT_EQ(capabilities.broker, "binance");
+        ASSERT_EQ(capabilities.asset_classes.size(), 1u);
+        EXPECT_EQ(capabilities.asset_classes.front(), AssetClass::Crypto);
+        EXPECT_TRUE(capabilities.supports_fractional_quantity);
+        EXPECT_FALSE(capabilities.supports_short_selling);
+        EXPECT_TRUE(capabilities.supports_crypto);
+        EXPECT_FALSE(capabilities.supports_bracket_orders);
+        EXPECT_EQ(capabilities.max_messages_per_second, adapter.max_messages_per_second());
 
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Limit, engine::TimeInForce::GTC));
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Limit, engine::TimeInForce::IOC));
@@ -137,6 +167,15 @@ namespace regimeflow::test
 #if defined(REGIMEFLOW_ENABLE_IBAPI)
     TEST(BrokerAdapterCapabilities, IbSupportsCoreTimeInForceSet) {
         live::IBAdapter adapter(live::IBAdapter::Config{});
+        const auto capabilities = adapter.capabilities();
+
+        EXPECT_EQ(capabilities.broker, "interactive-brokers");
+        EXPECT_GE(capabilities.asset_classes.size(), 4u);
+        EXPECT_TRUE(capabilities.supports_fractional_quantity);
+        EXPECT_TRUE(capabilities.supports_short_selling);
+        EXPECT_FALSE(capabilities.supports_crypto);
+        EXPECT_FALSE(capabilities.supports_bracket_orders);
+        EXPECT_TRUE(capabilities.supports(engine::OrderType::StopLimit, engine::TimeInForce::GTD));
 
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Market, engine::TimeInForce::Day));
         EXPECT_TRUE(adapter.supports_tif(engine::OrderType::Limit, engine::TimeInForce::GTC));

@@ -148,6 +148,7 @@ namespace regimeflow::live
         [[nodiscard]] int max_messages_per_second() const override;
         [[nodiscard]] bool supports_tif(engine::OrderType type,
                                         engine::TimeInForce tif) const override;
+        [[nodiscard]] BrokerCapabilities capabilities() const override;
 
         /**
          * @brief Poll the adapter (for REST updates).

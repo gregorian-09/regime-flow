@@ -158,6 +158,7 @@ namespace regimeflow::live
         int max_messages_per_second() const override;
         bool supports_tif(engine::OrderType type,
                           engine::TimeInForce tif) const override;
+        [[nodiscard]] BrokerCapabilities capabilities() const override;
 
         /**
          * @brief Return the normalized IB contract config used for a symbol.

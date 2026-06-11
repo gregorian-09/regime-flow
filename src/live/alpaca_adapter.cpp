@@ -670,21 +670,49 @@ namespace regimeflow::live
     }
 
     bool AlpacaAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
+        return capabilities().supports(type, tif);
+    }
+
+    BrokerCapabilities AlpacaAdapter::capabilities() const {
         const bool is_crypto = config_.asset_class == "crypto";
-        if (tif == engine::TimeInForce::GTD) {
-            return false;
-        }
+        BrokerCapabilities caps;
+        caps.broker = "alpaca";
+        caps.asset_classes = is_crypto ? std::vector<AssetClass>{AssetClass::Crypto}
+                                       : std::vector<AssetClass>{AssetClass::Equity};
+        caps.supports_fractional_quantity = true;
+        caps.supports_short_selling = !is_crypto;
+        caps.supports_crypto = is_crypto;
+        caps.supports_bracket_orders = !is_crypto;
+        caps.max_orders_per_second = max_orders_per_second();
+        caps.max_messages_per_second = max_messages_per_second();
+
         if (is_crypto) {
-            return tif == engine::TimeInForce::GTC || tif == engine::TimeInForce::IOC;
+            const std::vector<engine::TimeInForce> crypto_tifs{
+                engine::TimeInForce::GTC,
+                engine::TimeInForce::IOC,
+            };
+            caps.order_types = {
+                {engine::OrderType::Market, crypto_tifs},
+                {engine::OrderType::Limit, crypto_tifs},
+                {engine::OrderType::Stop, crypto_tifs},
+                {engine::OrderType::StopLimit, crypto_tifs},
+            };
+            return caps;
         }
-        if (type == engine::OrderType::Limit || type == engine::OrderType::Market
-            || type == engine::OrderType::Stop || type == engine::OrderType::StopLimit) {
-            return tif == engine::TimeInForce::Day
-                || tif == engine::TimeInForce::GTC
-                || tif == engine::TimeInForce::IOC
-                || tif == engine::TimeInForce::FOK;
-        }
-        return false;
+
+        const std::vector<engine::TimeInForce> equity_tifs{
+            engine::TimeInForce::Day,
+            engine::TimeInForce::GTC,
+            engine::TimeInForce::IOC,
+            engine::TimeInForce::FOK,
+        };
+        caps.order_types = {
+            {engine::OrderType::Market, equity_tifs},
+            {engine::OrderType::Limit, equity_tifs},
+            {engine::OrderType::Stop, equity_tifs},
+            {engine::OrderType::StopLimit, equity_tifs},
+        };
+        return caps;
     }
 
     void AlpacaAdapter::poll() {

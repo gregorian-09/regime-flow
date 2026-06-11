@@ -62,6 +62,10 @@ This mode is intentionally manual because it mutates the paper account state.
 
 ## Broker Notes
 
+RegimeFlow exposes each adapter's static broker matrix through `BrokerAdapter::capabilities()`.
+Use that matrix for UI display, validation tooling, and pre-trade checks instead of duplicating
+broker-specific order type and time-in-force assumptions.
+
 ### Alpaca
 
 - Alpaca documents `day`, `gtc`, `ioc`, and `fok` for supported equity order combinations, while crypto only supports `gtc` and `ioc`.

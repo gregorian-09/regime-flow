@@ -1,0 +1,214 @@
+# RegimeFlow MUST-DO
+
+## Core Tension
+
+The main architectural tension is that RegimeFlow sits between several different product goals:
+
+- research/backtesting framework
+- live trading engine
+- Python-accessible quant platform
+- C++ execution core
+- packaged open-source library
+
+Those goals pull in different directions. Research code wants flexibility. Live execution wants safety. Low-latency code wants minimal abstraction. Open-source packaging wants portability. The project must keep those boundaries clean.
+
+## Low-Latency Positioning
+
+RegimeFlow is probably sufficient for Interactive Brokers and retail/professional broker workflows where strategy horizons are seconds, minutes, hours, or regime-level decisions.
+
+It should not be positioned as true HFT or colocated exchange infrastructure. IBKR itself is not a low-latency venue API: TWS/Gateway, socket hops, broker-side routing, and exchange routing dominate latency.
+
+The better target is:
+
+- low overhead
+- deterministic behavior
+- replay/live parity
+- robust risk gates
+- predictable order lifecycle
+- strong observability
+- fast enough for systematic retail/professional workflows
+
+Recommended positioning:
+
+> Production-oriented, regime-aware, execution-safe trading infrastructure.
+
+## Features That Would Make RegimeFlow Stand Out
+
+1. Broker capability matrix -- IMPLEMENTED
+
+Expose what each broker supports: order types, time-in-force values, asset classes, fractional support, shorting, crypto, bracket orders, and rate limits.
+
+Status:
+
+- Implemented `BrokerCapabilities` and `BrokerOrderCapability` in `include/regimeflow/live/broker_adapter.h`.
+- Alpaca, Binance, and Interactive Brokers now expose `capabilities()`.
+- Existing `supports_tif()` checks now use the capability matrix.
+- Added unit coverage in `tests/unit/test_broker_adapter_capabilities.cpp`.
+- Documented the capability matrix in `docs/live/production-readiness.md`.
+
+2. Replay-to-live parity
+
+Use the same strategy code, event model, risk checks, and order manager in both backtest and live execution.
+
+3. Regime-aware risk engine
+
+Let position sizing, drawdown limits, leverage caps, stop behavior, and execution aggressiveness respond to detected regime.
+
+4. Execution quality analytics
+
+Track slippage, queue model behavior, spread cost, rejected orders, cancel/fill latency, and venue comparison.
+
+5. Operational safety layer
+
+Provide kill switch, stale data detector, duplicate order detector, reconciliation journal, credential hygiene, and audit trails.
+
+6. Plugin SDK
+
+Create clean plugin templates for strategies, regime detectors, risk modules, and broker adapters.
+
+7. Live dry-run / shadow mode
+
+Run strategies against live market data without sending orders, then compare would-trade behavior against actual portfolio state.
+
+8. Model governance
+
+Version regime models, record training data range, feature schema, detector parameters, and runtime predictions.
+
+9. First-class observability
+
+Add Prometheus metrics, structured logs, dashboard snapshots, and alert hooks.
+
+10. Security / supply-chain posture
+
+Generate SBOMs, scan dependencies, audit vendored dependencies, and sign release artifacts.
+
+## Interactive Brokers API Update Policy
+
+If the project vendors IB API source directly, updates must be deliberate and reviewable. Do not casually overwrite the vendored tree.
+
+Required process:
+
+1. Track IB API as a vendored dependency
+
+Keep it under `third_party/ibapi`, but record:
+
+- upstream version
+- download URL
+- SHA256 checksum
+- local patches
+- license file
+- protobuf version used
+
+2. Add vendoring metadata
+
+Required files:
+
+```text
+third_party/ibapi/VENDOR.md
+third_party/ibapi/LICENSE
+third_party/ibapi/PATCHES.md
+third_party/ibapi/SHA256SUMS
+```
+
+3. Automate update checks
+
+Add a script:
+
+```bash
+tools/vendor/update_ibapi.sh
+```
+
+The script should:
+
+- download the official IBKR API archive
+- verify a manually reviewed checksum
+- replace only required C++ files
+- regenerate protobuf files with the pinned protoc version
+- apply local patches
+- run build/tests
+
+4. Avoid blind auto-upgrades
+
+IB API updates can affect:
+
+- message protocol
+- order fields
+- Decimal/BID math linkage
+- protobuf generated files
+- platform-specific headers
+
+Use dependency bots for notification if possible, but require manual review before merging.
+
+5. Add compatibility tests
+
+Add tests around:
+
+- order mapping
+- status mapping
+- Decimal conversion
+- contract serialization
+- reconnect behavior
+- unsupported feature rejection
+
+## Third-Party Security Gating
+
+Security needs several layers.
+
+### Commit-Time Gates
+
+- Require vendored updates to include license, checksum, upstream version, and patch notes.
+- Block unknown binary files unless explicitly allowed.
+- Keep vendored code minimal.
+- Do not vendor Java jars, samples, unrelated clients, or unused language bindings.
+
+### CI-Time Gates
+
+Add gates for:
+
+- dependency scanning
+- SBOM generation
+- license scanning
+- secret scanning
+- CodeQL
+- compiler warnings
+- sanitizers where possible
+- vendored file allowlist checks
+
+Recommended tools:
+
+- `osv-scanner` for known vulnerabilities
+- `trivy fs` or `grype` for dependency and filesystem scanning
+- GitHub CodeQL for C++/Python
+- `pip-audit` for Python dependencies
+- `gitleaks` for secrets
+- `reuse lint` or another license checker
+- `syft` for SBOM generation
+
+### Runtime Gates
+
+Security is not only dependency scanning. Runtime safety controls should include:
+
+- deny remote plaintext IB hosts by default
+- require explicit opt-in for unsafe broker endpoints
+- redact secrets in logs
+- separate paper/live credentials
+- fail closed if reconciliation state is inconsistent
+- alert on unknown broker order states
+- kill switch if market data is stale
+
+## Recommended Direction
+
+Define the project as:
+
+> A regime-aware C++/Python trading platform focused on robust backtest/live parity, broker-safe execution, and operational risk controls -- not HFT.
+
+Priorities:
+
+1. Broker abstraction and capability matrix.
+2. IB API vendoring/update policy.
+3. Security supply-chain gates.
+4. Live/replay parity tests.
+5. Observability and auditability.
+6. Plugin SDK and examples.
+
+The defensible identity is not being faster than everything. It is being safer, more explainable, more regime-aware, and more production-disciplined than typical research backtesters.
