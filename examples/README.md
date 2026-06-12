@@ -49,3 +49,7 @@ PYTHONPATH=build/lib:build/python:python .venv/bin/python \
   examples/python_execution_realism/run_python_execution_realism.py \
   --config examples/python_execution_realism/config.yaml
 ```
+
+## Plugin SDK Template
+
+- `examples/plugins/template` provides a minimal dynamic strategy-plugin starting point with CMake and required ABI exports.

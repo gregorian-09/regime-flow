@@ -92,6 +92,17 @@ extern "C" {
 }
 ```
 
+## Plugin SDK Template
+
+A minimal copyable strategy-plugin template lives at `examples/plugins/template/`. It includes:
+
+- a standalone `CMakeLists.txt`;
+- `strategy_template.cpp` with lifecycle hooks and required ABI exports;
+- README instructions for source-tree builds and runtime loading.
+
+Use this template for new strategy plugins before moving to more specialized detector, risk, data,
+or metrics plugins.
+
 ## Build Guidance
 
 Plugins are standard shared libraries:

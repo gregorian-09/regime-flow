@@ -30,6 +30,13 @@ REQUIRED_IBAPI_FILES = {
 }
 PINNED_ACTION_RE = re.compile(r"^[^\s@]+@[0-9a-fA-F]{40}$")
 USES_RE = re.compile(r"^\s*uses:\s*([^\s#]+)", re.MULTILINE)
+REQUIRED_PLUGIN_EXPORTS = {
+    "create_plugin",
+    "destroy_plugin",
+    "plugin_type",
+    "plugin_name",
+    "regimeflow_abi_version",
+}
 
 
 def rel(path: Path) -> str:
@@ -128,6 +135,23 @@ def check_workflow_actions(errors: list[str]) -> None:
                 errors.append(f"unpinned GitHub Action reference in {rel(workflow)}: {value}")
 
 
+
+def check_plugin_template(errors: list[str]) -> None:
+    source = ROOT / "examples" / "plugins" / "template" / "strategy_template.cpp"
+    readme = ROOT / "examples" / "plugins" / "template" / "README.md"
+    if not source.is_file():
+        errors.append("missing plugin SDK template source")
+        return
+    if not readme.is_file():
+        errors.append("missing plugin SDK template README")
+        return
+    source_text = source.read_text(encoding="utf-8")
+    readme_text = readme.read_text(encoding="utf-8")
+    for export in sorted(REQUIRED_PLUGIN_EXPORTS):
+        if export not in source_text or export not in readme_text:
+            errors.append(f"plugin SDK template missing required export reference: {export}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skip-workflows", action="store_true", help="skip GitHub Actions pin checks")
@@ -137,6 +161,7 @@ def main() -> int:
     check_required_files(errors)
     check_ibapi_scope(errors)
     check_ibapi_checksums(errors)
+    check_plugin_template(errors)
     if not args.skip_workflows:
         check_workflow_actions(errors)
 

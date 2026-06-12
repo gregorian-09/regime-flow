@@ -96,9 +96,20 @@ Status:
 - Documented the new gates in `docs/live/resilience.md` and `docs/live/config.md`.
 - Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
 
-6. Plugin SDK
+6. Plugin SDK -- PARTIALLY IMPLEMENTED
 
 Create clean plugin templates for strategies, regime detectors, risk modules, and broker adapters.
+
+Status:
+
+- Added `examples/plugins/template` as a minimal dynamic strategy-plugin SDK template.
+- Template includes standalone CMake, lifecycle hooks, required C ABI exports, and runtime config guidance.
+- Added `tools/plugins/check_plugin_template.py` to guard required export references.
+- Linked the template from `docs/reference/plugin-api.md` and `examples/README.md`.
+
+Remaining:
+
+- Add dedicated templates for regime detectors, risk modules, and broker adapters.
 
 7. Live dry-run / shadow mode -- IMPLEMENTED
 
