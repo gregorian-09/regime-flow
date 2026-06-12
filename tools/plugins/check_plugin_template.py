@@ -22,6 +22,14 @@ TEMPLATES = {
         ROOT / "examples" / "plugins" / "risk_manager_template" / "risk_manager_template.cpp",
         "risk_manager",
     ),
+    "data_source": (
+        ROOT / "examples" / "plugins" / "data_source_template" / "data_source_template.cpp",
+        "data_source",
+    ),
+    "metrics": (
+        ROOT / "examples" / "plugins" / "metrics_template" / "metrics_template.cpp",
+        "metrics",
+    ),
 }
 
 

@@ -120,20 +120,22 @@ Status:
 
 6. Plugin SDK -- PARTIALLY IMPLEMENTED
 
-Create clean plugin templates for strategies, regime detectors, risk modules, and broker adapters.
+Create clean plugin templates for strategies, regime detectors, risk modules, broker adapters, data sources, and metrics.
 
 Status:
 
 - Added `examples/plugins/template` as a minimal dynamic strategy-plugin SDK template.
 - Added `examples/plugins/regime_detector_template` as a minimal dynamic regime-detector plugin template.
 - Added `examples/plugins/risk_manager_template` as a minimal dynamic risk-manager plugin template.
+- Added `examples/plugins/data_source_template` as a minimal dynamic data-source plugin template.
+- Added `examples/plugins/metrics_template` as a minimal dynamic performance-metric plugin template.
 - Templates include standalone CMake, lifecycle hooks, required C ABI exports, and runtime config guidance.
 - Added `tools/plugins/check_plugin_template.py` to guard required export references across all template types.
 - Linked the templates from `docs/reference/plugin-api.md` and `examples/README.md`.
 
 Remaining:
 
-- Add dedicated templates for broker adapters and data/metrics plugins.
+- Add a dedicated broker-adapter template after the broker plugin interface is promoted to a first-class extension point.
 
 7. Live dry-run / shadow mode -- IMPLEMENTED
 

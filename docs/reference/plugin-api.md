@@ -98,7 +98,9 @@ Copyable plugin SDK templates live under `examples/plugins/`:
 
 - `template/` for strategy plugins;
 - `regime_detector_template/` for regime detector plugins;
-- `risk_manager_template/` for risk manager plugins.
+- `risk_manager_template/` for risk manager plugins;
+- `data_source_template/` for market-data source plugins;
+- `metrics_template/` for custom performance-metric plugins.
 
 Each template includes standalone CMake, lifecycle hooks, required C ABI exports, and README
 instructions for source-tree builds and runtime loading.
