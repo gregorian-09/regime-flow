@@ -55,6 +55,24 @@ namespace regimeflow::regime
             return exps;
         }
 
+        std::string feature_schema_string(const std::vector<FeatureType>& features) {
+            std::ostringstream out;
+            for (size_t i = 0; i < features.size(); ++i) {
+                if (i != 0) {
+                    out << ',';
+                }
+                out << static_cast<int>(features[i]);
+            }
+            return out.str();
+        }
+
+        int64_t parse_i64_or_zero(const std::string& value) {
+            std::istringstream in(value);
+            int64_t parsed = 0;
+            in >> parsed;
+            return parsed;
+        }
+
     }  // namespace
 
     HMMRegimeDetector::HMMRegimeDetector(const int states, const int window)
@@ -68,6 +86,7 @@ namespace regimeflow::regime
         probabilities_.assign(states_, 1.0 / states_);
         initial_.assign(states_, 1.0 / states_);
         kalman_filters_.assign(states_, KalmanFilter1D(kalman_process_noise_, kalman_measurement_noise_));
+        metadata_.detector_type = "hmm";
     }
 
     RegimeState HMMRegimeDetector::on_bar(const data::Bar& bar) {
@@ -224,6 +243,7 @@ namespace regimeflow::regime
     }
 
     void HMMRegimeDetector::set_features(std::vector<FeatureType> features) {
+        metadata_.feature_schema = feature_schema_string(features);
         extractor_.set_features(std::move(features));
     }
 
@@ -240,6 +260,12 @@ namespace regimeflow::regime
         if (!out) {
             return;
         }
+        out << "metadata detector_type " << metadata_.detector_type << "\n";
+        out << "metadata model_version " << metadata_.model_version << "\n";
+        out << "metadata training_start_us " << metadata_.training_start_us << "\n";
+        out << "metadata training_end_us " << metadata_.training_end_us << "\n";
+        out << "metadata feature_schema " << metadata_.feature_schema << "\n";
+        out << "metadata parameter_digest " << metadata_.parameter_digest << "\n";
         out << "states " << states_ << "\n";
         out << "window " << window_ << "\n";
         out << "normalization " << static_cast<int>(extractor_.normalization_mode()) << "\n";
@@ -276,7 +302,28 @@ namespace regimeflow::regime
         }
         std::string token;
         while (in >> token) {
-            if (token == "states") {
+            if (token == "metadata") {
+                std::string key;
+                std::string value;
+                in >> key;
+                std::getline(in, value);
+                if (!value.empty() && value.front() == ' ') {
+                    value.erase(value.begin());
+                }
+                if (key == "detector_type") {
+                    metadata_.detector_type = value;
+                } else if (key == "model_version") {
+                    metadata_.model_version = value;
+                } else if (key == "training_start_us") {
+                    metadata_.training_start_us = parse_i64_or_zero(value);
+                } else if (key == "training_end_us") {
+                    metadata_.training_end_us = parse_i64_or_zero(value);
+                } else if (key == "feature_schema") {
+                    metadata_.feature_schema = value;
+                } else if (key == "parameter_digest") {
+                    metadata_.parameter_digest = value;
+                }
+            } else if (token == "states") {
                 in >> states_;
                 transition_.assign(states_, std::vector<double>(states_, 1.0 / states_));
                 probabilities_.assign(states_, 1.0 / states_);
@@ -297,6 +344,9 @@ namespace regimeflow::regime
                     int value = 0;
                     in >> value;
                     features.push_back(static_cast<FeatureType>(value));
+                }
+                if (metadata_.feature_schema.empty()) {
+                    metadata_.feature_schema = feature_schema_string(features);
                 }
                 extractor_.set_features(std::move(features));
             } else if (token == "initial") {
@@ -379,6 +429,32 @@ namespace regimeflow::regime
                                    KalmanFilter1D(kalman_process_noise_, kalman_measurement_noise_));
         } else {
             kalman_filters_.clear();
+        }
+        if (const auto version = config.get_as<std::string>("model.version")) {
+            metadata_.model_version = *version;
+        }
+        if (const auto start = config.get_as<int64_t>("model.training_start_us")) {
+            metadata_.training_start_us = *start;
+        }
+        if (const auto end = config.get_as<int64_t>("model.training_end_us")) {
+            metadata_.training_end_us = *end;
+        }
+        if (const auto schema = config.get_as<std::string>("model.feature_schema")) {
+            metadata_.feature_schema = *schema;
+        }
+        if (const auto digest = config.get_as<std::string>("model.parameter_digest")) {
+            metadata_.parameter_digest = *digest;
+        }
+    }
+
+    ModelGovernanceMetadata HMMRegimeDetector::model_metadata() const {
+        return metadata_;
+    }
+
+    void HMMRegimeDetector::set_model_metadata(ModelGovernanceMetadata metadata) {
+        metadata_ = std::move(metadata);
+        if (metadata_.detector_type.empty()) {
+            metadata_.detector_type = "hmm";
         }
     }
 

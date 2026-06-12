@@ -114,9 +114,22 @@ Status:
 - Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
 - Documented `live.dry_run` in `docs/live/config.md` and `docs/live/resilience.md`.
 
-8. Model governance
+8. Model governance -- PARTIALLY IMPLEMENTED
 
 Version regime models, record training data range, feature schema, detector parameters, and runtime predictions.
+
+Status:
+
+- Added `ModelGovernanceMetadata` to the `RegimeDetector` interface.
+- `HMMRegimeDetector` now exposes set/get metadata hooks.
+- HMM save/load persists detector type, model version, training range, feature schema, and parameter digest.
+- HMM config can populate metadata through `model.version`, `model.training_start_us`, `model.training_end_us`, `model.feature_schema`, and `model.parameter_digest`.
+- Added persistence coverage in `tests/unit/test_hmm_persistence.cpp`.
+- Documented model governance metadata in `docs/guide/regime-detection.md`.
+
+Remaining:
+
+- Attach metadata to runtime prediction audit events and plugin detectors.
 
 9. First-class observability
 
