@@ -636,6 +636,7 @@ set(REGIMEFLOW_LIVE_SOURCES
     live/live_order_manager.cpp
     live/mq_adapter.cpp
     live/mq_codec.cpp
+    live/prometheus_exporter.cpp
     live/secret_hygiene.cpp
     live/types.cpp
 )

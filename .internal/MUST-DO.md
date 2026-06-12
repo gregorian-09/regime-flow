@@ -131,9 +131,21 @@ Remaining:
 
 - Attach metadata to runtime prediction audit events and plugin detectors.
 
-9. First-class observability
+9. First-class observability -- PARTIALLY IMPLEMENTED
 
 Add Prometheus metrics, structured logs, dashboard snapshots, and alert hooks.
+
+Status:
+
+- Existing live dashboard snapshots expose portfolio, orders, positions, health, and alert state.
+- Added Prometheus text exposition helpers in `include/regimeflow/live/prometheus_exporter.h`.
+- Exporter covers dashboard/account gauges plus execution-quality counters, rejection rate, latency, and slippage gauges.
+- Added unit coverage in `tests/unit/test_prometheus_exporter.cpp`.
+- Documented the helper in `docs/live/overview.md` and `docs/reference/configuration.md`.
+
+Remaining:
+
+- Add an HTTP scrape endpoint and structured-log sink configuration.
 
 10. Security / supply-chain posture
 

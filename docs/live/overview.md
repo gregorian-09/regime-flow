@@ -111,6 +111,13 @@ filled orders, cancellation reports, average acknowledgement latency, average fi
 limit/stop-reference slippage in basis points. Use `execution_quality()` for dashboards, audit
 exports, and paper-live validation reports.
 
+## Prometheus Export
+
+`regimeflow/live/prometheus_exporter.h` provides Prometheus text exposition helpers for live
+operations. Use `dashboard_snapshot_to_prometheus(...)` for account/health/dashboard gauges and
+`live_metrics_to_prometheus(...)` when you also want execution-quality counters and latency/slippage
+gauges in the same scrape payload.
+
 ## Read This Section With The Right Mental Model
 
 - Live execution is not just “backtest with sockets”.
