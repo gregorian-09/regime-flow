@@ -108,6 +108,9 @@ Status:
 - Added config parsing in `src/tools/live_main.cpp` and `src/tools/live_validation_main.cpp`.
 - Documented the new gates in `docs/live/resilience.md` and `docs/live/config.md`.
 - Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
+- Added configurable duplicate-order rejection through `LiveOrderManager::set_duplicate_order_window()` and `live.duplicate_order_window_ms`.
+- The duplicate guard rejects reused active internal IDs and matching order fingerprints before broker submission.
+- Added unit coverage in `tests/unit/test_live_order_reconcile.cpp`.
 
 6. Plugin SDK -- PARTIALLY IMPLEMENTED
 

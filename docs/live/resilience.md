@@ -32,6 +32,12 @@ orders are cancelled when the heartbeat timeout expires.
 
 If `max_orders_per_second` is `0`, broker limits are used when available.
 
+## Duplicate Order Guard
+
+Set `live.duplicate_order_window_ms` to reject identical live orders emitted inside a short window before they reach the broker adapter. The fingerprint includes symbol, side, order type, time-in-force, quantity, limit/stop prices, strategy ID, and optional `client_order_id` / `idempotency_key` metadata.
+
+This guard is disabled by default to avoid surprising research strategies, but production live configs should usually set a small window such as `250` to `1000` milliseconds.
+
 ## Dry-Run Order Mode
 
 Set `live.dry_run: true` to run strategy, routing, risk, broker normalization,

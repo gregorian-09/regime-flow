@@ -90,6 +90,10 @@ namespace regimeflow::live
          */
         bool dry_run_orders = false;
         /**
+         * @brief Reject identical live orders submitted inside this window; zero disables the guard.
+         */
+        Duration duplicate_order_window = Duration::microseconds(0);
+        /**
          * @brief Max orders per minute.
          */
         int max_orders_per_minute = 60;

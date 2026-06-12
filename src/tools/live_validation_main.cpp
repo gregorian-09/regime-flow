@@ -195,6 +195,9 @@ namespace
         cfg.symbols = get_string_array(root, "live.symbols");
         cfg.paper_trading = get_bool(root, "live.paper").value_or(true);
         cfg.dry_run_orders = get_bool(root, "live.dry_run").value_or(cfg.dry_run_orders);
+        if (const auto duplicate_window_ms = get_int(root, "live.duplicate_order_window_ms")) {
+            cfg.duplicate_order_window = regimeflow::Duration::milliseconds(*duplicate_window_ms);
+        }
         cfg.strategy_name = get_string(root, "strategy.name").value_or("buy_and_hold");
         cfg.strategy_config = get_object_config(root, "strategy.params");
         cfg.risk_config = get_object_config(root, "live.risk");

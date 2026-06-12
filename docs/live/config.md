@@ -11,6 +11,7 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 
 - `live.paper` boolean for paper trading.
 - `live.dry_run` boolean; validates, audits, and suppresses broker submission.
+- `live.duplicate_order_window_ms` duplicate-order rejection window. `0` disables the guard.
 - `live.reconnect.enabled` boolean.
 - `live.reconnect.initial_ms` and `live.reconnect.max_ms`.
 - `live.heartbeat.enabled` boolean.

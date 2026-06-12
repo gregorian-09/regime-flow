@@ -308,6 +308,7 @@ namespace regimeflow::live
             broker_ = build_broker(config_);
         }
         order_manager_ = std::make_unique<LiveOrderManager>(broker_.get());
+        order_manager_->set_duplicate_order_window(config_.duplicate_order_window);
         order_manager_->on_order_update([this](const LiveOrder& order) {
             {
                 std::lock_guard<std::mutex> lock(broker_mutex_);

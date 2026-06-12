@@ -15,7 +15,8 @@ namespace regimeflow::test
         void unsubscribe_market_data(const std::vector<std::string>&) override {}
 
         Result<std::string> submit_order(const regimeflow::engine::Order&) override {
-            return Result<std::string>(std::string("BRK-1"));
+            ++submit_count;
+            return Result<std::string>(std::string("BRK-") + std::to_string(submit_count));
         }
         Result<void> cancel_order(const std::string&) override { return Ok(); }
         Result<void> modify_order(const std::string&, const regimeflow::engine::OrderModification&) override {
@@ -40,6 +41,7 @@ namespace regimeflow::test
         void poll() override {}
 
         std::vector<regimeflow::live::ExecutionReport> open_orders_;
+        int submit_count = 0;
     };
 
     TEST(LiveOrderManager, ReconcileAddsMissingBrokerOrders) {
@@ -60,6 +62,46 @@ namespace regimeflow::test
         auto orders = manager.get_open_orders();
         ASSERT_EQ(orders.size(), 1u);
         EXPECT_EQ(orders[0].broker_order_id, "BRK-42");
+    }
+
+
+    TEST(LiveOrderManager, RejectsDuplicateOrdersInsideConfiguredWindow) {
+        TestBrokerAdapter broker;
+        regimeflow::live::LiveOrderManager manager(&broker);
+        manager.set_duplicate_order_window(Duration::seconds(30));
+
+        regimeflow::engine::Order order;
+        order.symbol = SymbolRegistry::instance().intern("DUPLICATE");
+        order.quantity = 1;
+        order.side = regimeflow::engine::OrderSide::Buy;
+        order.type = regimeflow::engine::OrderType::Limit;
+        order.limit_price = 100.0;
+
+        auto first = manager.submit_order(order);
+        ASSERT_TRUE(first.is_ok()) << first.error().to_string();
+        auto second = manager.submit_order(order);
+        ASSERT_TRUE(second.is_err());
+        EXPECT_EQ(second.error().code, Error::Code::AlreadyExists);
+        EXPECT_EQ(broker.submit_count, 1);
+        EXPECT_EQ(manager.execution_quality().submit_rejected, 1u);
+    }
+
+    TEST(LiveOrderManager, RejectsReusedActiveInternalOrderId) {
+        TestBrokerAdapter broker;
+        regimeflow::live::LiveOrderManager manager(&broker);
+
+        regimeflow::engine::Order order;
+        order.id = 42;
+        order.symbol = SymbolRegistry::instance().intern("REUSED-ID");
+        order.quantity = 1;
+        order.side = regimeflow::engine::OrderSide::Buy;
+
+        auto first = manager.submit_order(order);
+        ASSERT_TRUE(first.is_ok()) << first.error().to_string();
+        auto second = manager.submit_order(order);
+        ASSERT_TRUE(second.is_err());
+        EXPECT_EQ(second.error().code, Error::Code::AlreadyExists);
+        EXPECT_EQ(broker.submit_count, 1);
     }
 
     TEST(LiveOrderManager, InvalidTransitionSetsErrorStatus) {
