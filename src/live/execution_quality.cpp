@@ -28,6 +28,13 @@ namespace regimeflow::live
         update_rejection_rate();
     }
 
+    void ExecutionQualityTracker::record_reference_quote(const engine::OrderId order_id, const data::Quote& quote) {
+        if (order_id == 0 || quote.bid <= 0.0 || quote.ask <= 0.0 || quote.ask < quote.bid) {
+            return;
+        }
+        reference_quotes_[order_id] = ReferenceQuote{quote.bid, quote.ask, quote.timestamp};
+    }
+
     void ExecutionQualityTracker::record_execution_report(const LiveOrder& order,
                                                           const ExecutionReport& report) {
         ExecutionQualitySample sample;
@@ -88,6 +95,21 @@ namespace regimeflow::live
                 / static_cast<double>(snapshot_.slippage_observations);
         }
 
+        if (report.price > 0.0 && report.quantity > 0.0) {
+            if (const auto quote = reference_quotes_.find(order.internal_id); quote != reference_quotes_.end()) {
+                const double mid = (quote->second.bid + quote->second.ask) / 2.0;
+                if (mid > 0.0) {
+                    sample.reference_mid_price = mid;
+                    sample.reference_spread_bps = (quote->second.ask - quote->second.bid) / mid * 10000.0;
+                    sample.effective_spread_bps = effective_spread_bps(order.side, report.price, mid);
+                    ++snapshot_.spread_observations;
+                    total_effective_spread_bps_ += sample.effective_spread_bps;
+                    snapshot_.average_effective_spread_bps = total_effective_spread_bps_
+                        / static_cast<double>(snapshot_.spread_observations);
+                }
+            }
+        }
+
         snapshot_.last_timestamp = report.timestamp;
         samples_.push_back(sample);
         update_rejection_rate();
@@ -100,7 +122,9 @@ namespace regimeflow::live
         total_fill_latency_ms_ = 0.0;
         total_signed_slippage_bps_ = 0.0;
         total_absolute_slippage_bps_ = 0.0;
+        total_effective_spread_bps_ = 0.0;
         acknowledged_orders_.clear();
+        reference_quotes_.clear();
     }
 
     void ExecutionQualityTracker::update_rejection_rate() {
@@ -133,6 +157,16 @@ namespace regimeflow::live
             return 0.0;
         }
         const double raw = (fill_price - reference_price) / reference_price * 10000.0;
+        return side == engine::OrderSide::Buy ? raw : -raw;
+    }
+
+    double ExecutionQualityTracker::effective_spread_bps(const engine::OrderSide side,
+                                                         const double fill_price,
+                                                         const double mid_price) {
+        if (mid_price <= 0.0) {
+            return 0.0;
+        }
+        const double raw = (fill_price - mid_price) / mid_price * 10000.0;
         return side == engine::OrderSide::Buy ? raw : -raw;
     }
 }  // namespace regimeflow::live

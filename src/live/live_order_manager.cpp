@@ -356,6 +356,13 @@ namespace regimeflow::live
         return execution_quality_.samples();
     }
 
+    void LiveOrderManager::record_reference_quote(const engine::OrderId id, const data::Quote& quote) {
+        if (!orders_.contains(id)) {
+            return;
+        }
+        execution_quality_.record_reference_quote(id, quote);
+    }
+
     void LiveOrderManager::prune_duplicate_keys(const Timestamp now) {
         if (duplicate_order_window_us_ <= 0) {
             recent_order_keys_.clear();

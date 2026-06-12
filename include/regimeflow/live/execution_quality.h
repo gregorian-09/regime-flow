@@ -7,10 +7,12 @@
 
 #include "regimeflow/common/time.h"
 #include "regimeflow/engine/order.h"
+#include "regimeflow/data/tick.h"
 #include "regimeflow/live/broker_adapter.h"
 
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -31,6 +33,9 @@ namespace regimeflow::live
         double fill_price = 0.0;
         double reference_price = 0.0;
         double signed_slippage_bps = 0.0;
+        double effective_spread_bps = 0.0;
+        double reference_mid_price = 0.0;
+        double reference_spread_bps = 0.0;
         double ack_latency_ms = 0.0;
         double fill_latency_ms = 0.0;
         Timestamp timestamp;
@@ -49,10 +54,12 @@ namespace regimeflow::live
         uint64_t broker_rejected = 0;
         uint64_t errored = 0;
         uint64_t slippage_observations = 0;
+        uint64_t spread_observations = 0;
         double average_ack_latency_ms = 0.0;
         double average_fill_latency_ms = 0.0;
         double average_signed_slippage_bps = 0.0;
         double average_absolute_slippage_bps = 0.0;
+        double average_effective_spread_bps = 0.0;
         double rejection_rate = 0.0;
         Timestamp last_timestamp;
     };
@@ -71,6 +78,11 @@ namespace regimeflow::live
          * @brief Record a local/broker submit rejection before a live order exists.
          */
         void record_submit_rejected(Timestamp timestamp);
+
+        /**
+         * @brief Record the quote visible when an order entered the broker boundary.
+         */
+        void record_reference_quote(engine::OrderId order_id, const data::Quote& quote);
 
         /**
          * @brief Record a broker execution report after the live order state was updated.
@@ -99,7 +111,15 @@ namespace regimeflow::live
         double total_fill_latency_ms_ = 0.0;
         double total_signed_slippage_bps_ = 0.0;
         double total_absolute_slippage_bps_ = 0.0;
+        double total_effective_spread_bps_ = 0.0;
         std::unordered_set<engine::OrderId> acknowledged_orders_;
+
+        struct ReferenceQuote {
+            double bid = 0.0;
+            double ask = 0.0;
+            Timestamp timestamp;
+        };
+        std::unordered_map<engine::OrderId, ReferenceQuote> reference_quotes_;
 
         void update_rejection_rate();
         static std::optional<double> reference_price_for(const LiveOrder& order,
@@ -107,5 +127,8 @@ namespace regimeflow::live
         static double signed_slippage_bps(engine::OrderSide side,
                                           double fill_price,
                                           double reference_price);
+        static double effective_spread_bps(engine::OrderSide side,
+                                           double fill_price,
+                                           double mid_price);
     };
 }  // namespace regimeflow::live

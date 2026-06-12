@@ -84,4 +84,42 @@ namespace regimeflow::test
         EXPECT_DOUBLE_EQ(snapshot.rejection_rate, 0.5);
         EXPECT_DOUBLE_EQ(snapshot.average_signed_slippage_bps, 50.0);
     }
+
+    TEST(ExecutionQualityTracker, AttributesEffectiveSpreadFromReferenceQuote) {
+        regimeflow::live::ExecutionQualityTracker tracker;
+
+        regimeflow::live::LiveOrder order;
+        order.internal_id = 9;
+        order.broker_order_id = "BRK-9";
+        order.symbol = "AAPL";
+        order.side = regimeflow::engine::OrderSide::Buy;
+        order.quantity = 10.0;
+        order.created_at = fixed_timestamp();
+        order.submitted_at = fixed_timestamp();
+
+        data::Quote quote;
+        quote.symbol = SymbolRegistry::instance().intern("AAPL");
+        quote.timestamp = fixed_timestamp();
+        quote.bid = 99.9;
+        quote.ask = 100.1;
+        tracker.record_reference_quote(order.internal_id, quote);
+        tracker.record_submitted(order);
+
+        regimeflow::live::ExecutionReport fill;
+        fill.broker_order_id = order.broker_order_id;
+        fill.symbol = order.symbol;
+        fill.quantity = 10.0;
+        fill.price = 100.1;
+        fill.status = regimeflow::live::LiveOrderStatus::Filled;
+        fill.timestamp = fixed_timestamp(1'000);
+        tracker.record_execution_report(order, fill);
+
+        const auto& snapshot = tracker.snapshot();
+        EXPECT_EQ(snapshot.spread_observations, 1u);
+        EXPECT_NEAR(snapshot.average_effective_spread_bps, 10.0, 1e-9);
+        ASSERT_EQ(tracker.samples().size(), 1u);
+        EXPECT_DOUBLE_EQ(tracker.samples().back().reference_mid_price, 100.0);
+        EXPECT_NEAR(tracker.samples().back().reference_spread_bps, 20.0, 1e-9);
+    }
+
 }  // namespace regimeflow::test

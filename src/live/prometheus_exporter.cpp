@@ -86,6 +86,8 @@ namespace regimeflow::live
               quality.average_signed_slippage_bps);
         gauge(out, "regimeflow_live_average_absolute_slippage_bps", "Average absolute reference-price slippage.",
               quality.average_absolute_slippage_bps);
+        gauge(out, "regimeflow_live_average_effective_spread_bps", "Average fill cost versus submit-time quote midpoint.",
+              quality.average_effective_spread_bps);
         return out.str();
     }
 }  // namespace regimeflow::live

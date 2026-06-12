@@ -539,6 +539,9 @@ namespace regimeflow::live
                                                                 engine::OrderStatus::Rejected);
                     return;
                 }
+                if (const auto quote = find_last_quote(order.symbol); quote.has_value()) {
+                    order_manager_->record_reference_quote(submit_res.value(), *quote);
+                }
                 {
                     std::lock_guard<std::mutex> lock(broker_mutex_);
                     broker_order_ids_[order.id] = live_order->broker_order_id;

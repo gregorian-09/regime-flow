@@ -6,6 +6,7 @@
 #pragma once
 
 #include "regimeflow/common/result.h"
+#include "regimeflow/data/tick.h"
 #include "regimeflow/engine/order.h"
 #include "regimeflow/live/broker_adapter.h"
 #include "regimeflow/live/execution_quality.h"
@@ -156,6 +157,11 @@ namespace regimeflow::live
          * @brief Access retained execution-quality observations.
          */
         [[nodiscard]] const std::vector<ExecutionQualitySample>& execution_quality_samples() const noexcept;
+
+        /**
+         * @brief Attach the quote visible at broker submission time for spread attribution.
+         */
+        void record_reference_quote(engine::OrderId id, const data::Quote& quote);
 
     private:
         void update_order_state(LiveOrder& order, const ExecutionReport& report);

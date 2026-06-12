@@ -114,8 +114,9 @@ You can also point the tracker at a backtest report JSON via `metrics.live.basel
 `LiveOrderManager` now keeps an in-process `ExecutionQualitySnapshot` for broker-order outcomes.
 It tracks submitted orders, submit rejections, broker rejections, acknowledgements, partial fills,
 filled orders, cancellation reports, average acknowledgement latency, average fill latency, and
-limit/stop-reference slippage in basis points. Use `execution_quality()` for dashboards, audit
-exports, and paper-live validation reports.
+limit/stop-reference slippage in basis points. When a submit-time quote is available, it also
+tracks effective spread cost versus the quote midpoint. Use `execution_quality()` for dashboards,
+audit exports, and paper-live validation reports.
 
 ## Prometheus Export
 
