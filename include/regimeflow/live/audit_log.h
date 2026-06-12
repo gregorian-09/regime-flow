@@ -84,6 +84,11 @@ namespace regimeflow::live
          * @return Ok on success, IoError on failure.
          */
         Result<void> log_regime_change(const regime::RegimeTransition& transition);
+        /**
+         * @brief Log a regime transition with model governance metadata.
+         */
+        Result<void> log_regime_change(const regime::RegimeTransition& transition,
+                                       std::map<std::string, std::string> metadata);
 
     private:
         std::string path_;

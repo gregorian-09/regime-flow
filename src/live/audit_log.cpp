@@ -51,13 +51,19 @@ namespace regimeflow::live
     }
 
     Result<void> AuditLogger::log_regime_change(const regime::RegimeTransition& transition) {
+        return log_regime_change(transition, {});
+    }
+
+    Result<void> AuditLogger::log_regime_change(const regime::RegimeTransition& transition,
+                                                std::map<std::string, std::string> metadata) {
         AuditEvent event;
         event.timestamp = transition.timestamp;
         event.type = AuditEvent::Type::RegimeChange;
         event.details = "Regime change";
-        event.metadata["from"] = std::to_string(static_cast<int>(transition.from));
-        event.metadata["to"] = std::to_string(static_cast<int>(transition.to));
-        event.metadata["confidence"] = std::to_string(transition.confidence);
+        metadata["from"] = std::to_string(static_cast<int>(transition.from));
+        metadata["to"] = std::to_string(static_cast<int>(transition.to));
+        metadata["confidence"] = std::to_string(transition.confidence);
+        event.metadata = std::move(metadata);
         return log(event);
     }
 

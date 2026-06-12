@@ -74,6 +74,30 @@ namespace regimeflow::live
                 || status == LiveOrderStatus::Error;
         }
 
+        std::map<std::string, std::string> model_metadata_to_audit(
+            const regime::ModelGovernanceMetadata& metadata) {
+            std::map<std::string, std::string> out;
+            if (!metadata.detector_type.empty()) {
+                out["model.detector_type"] = metadata.detector_type;
+            }
+            if (!metadata.model_version.empty()) {
+                out["model.version"] = metadata.model_version;
+            }
+            if (metadata.training_start_us != 0) {
+                out["model.training_start_us"] = std::to_string(metadata.training_start_us);
+            }
+            if (metadata.training_end_us != 0) {
+                out["model.training_end_us"] = std::to_string(metadata.training_end_us);
+            }
+            if (!metadata.feature_schema.empty()) {
+                out["model.feature_schema"] = metadata.feature_schema;
+            }
+            if (!metadata.parameter_digest.empty()) {
+                out["model.parameter_digest"] = metadata.parameter_digest;
+            }
+            return out;
+        }
+
 #if defined(REGIMEFLOW_ENABLE_IBAPI)
         bool parse_bool(const std::string& value) {
             return value == "true" || value == "1" || value == "yes" || value == "on";
@@ -975,6 +999,9 @@ namespace regimeflow::live
                 event.timestamp = now;
                 event.type = AuditEvent::Type::RegimeChange;
                 event.details = "Regime model retrained";
+                if (regime_detector_) {
+                    event.metadata = model_metadata_to_audit(regime_detector_->model_metadata());
+                }
                 audit_logger_->log(event);
             }
         }
@@ -1023,7 +1050,8 @@ namespace regimeflow::live
                             regime_cb_(*transition);
                         }
                         if (audit_logger_) {
-                            audit_logger_->log_regime_change(*transition);
+                            audit_logger_->log_regime_change(
+                                *transition, model_metadata_to_audit(regime_detector_->model_metadata()));
                         }
                         if (strategy_) {
                             strategy_->on_regime_change(*transition);
@@ -1065,7 +1093,8 @@ namespace regimeflow::live
                             regime_cb_(*transition);
                         }
                         if (audit_logger_) {
-                            audit_logger_->log_regime_change(*transition);
+                            audit_logger_->log_regime_change(
+                                *transition, model_metadata_to_audit(regime_detector_->model_metadata()));
                         }
                         if (strategy_) {
                             strategy_->on_regime_change(*transition);

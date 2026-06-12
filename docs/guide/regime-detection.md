@@ -97,3 +97,10 @@ back to the exact training window and feature contract.
 - `guide/strategies.md`
 - `guide/risk-management.md`
 - `reference/configuration.md`
+
+
+## Runtime Governance Audits
+
+Live regime-change audit events include detector governance metadata when the active detector exposes it through `model_metadata()`. The audit metadata keys use the `model.*` prefix, including `model.detector_type`, `model.version`, `model.training_start_us`, `model.training_end_us`, `model.feature_schema`, and `model.parameter_digest`.
+
+This makes replay and incident review easier because a regime transition can be tied back to the model version and feature schema that produced it.

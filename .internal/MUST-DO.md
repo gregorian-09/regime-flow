@@ -159,10 +159,12 @@ Status:
 - HMM config can populate metadata through `model.version`, `model.training_start_us`, `model.training_end_us`, `model.feature_schema`, and `model.parameter_digest`.
 - Added persistence coverage in `tests/unit/test_hmm_persistence.cpp`.
 - Documented model governance metadata in `docs/guide/regime-detection.md`.
+- Live regime-change and regime-retrain audit events now attach detector `model_metadata()` fields with `model.*` keys.
+- Added audit logger coverage in `tests/unit/test_secret_hygiene.cpp`.
 
 Remaining:
 
-- Attach metadata to runtime prediction audit events and plugin detectors.
+- Extend plugin detector templates/examples with richer model metadata beyond the minimal template.
 
 9. First-class observability -- PARTIALLY IMPLEMENTED
 
