@@ -36,3 +36,17 @@ Out of scope:
 - vulnerabilities in third-party services, brokers, exchanges, or market-data providers
 - misconfigured user infrastructure
 - issues requiring physical access to a user's machine
+
+
+## Supply-Chain Artifacts
+
+RegimeFlow includes a dependency-free SPDX 2.3 SBOM generator:
+
+```bash
+python3 tools/security/generate_sbom.py --output build/sbom/regimeflow.spdx.json
+```
+
+The generated document records the project version, Python dependencies, vcpkg dependencies,
+and vendored Interactive Brokers API files with SHA256 checksums. CI runs this generator in
+the supply-chain gate so release artifacts can be traced back to a deterministic dependency
+inventory.

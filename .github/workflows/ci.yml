@@ -22,6 +22,9 @@ jobs:
     - name: Check supply-chain guardrails
       run: python3 tools/security/check_supply_chain.py
 
+    - name: Generate SBOM
+      run: python3 tools/security/generate_sbom.py --output build/sbom/regimeflow.spdx.json
+
   build-linux:
     runs-on: ubuntu-24.04
     needs: supply-chain

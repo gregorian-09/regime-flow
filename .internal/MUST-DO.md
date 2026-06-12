@@ -174,9 +174,21 @@ Remaining:
 
 - Add an HTTP scrape endpoint and structured-log sink configuration.
 
-10. Security / supply-chain posture
+10. Security / supply-chain posture -- PARTIALLY IMPLEMENTED
 
 Generate SBOMs, scan dependencies, audit vendored dependencies, and sign release artifacts.
+
+Status:
+
+- Added `tools/security/generate_sbom.py` to emit dependency-free SPDX 2.3 JSON SBOMs.
+- SBOMs include project version, git commit, Python dependencies, vcpkg dependencies, and vendored IB API file checksums.
+- CI supply-chain gate now generates `build/sbom/regimeflow.spdx.json`.
+- `tools/security/check_supply_chain.py` now requires the SBOM generator to remain present.
+- Documented SBOM generation in `SECURITY.md`.
+
+Remaining:
+
+- Add vulnerability scanning (`osv-scanner`, `pip-audit`, or equivalent) and artifact signing.
 
 ## Interactive Brokers API Update Policy
 
