@@ -37,6 +37,7 @@ add_executable(regimeflow_tests
     unit/test_corporate_actions.cpp
     unit/test_report_writer.cpp
     unit/test_parity_checker.cpp
+    unit/test_replay_journal.cpp
     unit/test_order_tif.cpp
     unit/test_order_routing.cpp
     unit/test_execution_tif.cpp

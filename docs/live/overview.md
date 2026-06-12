@@ -94,6 +94,12 @@ The live CLI loads `.env` automatically if present and merges environment variab
 - Emits audit logs and system health events.
 - Optionally tracks live performance drift vs a backtest baseline.
 
+## Replay And Parity Capture
+
+Live market updates now have a direct adapter into the shared backtest event model through `live::to_engine_event(update)`. Use this with `engine::ReplayJournalWriter` from `regimeflow/engine/replay_journal.h` to capture JSONL event traces that can be replayed or diffed against backtest assumptions.
+
+This is intentionally below the broker adapter layer: the journal records normalized engine events, not raw broker socket payloads. That keeps replay artifacts portable across Alpaca, Binance, Interactive Brokers, and simulated feeds.
+
 ## Live Performance Drift Tracking
 
 Enable live drift tracking by setting `metrics.live.enable: true`. When enabled, the engine writes:

@@ -485,6 +485,7 @@ add_library(regimeflow_engine
     engine/portfolio.cpp
     engine/regime_tracker.cpp
     engine/parity_checker.cpp
+    engine/replay_journal.cpp
     engine/timer_service.cpp
 )
 

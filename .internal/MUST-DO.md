@@ -46,9 +46,22 @@ Status:
 - Added unit coverage in `tests/unit/test_broker_adapter_capabilities.cpp`.
 - Documented the capability matrix in `docs/live/production-readiness.md`.
 
-2. Replay-to-live parity
+2. Replay-to-live parity -- PARTIALLY IMPLEMENTED
 
 Use the same strategy code, event model, risk checks, and order manager in both backtest and live execution.
+
+Status:
+
+- Added `engine::ReplayJournalWriter` and JSONL event serialization/parsing in `regimeflow/engine/replay_journal.h`.
+- Replay journals persist the shared `events::Event` model for market, order, and system events.
+- Added `live::to_engine_event(update)` so live market data can be captured in the same event model used by backtests.
+- Added unit coverage in `tests/unit/test_replay_journal.cpp`.
+- Documented replay journals in `docs/guide/backtesting.md` and `docs/live/overview.md`.
+
+Remaining:
+
+- Add first-class CLI commands to capture a live session and replay a captured journal through `BacktestEngine`.
+- Extend capture to order-manager decisions and risk-gate outcomes, not only normalized engine events.
 
 3. Regime-aware risk engine -- PARTIALLY IMPLEMENTED
 

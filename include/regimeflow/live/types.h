@@ -10,6 +10,7 @@
 #include "regimeflow/data/order_book.h"
 #include "regimeflow/data/tick.h"
 #include "regimeflow/engine/order.h"
+#include "regimeflow/events/event.h"
 #include "regimeflow/regime/types.h"
 
 #include <string>
@@ -52,6 +53,11 @@ namespace regimeflow::live
          */
         [[nodiscard]] SymbolId symbol() const;
     };
+
+    /**
+     * @brief Convert live market data into the shared deterministic engine event model.
+     */
+    [[nodiscard]] events::Event to_engine_event(const MarketDataUpdate& update);
 
     /**
      * @brief Trade execution record.
