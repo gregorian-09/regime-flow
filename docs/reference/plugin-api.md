@@ -94,14 +94,14 @@ extern "C" {
 
 ## Plugin SDK Template
 
-A minimal copyable strategy-plugin template lives at `examples/plugins/template/`. It includes:
+Copyable plugin SDK templates live under `examples/plugins/`:
 
-- a standalone `CMakeLists.txt`;
-- `strategy_template.cpp` with lifecycle hooks and required ABI exports;
-- README instructions for source-tree builds and runtime loading.
+- `template/` for strategy plugins;
+- `regime_detector_template/` for regime detector plugins;
+- `risk_manager_template/` for risk manager plugins.
 
-Use this template for new strategy plugins before moving to more specialized detector, risk, data,
-or metrics plugins.
+Each template includes standalone CMake, lifecycle hooks, required C ABI exports, and README
+instructions for source-tree builds and runtime loading.
 
 ## Build Guidance
 

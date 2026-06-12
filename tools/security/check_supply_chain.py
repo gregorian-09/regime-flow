@@ -139,19 +139,32 @@ def check_workflow_actions(errors: list[str]) -> None:
 
 
 def check_plugin_template(errors: list[str]) -> None:
-    source = ROOT / "examples" / "plugins" / "template" / "strategy_template.cpp"
-    readme = ROOT / "examples" / "plugins" / "template" / "README.md"
-    if not source.is_file():
-        errors.append("missing plugin SDK template source")
-        return
-    if not readme.is_file():
-        errors.append("missing plugin SDK template README")
-        return
-    source_text = source.read_text(encoding="utf-8")
-    readme_text = readme.read_text(encoding="utf-8")
-    for export in sorted(REQUIRED_PLUGIN_EXPORTS):
-        if export not in source_text or export not in readme_text:
-            errors.append(f"plugin SDK template missing required export reference: {export}")
+    templates = {
+        "strategy": (ROOT / "examples" / "plugins" / "template" / "strategy_template.cpp", "strategy"),
+        "regime_detector": (
+            ROOT / "examples" / "plugins" / "regime_detector_template" / "regime_detector_template.cpp",
+            "regime_detector",
+        ),
+        "risk_manager": (
+            ROOT / "examples" / "plugins" / "risk_manager_template" / "risk_manager_template.cpp",
+            "risk_manager",
+        ),
+    }
+    for name, (source, plugin_type) in templates.items():
+        readme = source.with_name("README.md")
+        if not source.is_file():
+            errors.append(f"missing plugin SDK template source: {name}")
+            continue
+        if not readme.is_file():
+            errors.append(f"missing plugin SDK template README: {name}")
+            continue
+        source_text = source.read_text(encoding="utf-8")
+        readme_text = readme.read_text(encoding="utf-8")
+        for export in sorted(REQUIRED_PLUGIN_EXPORTS):
+            if export not in source_text or export not in readme_text:
+                errors.append(f"plugin SDK template {name} missing required export reference: {export}")
+        if plugin_type not in source_text or plugin_type not in readme_text:
+            errors.append(f"plugin SDK template {name} missing plugin_type value: {plugin_type}")
 
 
 def main() -> int:

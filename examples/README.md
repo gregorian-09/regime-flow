@@ -53,3 +53,5 @@ PYTHONPATH=build/lib:build/python:python .venv/bin/python \
 ## Plugin SDK Template
 
 - `examples/plugins/template` provides a minimal dynamic strategy-plugin starting point with CMake and required ABI exports.
+- `examples/plugins/regime_detector_template` provides a minimal dynamic regime-detector plugin template.
+- `examples/plugins/risk_manager_template` provides a minimal dynamic risk-manager plugin template.

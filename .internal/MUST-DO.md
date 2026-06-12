@@ -123,13 +123,15 @@ Create clean plugin templates for strategies, regime detectors, risk modules, an
 Status:
 
 - Added `examples/plugins/template` as a minimal dynamic strategy-plugin SDK template.
-- Template includes standalone CMake, lifecycle hooks, required C ABI exports, and runtime config guidance.
-- Added `tools/plugins/check_plugin_template.py` to guard required export references.
-- Linked the template from `docs/reference/plugin-api.md` and `examples/README.md`.
+- Added `examples/plugins/regime_detector_template` as a minimal dynamic regime-detector plugin template.
+- Added `examples/plugins/risk_manager_template` as a minimal dynamic risk-manager plugin template.
+- Templates include standalone CMake, lifecycle hooks, required C ABI exports, and runtime config guidance.
+- Added `tools/plugins/check_plugin_template.py` to guard required export references across all template types.
+- Linked the templates from `docs/reference/plugin-api.md` and `examples/README.md`.
 
 Remaining:
 
-- Add dedicated templates for regime detectors, risk modules, and broker adapters.
+- Add dedicated templates for broker adapters and data/metrics plugins.
 
 7. Live dry-run / shadow mode -- IMPLEMENTED
 
