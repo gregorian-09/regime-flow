@@ -110,6 +110,10 @@ namespace regimeflow::live
          */
         Duration order_reconcile_interval = Duration::seconds(30);
         /**
+         * @brief Disable trading when broker order reconciliation fails.
+         */
+        bool disable_trading_on_reconcile_error = true;
+        /**
          * @brief Interval for position reconciliation.
          */
         Duration position_reconcile_interval = Duration::seconds(60);
@@ -328,7 +332,7 @@ namespace regimeflow::live
         void refresh_derived_account_state(Timestamp timestamp);
         void refresh_derived_account_state_locked(Timestamp timestamp);
         void refresh_positions();
-        void reconcile_orders() const;
+        void reconcile_orders();
         void apply_positions(const std::vector<Position>& positions, Timestamp timestamp);
         void apply_position_update(const Position& position, Timestamp timestamp);
         void check_daily_loss_limit();

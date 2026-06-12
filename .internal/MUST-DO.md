@@ -114,6 +114,8 @@ Status:
 - Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
 - Added configurable duplicate-order rejection through `LiveOrderManager::set_duplicate_order_window()` and `live.duplicate_order_window_ms`.
 - The duplicate guard rejects reused active internal IDs and matching order fingerprints before broker submission.
+- Added fail-closed order reconciliation error handling through `live.reconciliation.disable_trading_on_error`.
+- Reconciliation failures now disable trading, cancel open orders, alert, and write structured audit metadata by default.
 - Added unit coverage in `tests/unit/test_live_order_reconcile.cpp`.
 
 6. Plugin SDK -- PARTIALLY IMPLEMENTED

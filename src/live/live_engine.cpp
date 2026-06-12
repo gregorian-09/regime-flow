@@ -1299,18 +1299,25 @@ namespace regimeflow::live
         apply_positions(positions, Timestamp::now());
     }
 
-    void LiveTradingEngine::reconcile_orders() const
+    void LiveTradingEngine::reconcile_orders()
     {
         if (!order_manager_) {
             return;
         }
         auto res = order_manager_->reconcile_with_broker();
         if (res.is_err()) {
+            if (config_.disable_trading_on_reconcile_error) {
+                trading_enabled_ = false;
+                add_alert("Trading disabled because order reconciliation failed");
+                order_manager_->cancel_all_orders();
+            }
             if (error_cb_) {
                 error_cb_(res.error().to_string());
             }
             if (audit_logger_) {
-                audit_logger_->log_error(res.error(), "live_engine.reconcile_orders");
+                audit_logger_->log_error(res.error(), "live_engine.reconcile_orders",
+                                         {{"trading_disabled",
+                                           config_.disable_trading_on_reconcile_error ? "true" : "false"}});
             }
         }
     }

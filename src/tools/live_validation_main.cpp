@@ -217,6 +217,9 @@ namespace
         cfg.cancel_orders_on_heartbeat_timeout =
             get_bool(root, "live.heartbeat.cancel_orders_on_timeout").value_or(
                 cfg.cancel_orders_on_heartbeat_timeout);
+        cfg.disable_trading_on_reconcile_error =
+            get_bool(root, "live.reconciliation.disable_trading_on_error").value_or(
+                cfg.disable_trading_on_reconcile_error);
 
         if (cfg.broker_type == "alpaca") {
             set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");

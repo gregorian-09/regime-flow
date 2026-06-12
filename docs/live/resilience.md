@@ -52,5 +52,6 @@ dashboards do not show them as open broker orders.
 - `order_reconcile_interval`.
 - `position_reconcile_interval`.
 - `account_refresh_interval`.
+- `live.reconciliation.disable_trading_on_error`.
 
-These intervals control how frequently the live engine reconciles broker state.
+These intervals control how frequently the live engine reconciles broker state. By default, an order-reconciliation error is fail-closed: trading is disabled, open orders are cancelled through the live order manager, and the audit log records `trading_disabled=true`.

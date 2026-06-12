@@ -18,6 +18,7 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 - `live.heartbeat.interval_ms` stale-data threshold.
 - `live.heartbeat.disable_trading_on_timeout` fail-closed trading gate.
 - `live.heartbeat.cancel_orders_on_timeout` open-order cancellation gate.
+- `live.reconciliation.disable_trading_on_error` fail-closed order reconciliation gate.
 - `live.heartbeat.enabled` boolean.
 - `live.heartbeat.interval_ms` heartbeat timeout in milliseconds.
 - `live.risk` risk configuration block. This is passed to the risk factory.
