@@ -75,10 +75,12 @@ Status:
 - The overlay can block new exposure, cap per-order notional, and cap projected position percentage by active regime while allowing risk-reducing orders.
 - Added coverage in `tests/unit/test_risk_limits.cpp`.
 - Documented the overlay in `docs/guide/risk-management.md`.
+- Wired `regime_overlays` / `limits.regime_overlays` into `RiskFactory`.
+- Added factory coverage in `tests/unit/test_risk_limits.cpp`.
 
 Remaining:
 
-- Wire regime overlays from config and add execution-aggressiveness controls.
+- Add execution-aggressiveness controls.
 
 4. Execution quality analytics -- PARTIALLY IMPLEMENTED
 

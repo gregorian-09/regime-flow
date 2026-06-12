@@ -3,6 +3,7 @@
 #include "regimeflow/engine/portfolio.h"
 #include "regimeflow/engine/order.h"
 #include "regimeflow/risk/risk_limits.h"
+#include "regimeflow/risk/risk_factory.h"
 
 #include <unordered_map>
 #include <utility>
@@ -158,6 +159,31 @@ namespace regimeflow::test
         auto result = manager.validate(order, portfolio);
         EXPECT_TRUE(result.is_err());
     }
+
+    TEST(RiskLimits, RiskFactoryBuildsRegimeOverlayFromConfig) {
+        ConfigValue::Object crisis;
+        crisis.emplace("allow_new_exposure", ConfigValue(false));
+        crisis.emplace("max_order_notional", ConfigValue(500.0));
+        crisis.emplace("max_position_pct", ConfigValue(0.05));
+
+        ConfigValue::Object overlays;
+        overlays.emplace("crisis", ConfigValue(std::move(crisis)));
+
+        Config cfg;
+        cfg.set("regime_overlays", ConfigValue(std::move(overlays)));
+
+        auto manager = regimeflow::risk::RiskFactory::create_risk_manager(cfg);
+        regimeflow::engine::Portfolio portfolio(100000);
+        const auto symbol = regimeflow::SymbolRegistry::instance().intern("FACTORY_OVERLAY");
+        auto order = regimeflow::engine::Order::limit(
+            symbol, regimeflow::engine::OrderSide::Buy, 10, 100);
+        order.metadata["regime"] = "crisis";
+
+        auto result = manager.validate(order, portfolio);
+        ASSERT_TRUE(result.is_err());
+        EXPECT_NE(result.error().message.find("blocks new exposure"), std::string::npos);
+    }
+
 }  // namespace regimeflow::test
 
 namespace regimeflow::test

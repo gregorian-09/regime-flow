@@ -88,3 +88,19 @@ risk:
 
 - `guide/execution-models.md`
 - `reference/configuration.md`
+
+
+## Regime Risk Overlays
+
+`RiskFactory` can build compact regime-aware overlays from config. Orders opt into a profile by carrying `order.metadata["regime"]`. Live and backtest configs can use the same shape:
+
+```yaml
+risk:
+  regime_overlays:
+    crisis:
+      allow_new_exposure: false
+      max_order_notional: 5000
+      max_position_pct: 0.05
+```
+
+The same block is also accepted under `risk.limits.regime_overlays` for configs that keep all limit definitions under `limits`. Risk-reducing orders are still allowed when `allow_new_exposure` is false.
