@@ -263,7 +263,7 @@ IB API updates can affect:
 
 Use dependency bots for notification if possible, but require manual review before merging.
 
-5. Add compatibility tests
+5. Add compatibility tests -- PARTIALLY IMPLEMENTED
 
 Add tests around:
 
@@ -273,6 +273,17 @@ Add tests around:
 - contract serialization
 - reconnect behavior
 - unsupported feature rejection
+
+Status:
+
+- Extended IB adapter tests in `tests/unit/test_broker_adapter_capabilities.cpp`.
+- Coverage now verifies concrete IB contract mapping for option overrides.
+- Coverage now verifies stop-limit, GTD, MarketOnClose, MarketOnOpen, and Decimal quantity mapping.
+- Fixed IB MarketOnClose/MarketOnOpen order mapping so they no longer fall through as generic market orders.
+
+Remaining:
+
+- Add reconnect behavior tests around reader lifecycle and live gateway state transitions.
 
 ## Third-Party Security Gating
 

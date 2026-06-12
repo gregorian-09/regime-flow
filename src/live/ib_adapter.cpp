@@ -442,6 +442,7 @@ namespace regimeflow::live
         ib_order.orderId = static_cast<OrderId>(order_id);
         ib_order.totalQuantity = DecimalFunctions::doubleToDecimal(order.quantity);
         ib_order.action = order.side == engine::OrderSide::Sell ? "SELL" : "BUY";
+        bool order_type_sets_tif = false;
         switch (order.type) {
         case engine::OrderType::Limit:
             ib_order.orderType = "LMT";
@@ -456,9 +457,20 @@ namespace regimeflow::live
             ib_order.auxPrice = order.stop_price;
             ib_order.lmtPrice = order.limit_price;
             break;
-        default:
+        case engine::OrderType::MarketOnClose:
+            ib_order.orderType = "MOC";
+            break;
+        case engine::OrderType::MarketOnOpen:
+            ib_order.orderType = "MKT";
+            ib_order.tif = "OPG";
+            order_type_sets_tif = true;
+            break;
+        case engine::OrderType::Market:
             ib_order.orderType = "MKT";
             break;
+        }
+        if (order_type_sets_tif) {
+            return ib_order;
         }
         switch (order.tif) {
         case engine::TimeInForce::Day:

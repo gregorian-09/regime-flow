@@ -75,6 +75,16 @@ namespace regimeflow::test
             adapter.tickSize(ticker_id, field, DecimalFunctions::doubleToDecimal(size));
             return captured;
         }
+
+        static ::Contract build_contract(const live::IBAdapter& adapter, const std::string& symbol) {
+            return adapter.build_contract(symbol);
+        }
+
+        static ::Order build_order(const live::IBAdapter& adapter,
+                                   const engine::Order& order,
+                                   const int64_t order_id) {
+            return adapter.build_order(order, order_id);
+        }
     };
 #endif
 
@@ -271,6 +281,68 @@ namespace regimeflow::test
         ASSERT_TRUE(option.strike.has_value());
         EXPECT_DOUBLE_EQ(*option.strike, 72.0);
         EXPECT_EQ(option.multiplier, "100");
+    }
+
+
+    TEST(BrokerAdapterCapabilities, IbBuildsConcreteContractsFromOverrides) {
+        live::IBAdapter::Config cfg;
+        live::IBAdapter::ContractConfig option_contract;
+        option_contract.security_type = "OPT";
+        option_contract.exchange = "SMART";
+        option_contract.currency = "USD";
+        option_contract.symbol_override = "SPY";
+        option_contract.last_trade_date_or_contract_month = "20260116";
+        option_contract.right = "P";
+        option_contract.strike = 450.0;
+        option_contract.multiplier = "100";
+        option_contract.primary_exchange = "ARCA";
+        cfg.contracts.emplace("SPY_P450_JAN26", option_contract);
+
+        live::IBAdapter adapter(std::move(cfg));
+        const auto contract = IBAdapterTestAccess::build_contract(adapter, "SPY_P450_JAN26");
+
+        EXPECT_EQ(contract.symbol, "SPY");
+        EXPECT_EQ(contract.secType, "OPT");
+        EXPECT_EQ(contract.exchange, "SMART");
+        EXPECT_EQ(contract.currency, "USD");
+        EXPECT_EQ(contract.primaryExchange, "ARCA");
+        EXPECT_EQ(contract.lastTradeDateOrContractMonth, "20260116");
+        EXPECT_EQ(contract.right, "P");
+        EXPECT_DOUBLE_EQ(contract.strike, 450.0);
+        EXPECT_EQ(contract.multiplier, "100");
+    }
+
+    TEST(BrokerAdapterCapabilities, IbBuildsConcreteOrderTypesAndTif) {
+        live::IBAdapter adapter(live::IBAdapter::Config{});
+        const auto symbol = SymbolRegistry::instance().intern("AAPL");
+
+        auto stop_limit = engine::Order::market(symbol, engine::OrderSide::Sell, 3.5);
+        stop_limit.type = engine::OrderType::StopLimit;
+        stop_limit.stop_price = 100.0;
+        stop_limit.limit_price = 99.5;
+        stop_limit.tif = engine::TimeInForce::GTD;
+        stop_limit.expire_at = Timestamp::from_date(2026, 1, 2);
+        const auto ib_stop_limit = IBAdapterTestAccess::build_order(adapter, stop_limit, 77);
+        EXPECT_EQ(ib_stop_limit.orderId, 77);
+        EXPECT_EQ(ib_stop_limit.action, "SELL");
+        EXPECT_EQ(ib_stop_limit.orderType, "STP LMT");
+        EXPECT_EQ(ib_stop_limit.tif, "GTD");
+        EXPECT_DOUBLE_EQ(ib_stop_limit.auxPrice, 100.0);
+        EXPECT_DOUBLE_EQ(ib_stop_limit.lmtPrice, 99.5);
+        EXPECT_DOUBLE_EQ(DecimalFunctions::decimalToDouble(ib_stop_limit.totalQuantity), 3.5);
+        EXPECT_FALSE(ib_stop_limit.goodTillDate.empty());
+
+        auto moc = engine::Order::market(symbol, engine::OrderSide::Buy, 2.0);
+        moc.type = engine::OrderType::MarketOnClose;
+        const auto ib_moc = IBAdapterTestAccess::build_order(adapter, moc, 78);
+        EXPECT_EQ(ib_moc.orderType, "MOC");
+        EXPECT_EQ(ib_moc.tif, "DAY");
+
+        auto moo = engine::Order::market(symbol, engine::OrderSide::Buy, 2.0);
+        moo.type = engine::OrderType::MarketOnOpen;
+        const auto ib_moo = IBAdapterTestAccess::build_order(adapter, moo, 79);
+        EXPECT_EQ(ib_moo.orderType, "MKT");
+        EXPECT_EQ(ib_moo.tif, "OPG");
     }
 
     TEST(BrokerAdapterCapabilities, IbMapsLifecycleStatusesExplicitly) {
