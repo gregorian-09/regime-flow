@@ -154,7 +154,7 @@ Status:
 - Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
 - Documented `live.dry_run` in `docs/live/config.md` and `docs/live/resilience.md`.
 
-8. Model governance -- PARTIALLY IMPLEMENTED
+8. Model governance -- IMPLEMENTED
 
 Version regime models, record training data range, feature schema, detector parameters, and runtime predictions.
 
@@ -168,10 +168,7 @@ Status:
 - Documented model governance metadata in `docs/guide/regime-detection.md`.
 - Live regime-change and regime-retrain audit events now attach detector `model_metadata()` fields with `model.*` keys.
 - Added audit logger coverage in `tests/unit/test_secret_hygiene.cpp`.
-
-Remaining:
-
-- Extend plugin detector templates/examples with richer model metadata beyond the minimal template.
+- Extended the regime-detector plugin template to populate version, training window, feature schema, and parameter digest metadata from config.
 
 9. First-class observability -- PARTIALLY IMPLEMENTED
 

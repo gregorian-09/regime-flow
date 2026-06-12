@@ -30,5 +30,15 @@ plugins:
 
 regime:
   type: regime_detector_template
-  params: {}
+  params:
+    model:
+      version: "2026-06-12.hmm-demo"
+      training_start_us: 1704067200000000
+      training_end_us: 1735689600000000
+      feature_schema: "template:v1:close_return,volatility,trend"
+      parameter_digest: "sha256:replace-with-training-parameter-digest"
 ```
+
+The template forwards model governance fields through `model_metadata()` so live audit events
+can identify the detector version, training window, feature schema, and parameter digest used
+for every runtime regime transition.

@@ -17,10 +17,14 @@ namespace {
         }
 
         void configure(const regimeflow::Config& config) override {
-            (void)config;
             metadata_.detector_type = "regime_detector_template";
-            metadata_.model_version = "0.1.0";
-            metadata_.feature_schema = "template:v1";
+            metadata_.model_version = config.get_as<std::string>("model.version").value_or("0.1.0");
+            metadata_.training_start_us = config.get_as<int64_t>("model.training_start_us").value_or(0);
+            metadata_.training_end_us = config.get_as<int64_t>("model.training_end_us").value_or(0);
+            metadata_.feature_schema = config.get_as<std::string>("model.feature_schema").value_or(
+                "template:v1:close_return,volatility,trend");
+            metadata_.parameter_digest = config.get_as<std::string>("model.parameter_digest").value_or(
+                "sha256:replace-with-training-parameter-digest");
         }
 
         [[nodiscard]] int num_states() const override { return 1; }
@@ -39,7 +43,12 @@ namespace {
 
     private:
         regimeflow::regime::ModelGovernanceMetadata metadata_{
-            "regime_detector_template", "0.1.0", 0, 0, "template:v1", {}};
+            "regime_detector_template",
+            "0.1.0",
+            0,
+            0,
+            "template:v1:close_return,volatility,trend",
+            "sha256:replace-with-training-parameter-digest"};
 
         [[nodiscard]] static regimeflow::regime::RegimeState state_for(const regimeflow::Timestamp timestamp) {
             regimeflow::regime::RegimeState state;
