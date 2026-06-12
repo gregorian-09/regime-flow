@@ -33,6 +33,12 @@ Regime-specific limits:
 
 - `limits_by_regime.<regime>.limits.*` use the same keys as above, scoped to a regime label.
 
+Regime-aware overlays:
+
+- `RegimeRiskOverlayLimit` reads `order.metadata["regime"]` and applies matching profiles.
+- A profile can block new exposure while still allowing risk-reducing orders.
+- A profile can cap single-order notional and projected position notional as a fraction of equity.
+
 Example:
 
 ```yaml

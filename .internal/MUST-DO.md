@@ -50,9 +50,22 @@ Status:
 
 Use the same strategy code, event model, risk checks, and order manager in both backtest and live execution.
 
-3. Regime-aware risk engine
+3. Regime-aware risk engine -- PARTIALLY IMPLEMENTED
 
 Let position sizing, drawdown limits, leverage caps, stop behavior, and execution aggressiveness respond to detected regime.
+
+Status:
+
+- Existing `RegimeScaledSizer` supports regime-scaled position sizing.
+- Existing `RiskManager::set_regime_limits()` supports explicit per-regime limit sets.
+- Added `RegimeRiskOverlayLimit` and `RegimeRiskOverlayProfile` for compact regime metadata-driven controls.
+- The overlay can block new exposure, cap per-order notional, and cap projected position percentage by active regime while allowing risk-reducing orders.
+- Added coverage in `tests/unit/test_risk_limits.cpp`.
+- Documented the overlay in `docs/guide/risk-management.md`.
+
+Remaining:
+
+- Wire regime overlays from config and add execution-aggressiveness controls.
 
 4. Execution quality analytics -- PARTIALLY IMPLEMENTED
 

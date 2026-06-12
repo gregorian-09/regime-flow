@@ -5,6 +5,7 @@
 #include "regimeflow/risk/risk_limits.h"
 
 #include <unordered_map>
+#include <utility>
 
 namespace regimeflow::test
 {
@@ -155,6 +156,63 @@ namespace regimeflow::test
         order.metadata["regime"] = "bull";
 
         auto result = manager.validate(order, portfolio);
+        EXPECT_TRUE(result.is_err());
+    }
+}  // namespace regimeflow::test
+
+namespace regimeflow::test
+{
+    TEST(RiskLimits, RegimeOverlayBlocksNewExposureInCrisis) {
+        regimeflow::engine::Portfolio portfolio(100000);
+        auto symbol = regimeflow::SymbolRegistry::instance().intern("CRISIS_BLOCK");
+        auto order = regimeflow::engine::Order::limit(
+            symbol, regimeflow::engine::OrderSide::Buy, 10, 100);
+        order.metadata["regime"] = "crisis";
+
+        std::unordered_map<std::string, regimeflow::risk::RegimeRiskOverlayProfile> profiles;
+        profiles["crisis"].allow_new_exposure = false;
+        regimeflow::risk::RegimeRiskOverlayLimit limit(std::move(profiles));
+
+        auto result = limit.validate(order, portfolio);
+        ASSERT_TRUE(result.is_err());
+        EXPECT_NE(result.error().message.find("blocks new exposure"), std::string::npos);
+    }
+
+    TEST(RiskLimits, RegimeOverlayAllowsRiskReducingOrders) {
+        regimeflow::engine::Portfolio portfolio(100000);
+        auto symbol = regimeflow::SymbolRegistry::instance().intern("CRISIS_REDUCE");
+
+        regimeflow::engine::Fill fill;
+        fill.symbol = symbol;
+        fill.price = 100.0;
+        fill.quantity = 100.0;
+        fill.timestamp = regimeflow::Timestamp(1);
+        portfolio.update_position(fill);
+
+        auto order = regimeflow::engine::Order::limit(
+            symbol, regimeflow::engine::OrderSide::Sell, 25, 100);
+        order.metadata["regime"] = "crisis";
+
+        std::unordered_map<std::string, regimeflow::risk::RegimeRiskOverlayProfile> profiles;
+        profiles["crisis"].allow_new_exposure = false;
+        regimeflow::risk::RegimeRiskOverlayLimit limit(std::move(profiles));
+
+        auto result = limit.validate(order, portfolio);
+        EXPECT_TRUE(result.is_ok());
+    }
+
+    TEST(RiskLimits, RegimeOverlayBlocksRegimePositionPct) {
+        regimeflow::engine::Portfolio portfolio(100000);
+        auto symbol = regimeflow::SymbolRegistry::instance().intern("BEAR_PCT");
+        auto order = regimeflow::engine::Order::limit(
+            symbol, regimeflow::engine::OrderSide::Buy, 200, 100);
+        order.metadata["regime"] = "bear";
+
+        std::unordered_map<std::string, regimeflow::risk::RegimeRiskOverlayProfile> profiles;
+        profiles["bear"].max_position_pct = 0.10;
+        regimeflow::risk::RegimeRiskOverlayLimit limit(std::move(profiles));
+
+        auto result = limit.validate(order, portfolio);
         EXPECT_TRUE(result.is_err());
     }
 }  // namespace regimeflow::test
