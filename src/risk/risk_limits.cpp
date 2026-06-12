@@ -21,6 +21,19 @@ namespace regimeflow::risk
         }
 
         const auto& profile = profile_it->second;
+        if (!profile.allow_market_orders
+            && (order.type == engine::OrderType::Market
+                || order.type == engine::OrderType::MarketOnOpen
+                || order.type == engine::OrderType::MarketOnClose)) {
+            return Result<void>(Error(Error::Code::OutOfRange,
+                                      "Regime risk overlay blocks market orders"));
+        }
+        if (!profile.allow_aggressive_tif
+            && (order.tif == engine::TimeInForce::IOC || order.tif == engine::TimeInForce::FOK)) {
+            return Result<void>(Error(Error::Code::OutOfRange,
+                                      "Regime risk overlay blocks aggressive time-in-force"));
+        }
+
         const double price = reference_price(order);
         if (price <= 0.0) {
             if (order.type == engine::OrderType::Limit || order.type == engine::OrderType::StopLimit) {

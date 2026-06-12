@@ -38,6 +38,7 @@ Regime-aware overlays:
 - `RegimeRiskOverlayLimit` reads `order.metadata["regime"]` and applies matching profiles.
 - A profile can block new exposure while still allowing risk-reducing orders.
 - A profile can cap single-order notional and projected position notional as a fraction of equity.
+- A profile can reduce execution aggression by blocking market-style orders or IOC/FOK time-in-force values.
 
 Example:
 
@@ -101,6 +102,8 @@ risk:
       allow_new_exposure: false
       max_order_notional: 5000
       max_position_pct: 0.05
+      allow_market_orders: false
+      allow_aggressive_tif: false
 ```
 
-The same block is also accepted under `risk.limits.regime_overlays` for configs that keep all limit definitions under `limits`. Risk-reducing orders are still allowed when `allow_new_exposure` is false.
+The same block is also accepted under `risk.limits.regime_overlays` for configs that keep all limit definitions under `limits`. Risk-reducing orders are still allowed when `allow_new_exposure` is false. Use `allow_market_orders: false` and `allow_aggressive_tif: false` to force passive/less urgent execution behavior in stressed regimes.

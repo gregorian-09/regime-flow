@@ -53,6 +53,12 @@ namespace regimeflow::risk
                 if (auto max_position_pct = object_double(*object, "max_position_pct")) {
                     profile.max_position_pct = *max_position_pct;
                 }
+                if (auto allow_market_orders = object_bool(*object, "allow_market_orders")) {
+                    profile.allow_market_orders = *allow_market_orders;
+                }
+                if (auto allow_aggressive_tif = object_bool(*object, "allow_aggressive_tif")) {
+                    profile.allow_aggressive_tif = *allow_aggressive_tif;
+                }
                 profiles.emplace(name, profile);
             }
             if (profiles.empty()) {

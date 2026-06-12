@@ -241,4 +241,30 @@ namespace regimeflow::test
         auto result = limit.validate(order, portfolio);
         EXPECT_TRUE(result.is_err());
     }
+
+    TEST(RiskLimits, RegimeOverlayBlocksAggressiveExecution) {
+        regimeflow::engine::Portfolio portfolio(100000);
+        auto symbol = regimeflow::SymbolRegistry::instance().intern("CRISIS_AGGRESSION");
+        auto order = regimeflow::engine::Order::market(
+            symbol, regimeflow::engine::OrderSide::Buy, 10);
+        order.tif = regimeflow::engine::TimeInForce::IOC;
+        order.metadata["regime"] = "crisis";
+
+        std::unordered_map<std::string, regimeflow::risk::RegimeRiskOverlayProfile> profiles;
+        profiles["crisis"].allow_market_orders = false;
+        profiles["crisis"].allow_aggressive_tif = false;
+        regimeflow::risk::RegimeRiskOverlayLimit limit(std::move(profiles));
+
+        auto result = limit.validate(order, portfolio);
+        ASSERT_TRUE(result.is_err());
+        EXPECT_NE(result.error().message.find("blocks market orders"), std::string::npos);
+
+        auto limit_order = regimeflow::engine::Order::limit(
+            symbol, regimeflow::engine::OrderSide::Buy, 10, 100);
+        limit_order.tif = regimeflow::engine::TimeInForce::FOK;
+        limit_order.metadata["regime"] = "crisis";
+        result = limit.validate(limit_order, portfolio);
+        ASSERT_TRUE(result.is_err());
+        EXPECT_NE(result.error().message.find("blocks aggressive time-in-force"), std::string::npos);
+    }
 }  // namespace regimeflow::test

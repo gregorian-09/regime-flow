@@ -389,6 +389,14 @@ namespace regimeflow::risk
          * @brief Maximum projected position notional as a fraction of equity; 0 disables.
          */
         double max_position_pct = 0.0;
+        /**
+         * @brief Whether the regime permits market-style orders.
+         */
+        bool allow_market_orders = true;
+        /**
+         * @brief Whether the regime permits immediate-or-cancel/fill-or-kill orders.
+         */
+        bool allow_aggressive_tif = true;
     };
 
     /**

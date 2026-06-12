@@ -65,7 +65,7 @@ Remaining:
 - Add first-class CLI commands to replay a captured journal through `BacktestEngine`.
 - Extend capture to order-manager decisions and risk-gate outcomes, not only normalized engine events.
 
-3. Regime-aware risk engine -- PARTIALLY IMPLEMENTED
+3. Regime-aware risk engine -- IMPLEMENTED
 
 Let position sizing, drawdown limits, leverage caps, stop behavior, and execution aggressiveness respond to detected regime.
 
@@ -79,10 +79,7 @@ Status:
 - Documented the overlay in `docs/guide/risk-management.md`.
 - Wired `regime_overlays` / `limits.regime_overlays` into `RiskFactory`.
 - Added factory coverage in `tests/unit/test_risk_limits.cpp`.
-
-Remaining:
-
-- Add execution-aggressiveness controls.
+- Added regime execution-aggressiveness controls that can block market orders and IOC/FOK time-in-force values in stressed regimes.
 
 4. Execution quality analytics -- PARTIALLY IMPLEMENTED
 
