@@ -206,6 +206,8 @@ namespace
         if (const auto log_dir = get_string(root, "live.log_dir")) {
             cfg.log_dir = *log_dir;
         }
+        cfg.replay_journal_path =
+            get_string(root, "live.replay_journal_path").value_or(cfg.replay_journal_path);
 
         cfg.metrics_config.enabled = get_bool(root, "metrics.live.enable").value_or(false);
         if (cfg.metrics_config.enabled) {

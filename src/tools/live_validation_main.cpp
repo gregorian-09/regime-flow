@@ -204,6 +204,8 @@ namespace
         cfg.broker_config = get_object_map(root, "live.broker_config");
         cfg.broker_config["paper"] = cfg.paper_trading ? "true" : "false";
         cfg.log_dir = get_string(root, "live.log_dir").value_or("./logs");
+        cfg.replay_journal_path =
+            get_string(root, "live.replay_journal_path").value_or(cfg.replay_journal_path);
         cfg.max_order_value = get_double(root, "live.max_order_value").value_or(cfg.max_order_value);
 
         if (!get_bool(root, "live.heartbeat.enabled").value_or(true)) {

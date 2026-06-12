@@ -10,6 +10,7 @@
 #include "regimeflow/common/mpsc_queue.h"
 #include "regimeflow/common/spsc_queue.h"
 #include "regimeflow/engine/dashboard_snapshot.h"
+#include "regimeflow/engine/replay_journal.h"
 #include "regimeflow/engine/portfolio.h"
 #include "regimeflow/engine/order_routing.h"
 #include "regimeflow/live/audit_log.h"
@@ -184,6 +185,10 @@ namespace regimeflow::live
          * @brief Log output directory.
          */
         std::string log_dir = "./logs";
+        /**
+         * @brief Optional JSONL replay journal path for normalized live market-data events.
+         */
+        std::string replay_journal_path;
 
         /**
          * @brief Live performance tracking configuration.
@@ -403,6 +408,7 @@ namespace regimeflow::live
         std::function<void(const std::string&)> error_cb_;
         std::function<void(const DashboardSnapshot&)> dashboard_cb_;
         std::string reconciliation_journal_path_;
+        std::unique_ptr<engine::ReplayJournalWriter> replay_journal_writer_;
 
         mutable std::mutex dashboard_mutex_;
         DashboardSnapshot last_dashboard_;

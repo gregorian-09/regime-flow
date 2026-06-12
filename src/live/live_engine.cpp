@@ -614,6 +614,14 @@ namespace regimeflow::live
             reconciliation_journal_path_ = config_.log_dir + "/reconciliation_journal.tsv";
             restore_reconciliation_journal();
         }
+        if (!config_.replay_journal_path.empty()) {
+            const auto parent = std::filesystem::path(config_.replay_journal_path).parent_path();
+            if (!parent.empty()) {
+                std::filesystem::create_directories(parent);
+            }
+            replay_journal_writer_ =
+                std::make_unique<engine::ReplayJournalWriter>(config_.replay_journal_path);
+        }
         last_market_data_ = Timestamp::now();
     }
 
@@ -1010,6 +1018,12 @@ namespace regimeflow::live
     void LiveTradingEngine::handle_market_data(const MarketDataUpdate& update) {
         if (!portfolio_) {
             return;
+        }
+        if (replay_journal_writer_) {
+            const auto append_res = replay_journal_writer_->append(to_engine_event(update));
+            if (append_res.is_err()) {
+                add_alert("Replay journal write failed: " + append_res.error().to_string());
+            }
         }
         last_market_data_ = Timestamp::now();
         heartbeat_alerted_ = false;

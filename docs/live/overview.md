@@ -96,7 +96,7 @@ The live CLI loads `.env` automatically if present and merges environment variab
 
 ## Replay And Parity Capture
 
-Live market updates now have a direct adapter into the shared backtest event model through `live::to_engine_event(update)`. Use this with `engine::ReplayJournalWriter` from `regimeflow/engine/replay_journal.h` to capture JSONL event traces that can be replayed or diffed against backtest assumptions.
+Live market updates now have a direct adapter into the shared backtest event model through `live::to_engine_event(update)`. Set `live.replay_journal_path` to capture normalized live market-data events as JSONL through `engine::ReplayJournalWriter`; the same parser is available from `regimeflow/engine/replay_journal.h` for replay inspection and parity tests.
 
 This is intentionally below the broker adapter layer: the journal records normalized engine events, not raw broker socket payloads. That keeps replay artifacts portable across Alpaca, Binance, Interactive Brokers, and simulated feeds.
 

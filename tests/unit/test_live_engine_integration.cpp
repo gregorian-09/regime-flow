@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "regimeflow/live/live_engine.h"
+#include "regimeflow/engine/replay_journal.h"
 #include "regimeflow/strategy/strategy_factory.h"
 #include "regimeflow/strategy/strategy.h"
 
@@ -391,6 +392,42 @@ namespace regimeflow::test
         std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
         EXPECT_NE(content.find("OrderSubmitted"), std::string::npos);
         EXPECT_NE(content.find("OrderFilled"), std::string::npos);
+    }
+
+    TEST(LiveEngineIntegration, CapturesMarketDataReplayJournal) {
+        strategy::StrategyFactory::instance().register_creator(
+            "replay_noop", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
+
+        auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "mock";
+        cfg.strategy_name = "replay_noop";
+        cfg.strategy_config.set("type", "replay_noop");
+        cfg.symbols = {"REPLAYLIVE"};
+        cfg.log_dir = fresh_log_dir("regimeflow_live_replay_test");
+        cfg.replay_journal_path = (std::filesystem::path(cfg.log_dir) / "live_replay.jsonl").string();
+
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        ASSERT_TRUE(engine->start().is_ok());
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
+
+        const auto symbol = SymbolRegistry::instance().intern("REPLAYLIVE");
+        broker_ptr->emit_bar(make_bar(symbol, 101.25));
+
+        ASSERT_TRUE(wait_until([&] {
+            auto events = engine::read_replay_journal(cfg.replay_journal_path);
+            return events.is_ok() && !events.value().empty();
+        }));
+        engine->stop();
+
+        auto events = engine::read_replay_journal(cfg.replay_journal_path);
+        ASSERT_TRUE(events.is_ok()) << events.error().to_string();
+        ASSERT_EQ(events.value().size(), 1U);
+        const auto* payload = std::get_if<events::MarketEventPayload>(&events.value()[0].payload);
+        ASSERT_NE(payload, nullptr);
+        EXPECT_EQ(payload->kind, events::MarketEventKind::Bar);
     }
 
     TEST(LiveEngineIntegration, DryRunOrdersAreAuditedWithoutBrokerSubmit) {
