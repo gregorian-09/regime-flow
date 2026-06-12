@@ -149,6 +149,14 @@ def check_plugin_template(errors: list[str]) -> None:
             ROOT / "examples" / "plugins" / "risk_manager_template" / "risk_manager_template.cpp",
             "risk_manager",
         ),
+        "data_source": (
+            ROOT / "examples" / "plugins" / "data_source_template" / "data_source_template.cpp",
+            "data_source",
+        ),
+        "metrics": (
+            ROOT / "examples" / "plugins" / "metrics_template" / "metrics_template.cpp",
+            "metrics",
+        ),
     }
     for name, (source, plugin_type) in templates.items():
         readme = source.with_name("README.md")
