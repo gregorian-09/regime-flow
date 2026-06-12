@@ -631,6 +631,7 @@ set(REGIMEFLOW_LIVE_SOURCES
     live/audit_log.cpp
     live/binance_adapter.cpp
     live/event_bus.cpp
+    live/execution_quality.cpp
     live/live_engine.cpp
     live/live_order_manager.cpp
     live/mq_adapter.cpp

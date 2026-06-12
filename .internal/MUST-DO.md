@@ -54,9 +54,20 @@ Use the same strategy code, event model, risk checks, and order manager in both 
 
 Let position sizing, drawdown limits, leverage caps, stop behavior, and execution aggressiveness respond to detected regime.
 
-4. Execution quality analytics
+4. Execution quality analytics -- PARTIALLY IMPLEMENTED
 
 Track slippage, queue model behavior, spread cost, rejected orders, cancel/fill latency, and venue comparison.
+
+Status:
+
+- Added `ExecutionQualityTracker`, `ExecutionQualitySnapshot`, and per-report samples in `include/regimeflow/live/execution_quality.h`.
+- `LiveOrderManager` now records submitted orders, submit rejections, broker rejects/errors, acknowledgements, partial fills, fills, cancellations, acknowledgement latency, fill latency, and limit/stop-reference slippage in basis points.
+- Added unit coverage in `tests/unit/test_execution_quality.cpp`.
+- Documented execution-quality tracking in `docs/live/overview.md` and `docs/live/production-readiness.md`.
+
+Remaining:
+
+- Add queue-model/spread-cost attribution and venue-comparison rollups.
 
 5. Operational safety layer
 

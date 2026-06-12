@@ -65,6 +65,7 @@ add_executable(regimeflow_tests
     unit/test_slippage_models.cpp
     unit/test_transaction_costs.cpp
     unit/test_broker_adapter_capabilities.cpp
+    unit/test_execution_quality.cpp
     unit/test_performance_metrics.cpp
     unit/test_performance_calculator.cpp
     unit/test_memory.cpp

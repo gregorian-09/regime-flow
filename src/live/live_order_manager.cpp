@@ -77,6 +77,7 @@ namespace regimeflow::live
         }
         auto broker_id = broker_->submit_order(order);
         if (broker_id.is_err()) {
+            execution_quality_.record_submit_rejected(Timestamp::now());
             const auto& err = broker_id.error();
             Error copy(err.code, err.message, err.location);
             copy.details = err.details;
@@ -96,6 +97,7 @@ namespace regimeflow::live
         live.submitted_at = Timestamp::now();
         live.status = LiveOrderStatus::PendingNew;
         orders_[id] = live;
+        execution_quality_.record_submitted(live);
 
         for (const auto& cb : order_callbacks_) {
             cb(live);
@@ -204,6 +206,7 @@ namespace regimeflow::live
         for (auto& order : orders_ | std::views::values) {
             if (order.broker_order_id == report.broker_order_id) {
                 update_order_state(order, report);
+                execution_quality_.record_execution_report(order, report);
                 for (const auto& cb : exec_callbacks_) {
                     cb(report);
                 }
@@ -307,6 +310,15 @@ namespace regimeflow::live
             next_order_id_ = internal_id + 1;
         }
         orders_[internal_id] = std::move(live);
+    }
+
+
+    const ExecutionQualitySnapshot& LiveOrderManager::execution_quality() const noexcept {
+        return execution_quality_.snapshot();
+    }
+
+    const std::vector<ExecutionQualitySample>& LiveOrderManager::execution_quality_samples() const noexcept {
+        return execution_quality_.samples();
     }
 
     void LiveOrderManager::update_order_state(LiveOrder& order, const ExecutionReport& report) {

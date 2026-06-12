@@ -103,6 +103,14 @@ Enable live drift tracking by setting `metrics.live.enable: true`. When enabled,
 
 You can also point the tracker at a backtest report JSON via `metrics.live.baseline_report`.
 
+## Execution Quality Tracking
+
+`LiveOrderManager` now keeps an in-process `ExecutionQualitySnapshot` for broker-order outcomes.
+It tracks submitted orders, submit rejections, broker rejections, acknowledgements, partial fills,
+filled orders, cancellation reports, average acknowledgement latency, average fill latency, and
+limit/stop-reference slippage in basis points. Use `execution_quality()` for dashboards, audit
+exports, and paper-live validation reports.
+
 ## Read This Section With The Right Mental Model
 
 - Live execution is not just “backtest with sockets”.

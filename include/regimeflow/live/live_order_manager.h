@@ -8,6 +8,7 @@
 #include "regimeflow/common/result.h"
 #include "regimeflow/engine/order.h"
 #include "regimeflow/live/broker_adapter.h"
+#include "regimeflow/live/execution_quality.h"
 #include "regimeflow/regime/types.h"
 
 #include <functional>
@@ -141,12 +142,24 @@ namespace regimeflow::live
                            std::string symbol,
                            LiveOrderStatus status);
 
+        /**
+         * @brief Access aggregated live execution-quality metrics.
+         */
+        [[nodiscard]] const ExecutionQualitySnapshot& execution_quality() const noexcept;
+
+        /**
+         * @brief Access retained execution-quality observations.
+         */
+        [[nodiscard]] const std::vector<ExecutionQualitySample>& execution_quality_samples() const noexcept;
+
     private:
         void update_order_state(LiveOrder& order, const ExecutionReport& report);
 
         std::unordered_map<engine::OrderId, LiveOrder> orders_;
         BrokerAdapter* broker_ = nullptr;
         engine::OrderId next_order_id_ = 1;
+
+        ExecutionQualityTracker execution_quality_;
 
         std::vector<std::function<void(const ExecutionReport&)>> exec_callbacks_;
         std::vector<std::function<void(const LiveOrder&)>> order_callbacks_;
