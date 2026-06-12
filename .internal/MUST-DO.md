@@ -95,11 +95,12 @@ Status:
 - Added unit coverage in `tests/unit/test_execution_quality.cpp`.
 - Documented execution-quality tracking in `docs/live/overview.md` and `docs/live/production-readiness.md`.
 - Added submit-time quote capture and effective-spread attribution to execution-quality samples/snapshots.
+- Added venue-level execution-quality rollups for filled orders, including fill count, quantity, latency, slippage, and effective spread cost by venue.
 - Prometheus export now includes `regimeflow_live_average_effective_spread_bps`.
 
 Remaining:
 
-- Add queue-model attribution and venue-comparison rollups.
+- Add queue-model attribution.
 
 5. Operational safety layer
 

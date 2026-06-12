@@ -117,6 +117,9 @@ namespace regimeflow::live
         live.quantity = order.quantity;
         live.limit_price = order.limit_price;
         live.stop_price = order.stop_price;
+        if (const auto venue = order.metadata.find("venue"); venue != order.metadata.end()) {
+            live.venue = venue->second;
+        }
         live.created_at = order.created_at.microseconds() ? order.created_at : Timestamp::now();
         live.submitted_at = Timestamp::now();
         live.status = LiveOrderStatus::PendingNew;

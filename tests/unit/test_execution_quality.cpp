@@ -122,4 +122,48 @@ namespace regimeflow::test
         EXPECT_NEAR(tracker.samples().back().reference_spread_bps, 20.0, 1e-9);
     }
 
+    TEST(ExecutionQualityTracker, AggregatesVenueRollups) {
+        regimeflow::live::ExecutionQualityTracker tracker;
+
+        regimeflow::live::LiveOrder order;
+        order.internal_id = 10;
+        order.broker_order_id = "BRK-10";
+        order.symbol = "AAPL";
+        order.venue = "lit_primary";
+        order.side = regimeflow::engine::OrderSide::Buy;
+        order.quantity = 10.0;
+        order.limit_price = 100.0;
+        order.created_at = fixed_timestamp();
+        order.submitted_at = fixed_timestamp();
+
+        regimeflow::live::ExecutionReport fill;
+        fill.broker_order_id = order.broker_order_id;
+        fill.symbol = order.symbol;
+        fill.quantity = 10.0;
+        fill.price = 100.2;
+        fill.status = regimeflow::live::LiveOrderStatus::Filled;
+        fill.timestamp = fixed_timestamp(5'000);
+
+        tracker.record_submitted(order);
+        tracker.record_execution_report(order, fill);
+
+        order.internal_id = 11;
+        order.broker_order_id = "BRK-11";
+        order.venue = "dark_pool";
+        fill.broker_order_id = order.broker_order_id;
+        fill.price = 99.9;
+        fill.timestamp = fixed_timestamp(8'000);
+        tracker.record_submitted(order);
+        tracker.record_execution_report(order, fill);
+
+        const auto& venues = tracker.snapshot().venue_summaries;
+        ASSERT_EQ(venues.size(), 2u);
+        EXPECT_EQ(venues[0].venue, "dark_pool");
+        EXPECT_EQ(venues[0].fills, 1u);
+        EXPECT_DOUBLE_EQ(venues[0].quantity, 10.0);
+        EXPECT_EQ(venues[1].venue, "lit_primary");
+        EXPECT_EQ(venues[1].fills, 1u);
+        EXPECT_NEAR(venues[1].average_signed_slippage_bps, 20.0, 1e-9);
+    }
+
 }  // namespace regimeflow::test

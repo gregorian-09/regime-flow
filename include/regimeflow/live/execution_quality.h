@@ -27,6 +27,7 @@ namespace regimeflow::live
         engine::OrderId order_id = 0;
         std::string broker_order_id;
         std::string symbol;
+        std::string venue;
         engine::OrderSide side = engine::OrderSide::Buy;
         LiveOrderStatus status = LiveOrderStatus::PendingNew;
         double quantity = 0.0;
@@ -39,6 +40,18 @@ namespace regimeflow::live
         double ack_latency_ms = 0.0;
         double fill_latency_ms = 0.0;
         Timestamp timestamp;
+    };
+
+    /**
+     * @brief Venue-level aggregate for comparing routing outcomes.
+     */
+    struct ExecutionQualityVenueSummary {
+        std::string venue;
+        uint64_t fills = 0;
+        double quantity = 0.0;
+        double average_fill_latency_ms = 0.0;
+        double average_signed_slippage_bps = 0.0;
+        double average_effective_spread_bps = 0.0;
     };
 
     /**
@@ -61,6 +74,7 @@ namespace regimeflow::live
         double average_absolute_slippage_bps = 0.0;
         double average_effective_spread_bps = 0.0;
         double rejection_rate = 0.0;
+        std::vector<ExecutionQualityVenueSummary> venue_summaries;
         Timestamp last_timestamp;
     };
 
@@ -121,7 +135,19 @@ namespace regimeflow::live
         };
         std::unordered_map<engine::OrderId, ReferenceQuote> reference_quotes_;
 
+        struct VenueAccumulator {
+            ExecutionQualityVenueSummary summary;
+            double total_fill_latency_ms = 0.0;
+            double total_signed_slippage_bps = 0.0;
+            double total_effective_spread_bps = 0.0;
+            uint64_t slippage_observations = 0;
+            uint64_t spread_observations = 0;
+        };
+        std::unordered_map<std::string, VenueAccumulator> venue_accumulators_;
+
         void update_rejection_rate();
+        void record_venue_fill(const ExecutionQualitySample& sample);
+        void rebuild_venue_summaries();
         static std::optional<double> reference_price_for(const LiveOrder& order,
                                                          const ExecutionReport& report);
         static double signed_slippage_bps(engine::OrderSide side,

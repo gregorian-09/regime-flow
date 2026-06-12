@@ -2,7 +2,9 @@
 
 #include "regimeflow/live/live_order_manager.h"
 
+#include <algorithm>
 #include <cmath>
+#include <ranges>
 
 namespace regimeflow::live
 {
@@ -41,6 +43,7 @@ namespace regimeflow::live
         sample.order_id = order.internal_id;
         sample.broker_order_id = order.broker_order_id;
         sample.symbol = order.symbol.empty() ? report.symbol : order.symbol;
+        sample.venue = order.venue.empty() ? "unassigned" : order.venue;
         sample.side = order.side;
         sample.status = report.status;
         sample.quantity = report.quantity;
@@ -109,6 +112,9 @@ namespace regimeflow::live
                 }
             }
         }
+        if (report.status == LiveOrderStatus::Filled && report.quantity > 0.0) {
+            record_venue_fill(sample);
+        }
 
         snapshot_.last_timestamp = report.timestamp;
         samples_.push_back(sample);
@@ -125,6 +131,7 @@ namespace regimeflow::live
         total_effective_spread_bps_ = 0.0;
         acknowledged_orders_.clear();
         reference_quotes_.clear();
+        venue_accumulators_.clear();
     }
 
     void ExecutionQualityTracker::update_rejection_rate() {
@@ -134,6 +141,39 @@ namespace regimeflow::live
         }
         const auto rejected = snapshot_.submit_rejected + snapshot_.broker_rejected + snapshot_.errored;
         snapshot_.rejection_rate = static_cast<double>(rejected) / static_cast<double>(snapshot_.submitted);
+    }
+
+    void ExecutionQualityTracker::record_venue_fill(const ExecutionQualitySample& sample) {
+        auto& aggregate = venue_accumulators_[sample.venue];
+        aggregate.summary.venue = sample.venue;
+        ++aggregate.summary.fills;
+        aggregate.summary.quantity += sample.quantity;
+        aggregate.total_fill_latency_ms += sample.fill_latency_ms;
+        aggregate.summary.average_fill_latency_ms =
+            aggregate.total_fill_latency_ms / static_cast<double>(aggregate.summary.fills);
+
+        if (sample.reference_price > 0.0) {
+            ++aggregate.slippage_observations;
+            aggregate.total_signed_slippage_bps += sample.signed_slippage_bps;
+            aggregate.summary.average_signed_slippage_bps =
+                aggregate.total_signed_slippage_bps / static_cast<double>(aggregate.slippage_observations);
+        }
+        if (sample.reference_mid_price > 0.0) {
+            ++aggregate.spread_observations;
+            aggregate.total_effective_spread_bps += sample.effective_spread_bps;
+            aggregate.summary.average_effective_spread_bps =
+                aggregate.total_effective_spread_bps / static_cast<double>(aggregate.spread_observations);
+        }
+        rebuild_venue_summaries();
+    }
+
+    void ExecutionQualityTracker::rebuild_venue_summaries() {
+        snapshot_.venue_summaries.clear();
+        snapshot_.venue_summaries.reserve(venue_accumulators_.size());
+        for (const auto& aggregate : venue_accumulators_ | std::views::values) {
+            snapshot_.venue_summaries.push_back(aggregate.summary);
+        }
+        std::ranges::sort(snapshot_.venue_summaries, {}, &ExecutionQualityVenueSummary::venue);
     }
 
     std::optional<double> ExecutionQualityTracker::reference_price_for(const LiveOrder& order,
