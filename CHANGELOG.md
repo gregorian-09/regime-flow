@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.12] - 2026-06-14
+
 ### Changed
 - Documented the native-code quality gates, concurrency hardening, mmap checksum persistence, live thread-safety boundaries, and tag-based publishing workflow.
 - Added a release metadata validation gate so tag-based publishing fails when package versions drift.
