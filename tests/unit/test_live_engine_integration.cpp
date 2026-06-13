@@ -430,6 +430,45 @@ namespace regimeflow::test
         EXPECT_EQ(payload->kind, events::MarketEventKind::Bar);
     }
 
+    TEST(LiveEngineIntegration, CapturesReplayJournalOrderDecisions) {
+        strategy::StrategyFactory::instance().register_creator(
+            "replay_buy_once", [](const Config&) { return std::make_unique<LiveBuyOnceStrategy>(); });
+
+        auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "mock";
+        cfg.strategy_name = "replay_buy_once";
+        cfg.strategy_config.set("type", "replay_buy_once");
+        cfg.symbols = {"REPLAYORDER"};
+        cfg.dry_run_orders = true;
+        cfg.log_dir = fresh_log_dir("regimeflow_live_replay_order_test");
+        cfg.replay_journal_path = (std::filesystem::path(cfg.log_dir) / "live_replay.jsonl").string();
+
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        ASSERT_TRUE(engine->start().is_ok());
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
+
+        const auto symbol = SymbolRegistry::instance().intern("REPLAYORDER");
+        broker_ptr->emit_bar(make_bar(symbol, 101.25));
+
+        ASSERT_TRUE(wait_until([&] {
+            auto events = engine::read_replay_journal(cfg.replay_journal_path);
+            return events.is_ok() && events.value().size() >= 2;
+        }));
+        engine->stop();
+
+        auto events = engine::read_replay_journal(cfg.replay_journal_path);
+        ASSERT_TRUE(events.is_ok()) << events.error().to_string();
+        const auto found_risk_or_dry_run = std::ranges::any_of(events.value(), [](const events::Event& event) {
+            const auto* payload = std::get_if<events::SystemEventPayload>(&event.payload);
+            return payload != nullptr && payload->kind == events::SystemEventKind::TradingHalt
+                   && payload->id.rfind("dry_run:", 0) == 0;
+        });
+        EXPECT_TRUE(found_risk_or_dry_run);
+    }
+
     TEST(LiveEngineIntegration, DryRunOrdersAreAuditedWithoutBrokerSubmit) {
         strategy::StrategyFactory::instance().register_creator(
             "buy_once_dry_run", [](const Config&) { return std::make_unique<LiveBuyOnceStrategy>(); });

@@ -356,6 +356,7 @@ namespace regimeflow::live
                                                 : Timestamp::now(),
                                             order.status_message);
             }
+            append_replay_order_update(order);
         });
         risk_manager_ = std::make_unique<risk::RiskManager>(risk::RiskFactory::create_risk_manager(
             config_.risk_config));
@@ -427,6 +428,9 @@ namespace regimeflow::live
                             audit_logger_->log(event);
                         }
                         strategy_order_manager_.update_order_status(order.id, engine::OrderStatus::Rejected);
+                        append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                                   Timestamp::now(),
+                                                   "risk_reject:" + std::to_string(order.id));
                         return;
                     }
                 }
@@ -450,6 +454,9 @@ namespace regimeflow::live
                     }
                     strategy_order_manager_.update_order_status(order.id,
                                                                 engine::OrderStatus::Rejected);
+                    append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                               now,
+                                               "rate_limit_minute:" + std::to_string(order.id));
                     return;
                 }
             }
@@ -473,6 +480,9 @@ namespace regimeflow::live
                     }
                     strategy_order_manager_.update_order_status(order.id,
                                                                 engine::OrderStatus::Rejected);
+                    append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                               now,
+                                               "rate_limit_second:" + std::to_string(order.id));
                     return;
                 }
             }
@@ -492,6 +502,9 @@ namespace regimeflow::live
                     }
                     strategy_order_manager_.update_order_status(order.id,
                                                                 engine::OrderStatus::Rejected);
+                    append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                               now,
+                                               "missing_notional_price:" + std::to_string(order.id));
                     return;
                 }
                 double notional = std::abs(order.quantity) * price;
@@ -504,6 +517,9 @@ namespace regimeflow::live
                     }
                     strategy_order_manager_.update_order_status(order.id,
                                                                 engine::OrderStatus::Rejected);
+                    append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                               now,
+                                               "max_order_value:" + std::to_string(order.id));
                     return;
                 }
             }
@@ -528,6 +544,9 @@ namespace regimeflow::live
                     }
                     strategy_order_manager_.update_order_status(order.id,
                                                                 engine::OrderStatus::Rejected);
+                    append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                               now,
+                                               "risk_reject:" + std::to_string(order.id));
                     return;
                 }
             }
@@ -550,6 +569,9 @@ namespace regimeflow::live
                 }
                 add_alert("Dry-run order suppressed before broker submit");
                 strategy_order_manager_.update_order_status(order.id, engine::OrderStatus::Cancelled);
+                append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                           now,
+                                           "dry_run:" + std::to_string(order.id));
                 return;
             }
             auto submit_res = order_manager_->submit_order(order);
@@ -561,6 +583,9 @@ namespace regimeflow::live
                     }
                     strategy_order_manager_.update_order_status(order.id,
                                                                 engine::OrderStatus::Rejected);
+                    append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                               Timestamp::now(),
+                                               "submit_missing_live_order:" + std::to_string(order.id));
                     return;
                 }
                 if (const auto quote = find_last_quote(order.symbol); quote.has_value()) {
@@ -596,6 +621,9 @@ namespace regimeflow::live
                     audit_logger_->log_error(submit_res.error(), "live_engine.submit_order");
                 }
                 strategy_order_manager_.update_order_status(order.id, engine::OrderStatus::Rejected);
+                append_replay_system_event(events::SystemEventKind::TradingHalt,
+                                           Timestamp::now(),
+                                           "submit_reject:" + std::to_string(order.id));
             }
         });
 
@@ -1037,12 +1065,7 @@ namespace regimeflow::live
         if (!portfolio_) {
             return;
         }
-        if (replay_journal_writer_) {
-            const auto append_res = replay_journal_writer_->append(to_engine_event(update));
-            if (append_res.is_err()) {
-                add_alert("Replay journal write failed: " + append_res.error().to_string());
-            }
-        }
+        append_replay_event(to_engine_event(update));
         last_market_data_ = Timestamp::now();
         heartbeat_alerted_ = false;
         bool snapshot_updated = false;
@@ -1559,6 +1582,67 @@ namespace regimeflow::live
             }
         }
         return std::nullopt;
+    }
+
+    void LiveTradingEngine::append_replay_event(const events::Event& event) {
+        if (!replay_journal_writer_) {
+            return;
+        }
+        const auto result = replay_journal_writer_->append(event);
+        if (result.is_err()) {
+            add_alert("Replay journal write failed: " + result.error().to_string());
+        }
+    }
+
+    void LiveTradingEngine::append_replay_order_update(const LiveOrder& order) {
+        if (!replay_journal_writer_) {
+            return;
+        }
+        events::OrderEventKind kind = events::OrderEventKind::Update;
+        switch (order.status) {
+        case LiveOrderStatus::PendingNew:
+        case LiveOrderStatus::New:
+            kind = events::OrderEventKind::NewOrder;
+            break;
+        case LiveOrderStatus::PartiallyFilled:
+        case LiveOrderStatus::Filled:
+            kind = events::OrderEventKind::Fill;
+            break;
+        case LiveOrderStatus::PendingCancel:
+        case LiveOrderStatus::Cancelled:
+            kind = events::OrderEventKind::Cancel;
+            break;
+        case LiveOrderStatus::Rejected:
+        case LiveOrderStatus::Expired:
+        case LiveOrderStatus::Inactive:
+        case LiveOrderStatus::Error:
+            kind = events::OrderEventKind::Reject;
+            break;
+        }
+
+        const Timestamp timestamp = order.filled_at.microseconds() != 0
+            ? order.filled_at
+            : (order.acked_at.microseconds() != 0 ? order.acked_at : Timestamp::now());
+        const auto symbol = SymbolRegistry::instance().intern(order.symbol);
+        append_replay_event(events::make_order_event(kind,
+                                                     timestamp,
+                                                     order.internal_id,
+                                                     0,
+                                                     order.filled_quantity > 0.0 ? order.filled_quantity : order.quantity,
+                                                     order.avg_fill_price,
+                                                     symbol,
+                                                     0.0,
+                                                     false,
+                                                     0.0,
+                                                     0,
+                                                     order.venue));
+    }
+
+    void LiveTradingEngine::append_replay_system_event(const events::SystemEventKind kind,
+                                                       const Timestamp timestamp,
+                                                       std::string id,
+                                                       const int64_t code) {
+        append_replay_event(events::make_system_event(kind, timestamp, code, std::move(id)));
     }
 
     void LiveTradingEngine::record_reconciliation_entry(const std::string& source,

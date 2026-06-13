@@ -98,7 +98,7 @@ The live CLI loads `.env` automatically if present and merges environment variab
 
 Live market updates now have a direct adapter into the shared backtest event model through `live::to_engine_event(update)`. Set `live.replay_journal_path` to capture normalized live market-data events as JSONL through `engine::ReplayJournalWriter`; the same parser is available from `regimeflow/engine/replay_journal.h` for replay inspection and parity tests.
 
-This is intentionally below the broker adapter layer: the journal records normalized engine events, not raw broker socket payloads. That keeps replay artifacts portable across Alpaca, Binance, Interactive Brokers, and simulated feeds.
+This is intentionally below the broker adapter layer: the journal records normalized engine events, not raw broker socket payloads. The live journal also captures order-manager lifecycle updates and risk/safety gate decisions as replay events, keeping replay artifacts portable across Alpaca, Binance, Interactive Brokers, and simulated feeds.
 
 ## Live Performance Drift Tracking
 

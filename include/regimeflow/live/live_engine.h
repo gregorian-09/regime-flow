@@ -358,6 +358,12 @@ namespace regimeflow::live
         void normalize_order_for_broker(engine::Order& order) const;
         [[nodiscard]] std::optional<Price> find_last_price(SymbolId symbol) const;
         [[nodiscard]] std::optional<data::Quote> find_last_quote(SymbolId symbol) const;
+        void append_replay_event(const events::Event& event);
+        void append_replay_order_update(const LiveOrder& order);
+        void append_replay_system_event(events::SystemEventKind kind,
+                                        Timestamp timestamp,
+                                        std::string id,
+                                        int64_t code = 0);
         void record_reconciliation_entry(const std::string& source,
                                          engine::OrderId internal_id,
                                          const std::string& broker_order_id,

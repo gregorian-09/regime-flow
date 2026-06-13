@@ -58,12 +58,12 @@ Status:
 - Added unit coverage in `tests/unit/test_replay_journal.cpp`.
 - Added `live.replay_journal_path` so `LiveTradingEngine` can capture normalized live market-data events directly to JSONL during a live session.
 - Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
+- Extended live replay capture to order-manager status updates and risk/safety gate outcomes as system events.
 - Documented replay journals in `docs/guide/backtesting.md` and `docs/live/overview.md`.
 
 Remaining:
 
 - Add first-class CLI commands to replay a captured journal through `BacktestEngine`.
-- Extend capture to order-manager decisions and risk-gate outcomes, not only normalized engine events.
 
 3. Regime-aware risk engine -- IMPLEMENTED
 
