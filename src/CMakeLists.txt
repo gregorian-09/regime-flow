@@ -663,7 +663,7 @@ target_link_libraries(regimeflow_live
 )
 
 if(WIN32)
-    target_link_libraries(regimeflow_live PRIVATE Psapi)
+    target_link_libraries(regimeflow_live PRIVATE Psapi ws2_32)
     target_compile_definitions(regimeflow_live PRIVATE _WIN32_WINNT=0x0A00 NOMINMAX)
 endif()
 

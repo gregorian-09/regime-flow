@@ -769,6 +769,19 @@ namespace regimeflow::live
 
         update_dashboard_snapshot();
 
+        if (config_.enable_prometheus_endpoint) {
+            prometheus_endpoint_ = std::make_unique<PrometheusScrapeEndpoint>(config_.prometheus_endpoint);
+            auto metrics_res = prometheus_endpoint_->start([this] {
+                const auto quality = order_manager_
+                    ? order_manager_->execution_quality()
+                    : ExecutionQualitySnapshot{};
+                return live_metrics_to_prometheus(get_dashboard_snapshot(), quality);
+            });
+            if (metrics_res.is_err()) {
+                return metrics_res;
+            }
+        }
+
         if (audit_logger_) {
             AuditEvent event;
             event.timestamp = Timestamp::now();
@@ -813,6 +826,10 @@ namespace regimeflow::live
         }
         if (strategy_) {
             strategy_->on_stop();
+        }
+        if (prometheus_endpoint_) {
+            prometheus_endpoint_->stop();
+            prometheus_endpoint_.reset();
         }
         if (audit_logger_) {
             AuditEvent event;

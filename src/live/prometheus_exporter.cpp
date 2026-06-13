@@ -1,7 +1,14 @@
 #include "regimeflow/live/prometheus_exporter.h"
 
+#if defined(REGIMEFLOW_USE_BOOST_BEAST)
+#include <boost/asio.hpp>
+#endif
+
+#include <atomic>
 #include <sstream>
 #include <string_view>
+#include <thread>
+#include <utility>
 
 namespace regimeflow::live
 {
@@ -14,6 +21,19 @@ namespace regimeflow::live
             out << "# HELP " << name << ' ' << help << '\n';
             out << "# TYPE " << name << ' ' << type << '\n';
             out << name << ' ' << value << "\n\n";
+        }
+
+        std::string http_response(const unsigned status,
+                                  const std::string_view reason,
+                                  const std::string& body,
+                                  const std::string_view content_type) {
+            std::ostringstream out;
+            out << "HTTP/1.1 " << status << ' ' << reason << "\r\n"
+                << "Content-Type: " << content_type << "\r\n"
+                << "Content-Length: " << body.size() << "\r\n"
+                << "Connection: close\r\n\r\n"
+                << body;
+            return out.str();
         }
 
         void counter(std::ostringstream& out,
@@ -30,6 +50,129 @@ namespace regimeflow::live
             metric(out, name, help, "gauge", value);
         }
     }  // namespace
+
+    struct PrometheusScrapeEndpoint::Impl {
+        explicit Impl(PrometheusScrapeEndpointConfig cfg) : config(std::move(cfg)) {}
+
+        PrometheusScrapeEndpointConfig config;
+        MetricsProvider provider;
+        std::atomic<bool> running{false};
+        std::thread thread;
+        uint16_t bound_port = 0;
+
+#if defined(REGIMEFLOW_USE_BOOST_BEAST)
+        boost::asio::io_context ioc;
+        std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
+
+        void serve() {
+            using boost::asio::ip::tcp;
+            while (running.load()) {
+                tcp::socket socket(ioc);
+                boost::system::error_code ec;
+                acceptor->accept(socket, ec);
+                if (ec) {
+                    continue;
+                }
+                boost::asio::streambuf buffer;
+                boost::asio::read_until(socket, buffer, "\r\n\r\n", ec);
+                std::string request_line;
+                std::istream input(&buffer);
+                std::getline(input, request_line);
+                if (!request_line.empty() && request_line.back() == '\r') {
+                    request_line.pop_back();
+                }
+                const std::string expected = "GET " + config.path + " ";
+                const bool ok = request_line.rfind(expected, 0) == 0;
+                const std::string body = ok ? provider() : "not found\n";
+                const std::string response = ok
+                    ? http_response(200, "OK", body, "text/plain; version=0.0.4")
+                    : http_response(404, "Not Found", body, "text/plain");
+                boost::asio::write(socket, boost::asio::buffer(response), ec);
+            }
+        }
+#endif
+    };
+
+    PrometheusScrapeEndpoint::PrometheusScrapeEndpoint(PrometheusScrapeEndpointConfig config)
+        : impl_(std::make_unique<Impl>(std::move(config))) {}
+
+    PrometheusScrapeEndpoint::~PrometheusScrapeEndpoint() {
+        stop();
+    }
+
+    PrometheusScrapeEndpoint::PrometheusScrapeEndpoint(PrometheusScrapeEndpoint&&) noexcept = default;
+
+    PrometheusScrapeEndpoint& PrometheusScrapeEndpoint::operator=(PrometheusScrapeEndpoint&&) noexcept = default;
+
+    Result<void> PrometheusScrapeEndpoint::start(MetricsProvider provider) {
+        if (!provider) {
+            return Result<void>(Error(Error::Code::InvalidArgument, "Prometheus metrics provider is empty"));
+        }
+        if (impl_->running.exchange(true)) {
+            return Ok();
+        }
+        impl_->provider = std::move(provider);
+#if defined(REGIMEFLOW_USE_BOOST_BEAST)
+        using boost::asio::ip::tcp;
+        boost::system::error_code ec;
+        const auto address = boost::asio::ip::make_address(impl_->config.host, ec);
+        if (ec) {
+            impl_->running.store(false);
+            return Result<void>(Error(Error::Code::ConfigError, "Invalid Prometheus endpoint host"));
+        }
+        impl_->acceptor = std::make_unique<tcp::acceptor>(impl_->ioc);
+        impl_->acceptor->open(address.is_v6() ? tcp::v6() : tcp::v4(), ec);
+        if (!ec) {
+            impl_->acceptor->set_option(boost::asio::socket_base::reuse_address(true), ec);
+        }
+        if (!ec) {
+            impl_->acceptor->bind(tcp::endpoint(address, impl_->config.port), ec);
+        }
+        if (!ec) {
+            impl_->bound_port = impl_->acceptor->local_endpoint().port();
+            impl_->acceptor->listen(16, ec);
+        }
+        if (ec) {
+            impl_->running.store(false);
+            impl_->acceptor.reset();
+            Error error(Error::Code::NetworkError,
+                        "Failed to start Prometheus scrape endpoint: " + ec.message());
+            error.details = ec.message();
+            return Result<void>(std::move(error));
+        }
+        impl_->thread = std::thread([this] { impl_->serve(); });
+        return Ok();
+#else
+        impl_->running.store(false);
+        return Result<void>(Error(Error::Code::InvalidState,
+                                  "Prometheus scrape endpoint requires Boost.Asio support"));
+#endif
+    }
+
+    void PrometheusScrapeEndpoint::stop() {
+        if (!impl_ || !impl_->running.exchange(false)) {
+            return;
+        }
+#if defined(REGIMEFLOW_USE_BOOST_BEAST)
+        if (impl_->acceptor) {
+            boost::system::error_code ec;
+            impl_->acceptor->close(ec);
+        }
+        if (impl_->thread.joinable()) {
+            impl_->thread.join();
+        }
+        impl_->acceptor.reset();
+        impl_->bound_port = 0;
+#endif
+    }
+
+    bool PrometheusScrapeEndpoint::is_running() const {
+        return impl_ && impl_->running.load();
+    }
+
+    uint16_t PrometheusScrapeEndpoint::port() const {
+        return impl_ ? impl_->bound_port : 0;
+    }
 
     std::string dashboard_snapshot_to_prometheus(const engine::DashboardSnapshot& snapshot) {
         std::ostringstream out;

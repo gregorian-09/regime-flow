@@ -164,7 +164,7 @@ Status:
 - Added audit logger coverage in `tests/unit/test_secret_hygiene.cpp`.
 - Extended the regime-detector plugin template to populate version, training window, feature schema, and parameter digest metadata from config.
 
-9. First-class observability -- PARTIALLY IMPLEMENTED
+9. First-class observability -- IMPLEMENTED
 
 Add Prometheus metrics, structured logs, dashboard snapshots, and alert hooks.
 
@@ -176,10 +176,7 @@ Status:
 - Added unit coverage in `tests/unit/test_prometheus_exporter.cpp`.
 - Documented the helper in `docs/live/overview.md` and `docs/reference/configuration.md`.
 - Added configurable live audit encoding with `live.audit.format: jsonl` for structured-log pipelines.
-
-Remaining:
-
-- Add an HTTP scrape endpoint.
+- Added `PrometheusScrapeEndpoint` and `metrics.prometheus.*` live-engine config for a built-in HTTP scrape endpoint.
 
 10. Security / supply-chain posture -- PARTIALLY IMPLEMENTED
 

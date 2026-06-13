@@ -2,6 +2,12 @@
 
 #include "regimeflow/live/prometheus_exporter.h"
 
+#if defined(REGIMEFLOW_USE_BOOST_BEAST)
+#include <boost/asio.hpp>
+#endif
+
+#include <sstream>
+
 namespace regimeflow::test
 {
     TEST(PrometheusExporter, ExportsDashboardMetrics) {
@@ -51,5 +57,38 @@ namespace regimeflow::test
         EXPECT_NE(text.find("regimeflow_live_queue_observations_total 4"), std::string::npos);
         EXPECT_NE(text.find("regimeflow_live_average_queue_position 2.5"), std::string::npos);
         EXPECT_NE(text.find("regimeflow_live_average_queue_delay_error_ms 7"), std::string::npos);
+    }
+
+    TEST(PrometheusExporter, ServesScrapeEndpoint) {
+#if !defined(REGIMEFLOW_USE_BOOST_BEAST)
+        GTEST_SKIP() << "Boost.Asio not enabled";
+#else
+        regimeflow::live::PrometheusScrapeEndpoint endpoint({.host = "127.0.0.1", .port = 0, .path = "/metrics"});
+        auto start = endpoint.start([] { return std::string("regimeflow_test_metric 1\n"); });
+        if (start.is_err() && start.error().message.find("Operation not permitted") != std::string::npos) {
+            GTEST_SKIP() << "Network bind is not permitted in this sandbox";
+        }
+        ASSERT_TRUE(start.is_ok()) << start.error().to_string();
+        ASSERT_TRUE(endpoint.is_running());
+        ASSERT_NE(endpoint.port(), 0u);
+
+        boost::asio::io_context ioc;
+        boost::asio::ip::tcp::socket socket(ioc);
+        socket.connect({boost::asio::ip::make_address("127.0.0.1"), endpoint.port()});
+        const std::string request = "GET /metrics HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n";
+        boost::asio::write(socket, boost::asio::buffer(request));
+
+        boost::asio::streambuf response;
+        boost::system::error_code ec;
+        boost::asio::read(socket, response, ec);
+        EXPECT_TRUE(ec == boost::asio::error::eof || !ec) << ec.message();
+        std::ostringstream out;
+        out << &response;
+        const auto text = out.str();
+        EXPECT_NE(text.find("HTTP/1.1 200 OK"), std::string::npos);
+        EXPECT_NE(text.find("regimeflow_test_metric 1"), std::string::npos);
+        endpoint.stop();
+        EXPECT_FALSE(endpoint.is_running());
+#endif
     }
 }  // namespace regimeflow::test

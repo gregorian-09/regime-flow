@@ -238,6 +238,15 @@ namespace
                 cfg.metrics_config.postgres_pool_size = static_cast<int>(*pool_size);
             }
         }
+        cfg.enable_prometheus_endpoint =
+            get_bool(root, "metrics.prometheus.enabled").value_or(cfg.enable_prometheus_endpoint);
+        cfg.prometheus_endpoint.host =
+            get_string(root, "metrics.prometheus.host").value_or(cfg.prometheus_endpoint.host);
+        if (const auto port = get_int(root, "metrics.prometheus.port")) {
+            cfg.prometheus_endpoint.port = static_cast<uint16_t>(*port);
+        }
+        cfg.prometheus_endpoint.path =
+            get_string(root, "metrics.prometheus.path").value_or(cfg.prometheus_endpoint.path);
 
         if (cfg.broker_type == "alpaca") {
             set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");

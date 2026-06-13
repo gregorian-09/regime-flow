@@ -18,6 +18,7 @@
 #include "regimeflow/live/event_bus.h"
 #include "regimeflow/live/live_order_manager.h"
 #include "regimeflow/live/mq_adapter.h"
+#include "regimeflow/live/prometheus_exporter.h"
 #include "regimeflow/live/types.h"
 #include "regimeflow/metrics/live_performance.h"
 #include "regimeflow/regime/regime_detector.h"
@@ -198,6 +199,14 @@ namespace regimeflow::live
          * @brief Live performance tracking configuration.
          */
         metrics::LivePerformanceConfig metrics_config;
+        /**
+         * @brief Enable built-in Prometheus HTTP scrape endpoint.
+         */
+        bool enable_prometheus_endpoint = false;
+        /**
+         * @brief Built-in Prometheus scrape endpoint configuration.
+         */
+        PrometheusScrapeEndpointConfig prometheus_endpoint;
 
         /**
          * @brief Routing configuration for smart order routing.
@@ -376,6 +385,7 @@ namespace regimeflow::live
         std::unique_ptr<LiveOrderManager> order_manager_;
         std::unique_ptr<MessageQueueAdapter> mq_adapter_;
         std::unique_ptr<AuditLogger> audit_logger_;
+        std::unique_ptr<PrometheusScrapeEndpoint> prometheus_endpoint_;
         std::unique_ptr<metrics::LivePerformanceTracker> live_metrics_;
         engine::OrderManager strategy_order_manager_;
 

@@ -25,6 +25,8 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 - `live.broker_config` key/value map of broker-specific settings.
 - `live.log_dir` output directory for logs and metrics.
 - `live.broker_asset_class` default `equity`, used for TIF support.
+- `metrics.prometheus.enabled` enables the built-in HTTP scrape endpoint.
+- `metrics.prometheus.host`, `metrics.prometheus.port`, and `metrics.prometheus.path` configure the scrape listener.
 
 ## Strategy
 

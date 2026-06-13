@@ -234,6 +234,16 @@ namespace
             get_bool(root, "live.reconciliation.disable_trading_on_error").value_or(
                 cfg.disable_trading_on_reconcile_error);
 
+        cfg.enable_prometheus_endpoint =
+            get_bool(root, "metrics.prometheus.enabled").value_or(cfg.enable_prometheus_endpoint);
+        cfg.prometheus_endpoint.host =
+            get_string(root, "metrics.prometheus.host").value_or(cfg.prometheus_endpoint.host);
+        if (const auto port = get_int(root, "metrics.prometheus.port")) {
+            cfg.prometheus_endpoint.port = static_cast<uint16_t>(*port);
+        }
+        cfg.prometheus_endpoint.path =
+            get_string(root, "metrics.prometheus.path").value_or(cfg.prometheus_endpoint.path);
+
         if (cfg.broker_type == "alpaca") {
             set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");
             set_broker_config_from_env(cfg.broker_config, "secret_key", "ALPACA_API_SECRET");
