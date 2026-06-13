@@ -1,0 +1,67 @@
+name: CodeQL
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * 1'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: c-cpp
+            build-mode: manual
+          - language: python
+            build-mode: none
+
+    steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+        with:
+          submodules: recursive
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@b0c4fd77f6c559021d78430ec4d0d169ae74a4eb
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Install C++ analysis dependencies
+        if: matrix.language == 'c-cpp'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ libeigen3-dev
+
+      - name: Build C++ analysis target
+        if: matrix.language == 'c-cpp'
+        run: |
+          cmake -S . -B build-codeql -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_BENCHMARKS=OFF \
+            -DBUILD_PYTHON_BINDINGS=OFF \
+            -DREGIMEFLOW_FETCH_DEPS=OFF \
+            -DENABLE_IBAPI=OFF \
+            -DENABLE_ZMQ=OFF \
+            -DENABLE_REDIS=OFF \
+            -DENABLE_KAFKA=OFF \
+            -DENABLE_POSTGRES=OFF \
+            -DENABLE_CURL=OFF \
+            -DENABLE_OPENSSL=OFF \
+            -DENABLE_WEBSOCKET=OFF
+          cmake --build build-codeql --target regimeflow_engine regimeflow_live
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@b0c4fd77f6c559021d78430ec4d0d169ae74a4eb

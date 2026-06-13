@@ -193,8 +193,11 @@ Status:
   `--allow-missing-tools` for local maintainer smoke checks.
 - Added `tools/security/generate_artifact_manifest.py` to generate release artifact SHA256
   manifests and optional HMAC-SHA256 signatures without adding release-time dependencies.
-- Publish workflow now emits Python artifact checksum manifests before PyPI upload.
-- CI supply-chain gate now runs the vulnerability scan wrapper in non-brittle optional mode.
+- Publish workflow now emits Python artifact checksum manifests before PyPI upload and writes
+  a manifest signature when `REGIMEFLOW_ARTIFACT_SIGNING_KEY` is configured.
+- CI supply-chain gate now runs explicit license metadata checks, repository secret scanning,
+  and the vulnerability scan wrapper in non-brittle optional mode.
+- Added a pinned CodeQL workflow for scheduled/manual C++ and Python code scanning.
 
 ## Interactive Brokers API Update Policy
 
@@ -328,6 +331,9 @@ Status:
 - The gate validates vendored IB checksums and scope before expensive builds start.
 - The gate also enforces pinned GitHub Actions references.
 - Pinned remaining docs workflow actions in `.github/workflows/docs.yml`.
+- Added dependency-free license and secret scanning gates to the supply-chain job.
+- Added a pinned `.github/workflows/codeql.yml` workflow for C++ and Python CodeQL analysis.
+- Publish workflow generates artifact checksums and optional signed verification manifests.
 
 Recommended tools:
 

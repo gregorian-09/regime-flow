@@ -4,7 +4,10 @@
 
 - Upstream project: Interactive Brokers Trader Workstation API
 - Upstream landing page: https://interactivebrokers.github.io/
+- Upstream URL: https://interactivebrokers.github.io/
 - Vendored API version: `10.42.01`
+- Archive SHA256: unavailable for the initial import; current vendored files are pinned in `third_party/ibapi/SHA256SUMS` and all future updates must record the reviewed archive SHA256.
+- License: Interactive Brokers API license, vendored at `third_party/ibapi/LICENSE.md`
 - Version marker: `third_party/ibapi/IBJts/API_VersionNum.txt`
 - Vendored scope: C++ client sources and generated C++ protobuf stubs required by RegimeFlow's optional IB adapter
 - Excluded scope: Java client, Python client, sample applications, binary JARs, source `.proto` files, and other unused payloads

@@ -65,6 +65,10 @@ def check_required_files(errors: list[str]) -> None:
         errors.append("missing tools/security/generate_artifact_manifest.py")
     if not (ROOT / "tools" / "security" / "run_vulnerability_scan.py").is_file():
         errors.append("missing tools/security/run_vulnerability_scan.py")
+    if not (ROOT / "tools" / "security" / "check_licenses.py").is_file():
+        errors.append("missing tools/security/check_licenses.py")
+    if not (ROOT / "tools" / "security" / "check_secrets.py").is_file():
+        errors.append("missing tools/security/check_secrets.py")
 
 
 def check_ibapi_scope(errors: list[str]) -> None:
@@ -139,6 +143,32 @@ def check_workflow_actions(errors: list[str]) -> None:
                 continue
             if not PINNED_ACTION_RE.fullmatch(value):
                 errors.append(f"unpinned GitHub Action reference in {rel(workflow)}: {value}")
+
+    ci = workflow_dir / "ci.yml"
+    if ci.is_file():
+        ci_text = ci.read_text(encoding="utf-8")
+        for required in (
+            "tools/security/check_licenses.py",
+            "tools/security/check_secrets.py",
+            "tools/security/run_vulnerability_scan.py",
+            "tools/security/generate_sbom.py",
+        ):
+            if required not in ci_text:
+                errors.append(f".github/workflows/ci.yml missing supply-chain gate: {required}")
+
+    publish = workflow_dir / "publish.yml"
+    if publish.is_file():
+        publish_text = publish.read_text(encoding="utf-8")
+        if "tools/security/generate_artifact_manifest.py" not in publish_text:
+            errors.append(".github/workflows/publish.yml missing artifact manifest generation")
+        if "--signature-output" not in publish_text:
+            errors.append(".github/workflows/publish.yml missing artifact signature generation path")
+
+    codeql = workflow_dir / "codeql.yml"
+    if not codeql.is_file():
+        errors.append("missing .github/workflows/codeql.yml")
+    elif "github/codeql-action/" not in codeql.read_text(encoding="utf-8"):
+        errors.append(".github/workflows/codeql.yml does not run CodeQL")
 
 
 

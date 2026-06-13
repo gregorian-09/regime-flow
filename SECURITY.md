@@ -78,3 +78,14 @@ python3 tools/security/run_vulnerability_scan.py --require-tools
 
 Use `--require-tools` in hardened release environments after installing scanners such as
 `pip-audit` and `osv-scanner`; use `--allow-missing-tools` for local maintainer smoke checks.
+
+CI also runs dependency-free metadata checks before expensive builds:
+
+```bash
+python3 tools/security/check_licenses.py
+python3 tools/security/check_secrets.py
+python3 tools/security/check_supply_chain.py
+```
+
+These gates verify project and vendored dependency license metadata, scan the checkout for
+obvious committed secrets, enforce vendored IB checksums, and require pinned GitHub Actions.

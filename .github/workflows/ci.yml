@@ -22,6 +22,12 @@ jobs:
     - name: Check supply-chain guardrails
       run: python3 tools/security/check_supply_chain.py
 
+    - name: Check license metadata
+      run: python3 tools/security/check_licenses.py
+
+    - name: Scan repository for committed secrets
+      run: python3 tools/security/check_secrets.py
+
     - name: Run optional vulnerability scanner wrapper
       run: python3 tools/security/run_vulnerability_scan.py --allow-missing-tools
 
