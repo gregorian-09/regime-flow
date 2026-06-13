@@ -610,7 +610,8 @@ namespace regimeflow::live
 
         if (!config_.log_dir.empty()) {
             std::filesystem::create_directories(config_.log_dir);
-            audit_logger_ = std::make_unique<AuditLogger>(config_.log_dir + "/audit.log");
+            audit_logger_ = std::make_unique<AuditLogger>(config_.log_dir + "/audit.log",
+                                                           config_.audit_log_format);
             reconciliation_journal_path_ = config_.log_dir + "/reconciliation_journal.tsv";
             restore_reconciliation_journal();
         }

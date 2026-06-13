@@ -39,6 +39,16 @@ namespace
         return cfg.get_as<bool>(key);
     }
 
+    regimeflow::live::AuditLogFormat parse_audit_log_format(const std::optional<std::string>& value) {
+        if (!value.has_value() || *value == "csv") {
+            return regimeflow::live::AuditLogFormat::Csv;
+        }
+        if (*value == "jsonl" || *value == "json") {
+            return regimeflow::live::AuditLogFormat::Jsonl;
+        }
+        return regimeflow::live::AuditLogFormat::Csv;
+    }
+
     std::vector<std::string> get_string_array(const regimeflow::Config& cfg, const std::string& key) {
         std::vector<std::string> out;
         if (const auto arr = cfg.get_as<regimeflow::ConfigValue::Array>(key); arr.has_value()) {
@@ -204,6 +214,7 @@ namespace
         cfg.broker_config = get_object_map(root, "live.broker_config");
         cfg.broker_config["paper"] = cfg.paper_trading ? "true" : "false";
         cfg.log_dir = get_string(root, "live.log_dir").value_or("./logs");
+        cfg.audit_log_format = parse_audit_log_format(get_string(root, "live.audit.format"));
         cfg.replay_journal_path =
             get_string(root, "live.replay_journal_path").value_or(cfg.replay_journal_path);
         cfg.max_order_value = get_double(root, "live.max_order_value").value_or(cfg.max_order_value);

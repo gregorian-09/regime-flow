@@ -5,7 +5,8 @@
 
 namespace regimeflow::live
 {
-    AuditLogger::AuditLogger(std::string path) : path_(std::move(path)) {}
+    AuditLogger::AuditLogger(std::string path, const AuditLogFormat format)
+        : path_(std::move(path)), format_(format) {}
 
     Result<void> AuditLogger::log(const AuditEvent& event) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -13,14 +14,39 @@ namespace regimeflow::live
         if (!stream_.is_open()) {
             return Result<void>(Error(Error::Code::IoError, "Failed to open audit log"));
         }
+        if (format_ == AuditLogFormat::Jsonl) {
+            write_jsonl(event);
+        } else {
+            write_csv(event);
+        }
+        stream_.flush();
+        return Ok();
+    }
+
+    void AuditLogger::write_csv(const AuditEvent& event) {
         stream_ << event.timestamp.to_string() << "," << type_to_string(event.type) << ","
                 << sanitize(event.details);
         for (const auto& [k, v] : event.metadata) {
             stream_ << "," << k << "=" << sanitize(v);
         }
         stream_ << "\n";
-        stream_.flush();
-        return Ok();
+    }
+
+    void AuditLogger::write_jsonl(const AuditEvent& event) {
+        stream_ << "{\"timestamp_us\":" << event.timestamp.microseconds()
+                << ",\"timestamp\":\"" << escape_json(event.timestamp.to_string()) << "\""
+                << ",\"type\":\"" << type_to_string(event.type) << "\""
+                << ",\"details\":\"" << escape_json(sanitize(event.details)) << "\""
+                << ",\"metadata\":{";
+        bool first = true;
+        for (const auto& [key, value] : event.metadata) {
+            if (!first) {
+                stream_ << ',';
+            }
+            first = false;
+            stream_ << "\"" << escape_json(key) << "\":\"" << escape_json(sanitize(value)) << "\"";
+        }
+        stream_ << "}}\n";
     }
 
     Result<void> AuditLogger::log_error(const std::string& error) {
@@ -76,6 +102,22 @@ namespace regimeflow::live
 
     std::string AuditLogger::sanitize(const std::string& value) {
         return redact_sensitive_values(value);
+    }
+
+    std::string AuditLogger::escape_json(const std::string& value) {
+        std::string out;
+        out.reserve(value.size() + 8);
+        for (const char ch : value) {
+            switch (ch) {
+            case '\\': out += "\\\\"; break;
+            case '"': out += "\\\""; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default: out += ch; break;
+            }
+        }
+        return out;
     }
 
     std::string AuditLogger::error_code_to_string(const Error::Code code) {

@@ -20,8 +20,7 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 - `live.heartbeat.cancel_orders_on_timeout` open-order cancellation gate.
 - `live.reconciliation.disable_trading_on_error` fail-closed order reconciliation gate.
 - `live.replay_journal_path` optional JSONL path for normalized live market-data replay capture.
-- `live.heartbeat.enabled` boolean.
-- `live.heartbeat.interval_ms` heartbeat timeout in milliseconds.
+- `live.audit.format` audit-log encoding: `csv` (default) or `jsonl` for structured log pipelines.
 - `live.risk` risk configuration block. This is passed to the risk factory.
 - `live.broker_config` key/value map of broker-specific settings.
 - `live.log_dir` output directory for logs and metrics.

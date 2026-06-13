@@ -17,6 +17,14 @@
 namespace regimeflow::live
 {
     /**
+     * @brief On-disk audit log encoding.
+     */
+    enum class AuditLogFormat {
+        Csv,
+        Jsonl
+    };
+
+    /**
      * @brief Structured audit log event for live trading.
      */
     struct AuditEvent {
@@ -54,7 +62,7 @@ namespace regimeflow::live
          * @brief Construct an audit logger with an output path.
          * @param path File path to write audit events.
          */
-        explicit AuditLogger(std::string path);
+        explicit AuditLogger(std::string path, AuditLogFormat format = AuditLogFormat::Csv);
 
         /**
          * @brief Log an audit event.
@@ -97,7 +105,11 @@ namespace regimeflow::live
 
         void open_if_needed();
         static std::string sanitize(const std::string& value);
+        static std::string escape_json(const std::string& value);
         static std::string error_code_to_string(Error::Code code);
         static std::string type_to_string(AuditEvent::Type type);
+        void write_csv(const AuditEvent& event);
+        void write_jsonl(const AuditEvent& event);
+        AuditLogFormat format_ = AuditLogFormat::Csv;
     };
 }  // namespace regimeflow::live

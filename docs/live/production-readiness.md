@@ -21,7 +21,7 @@ Use this page as the operational checklist before promoting a live strategy from
 - Market-data subscriptions cover the feeds required by your symbols and strategy cadence.
 - Time-in-force, order type, and asset-class combinations match the broker account you are actually using.
 - Rate limits, reconnect behavior, and heartbeat thresholds are sized for the venue and network path you operate.
-- Audit logging, live metrics sinks, and execution-quality snapshots are reviewed and persisted by the deployment wrapper.
+- Audit logging, live metrics sinks, and execution-quality snapshots are reviewed and persisted by the deployment wrapper. Use `live.audit.format: jsonl` when logs are ingested by structured-log tooling.
 - Startup logs, runtime error logs, and audit logs should be checked for secret redaction before promotion.
 
 ## Recommended Promotion Path

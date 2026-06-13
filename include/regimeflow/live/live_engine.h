@@ -186,6 +186,10 @@ namespace regimeflow::live
          */
         std::string log_dir = "./logs";
         /**
+         * @brief Audit log encoding.
+         */
+        AuditLogFormat audit_log_format = AuditLogFormat::Csv;
+        /**
          * @brief Optional JSONL replay journal path for normalized live market-data events.
          */
         std::string replay_journal_path;

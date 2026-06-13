@@ -37,6 +37,16 @@ namespace
         return cfg.get_as<bool>(key);
     }
 
+    regimeflow::live::AuditLogFormat parse_audit_log_format(const std::optional<std::string>& value) {
+        if (!value.has_value() || *value == "csv") {
+            return regimeflow::live::AuditLogFormat::Csv;
+        }
+        if (*value == "jsonl" || *value == "json") {
+            return regimeflow::live::AuditLogFormat::Jsonl;
+        }
+        return regimeflow::live::AuditLogFormat::Csv;
+    }
+
     std::vector<std::string> get_string_array(const regimeflow::Config& cfg,
                                               const std::string& key) {
         std::vector<std::string> out;
@@ -206,6 +216,7 @@ namespace
         if (const auto log_dir = get_string(root, "live.log_dir")) {
             cfg.log_dir = *log_dir;
         }
+        cfg.audit_log_format = parse_audit_log_format(get_string(root, "live.audit.format"));
         cfg.replay_journal_path =
             get_string(root, "live.replay_journal_path").value_or(cfg.replay_journal_path);
 

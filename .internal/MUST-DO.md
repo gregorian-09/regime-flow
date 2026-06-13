@@ -175,10 +175,11 @@ Status:
 - Exporter covers dashboard/account gauges plus execution-quality counters, rejection rate, latency, and slippage gauges.
 - Added unit coverage in `tests/unit/test_prometheus_exporter.cpp`.
 - Documented the helper in `docs/live/overview.md` and `docs/reference/configuration.md`.
+- Added configurable live audit encoding with `live.audit.format: jsonl` for structured-log pipelines.
 
 Remaining:
 
-- Add an HTTP scrape endpoint and structured-log sink configuration.
+- Add an HTTP scrape endpoint.
 
 10. Security / supply-chain posture -- PARTIALLY IMPLEMENTED
 

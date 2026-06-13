@@ -168,6 +168,38 @@ namespace regimeflow::test
         std::filesystem::remove(temp_path);
     }
 
+    TEST(SecretHygiene, AuditLoggerWritesJsonlWhenConfigured) {
+        live::reset_sensitive_values_for_tests();
+        live::register_sensitive_value("json-secret");
+
+        const auto temp_path = std::filesystem::temp_directory_path()
+            / ("regimeflow_audit_jsonl_test_"
+               + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".jsonl");
+
+        {
+            live::AuditLogger logger(temp_path.string(), live::AuditLogFormat::Jsonl);
+            live::AuditEvent event;
+            event.timestamp = Timestamp(42);
+            event.type = live::AuditEvent::Type::Error;
+            event.details = "quoted \"json-secret\"";
+            event.metadata["source"] = "unit";
+            ASSERT_TRUE(logger.log(event).is_ok());
+
+            std::ifstream input(temp_path);
+            ASSERT_TRUE(input.good());
+            std::string content((std::istreambuf_iterator<char>(input)),
+                                std::istreambuf_iterator<char>());
+
+            EXPECT_NE(content.find("\"timestamp_us\":42"), std::string::npos);
+            EXPECT_NE(content.find("\"type\":\"Error\""), std::string::npos);
+            EXPECT_NE(content.find("\"source\":\"unit\""), std::string::npos);
+            EXPECT_NE(content.find("\\\"***\\\""), std::string::npos);
+            EXPECT_EQ(content.find("json-secret"), std::string::npos);
+        }
+
+        std::filesystem::remove(temp_path);
+    }
+
 
     TEST(SecretHygiene, AuditLoggerWritesRegimeModelMetadata) {
         live::reset_sensitive_values_for_tests();
