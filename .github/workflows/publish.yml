@@ -106,6 +106,8 @@ jobs:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+
       - name: Download artifacts
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         with:
@@ -117,6 +119,18 @@ jobs:
           mkdir -p publish-dist
           find dist -maxdepth 1 \( -name "*.whl" -o -name "*.tar.gz" \) -exec cp -t publish-dist {} +
           ls -la publish-dist
+
+      - name: Generate artifact checksum manifest
+        run: |
+          python3 tools/security/generate_artifact_manifest.py \
+            --artifact-dir publish-dist \
+            --output artifact-verification/SHA256SUMS
+
+      - name: Upload artifact checksum manifest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: python-artifact-checksums
+          path: artifact-verification/SHA256SUMS
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3

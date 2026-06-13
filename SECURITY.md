@@ -50,3 +50,31 @@ The generated document records the project version, Python dependencies, vcpkg d
 and vendored Interactive Brokers API files with SHA256 checksums. CI runs this generator in
 the supply-chain gate so release artifacts can be traced back to a deterministic dependency
 inventory.
+
+Release/package jobs can generate a checksum manifest for built artifacts:
+
+```bash
+python3 tools/security/generate_artifact_manifest.py \
+  --artifact-dir dist \
+  --output dist/SHA256SUMS
+```
+
+If `REGIMEFLOW_ARTIFACT_SIGNING_KEY` is available, the same tool can also write an
+HMAC-SHA256 signature over the manifest:
+
+```bash
+python3 tools/security/generate_artifact_manifest.py \
+  --artifact-dir dist \
+  --output dist/SHA256SUMS \
+  --signature-output dist/SHA256SUMS.hmac
+```
+
+Known-vulnerability scanning is wrapped by:
+
+```bash
+python3 tools/security/run_vulnerability_scan.py --allow-missing-tools
+python3 tools/security/run_vulnerability_scan.py --require-tools
+```
+
+Use `--require-tools` in hardened release environments after installing scanners such as
+`pip-audit` and `osv-scanner`; use `--allow-missing-tools` for local maintainer smoke checks.

@@ -61,6 +61,10 @@ def check_required_files(errors: list[str]) -> None:
         errors.append("missing python/regimeflow/py.typed")
     if not (ROOT / "tools" / "security" / "generate_sbom.py").is_file():
         errors.append("missing tools/security/generate_sbom.py")
+    if not (ROOT / "tools" / "security" / "generate_artifact_manifest.py").is_file():
+        errors.append("missing tools/security/generate_artifact_manifest.py")
+    if not (ROOT / "tools" / "security" / "run_vulnerability_scan.py").is_file():
+        errors.append("missing tools/security/run_vulnerability_scan.py")
 
 
 def check_ibapi_scope(errors: list[str]) -> None:
