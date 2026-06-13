@@ -20,3 +20,9 @@ flowchart LR
 ## Why It Matters
 
 Broker callbacks can be delayed or dropped. Reconciliation ensures the engine converges to broker truth over time.
+
+## Fail-Closed State Handling
+
+Unknown or unsupported broker order states are treated as reconciliation failures, not benign informational states. The live engine disables trading when broker truth cannot be mapped safely into the internal order state machine. This favors capital preservation over optimistic continuation.
+
+`close_all_positions()` submits exits through the live order manager instead of bypassing risk, duplicate-order protection, audit logging, and reconciliation mappings.

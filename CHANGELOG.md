@@ -7,7 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.12] - 2026-06-14
+
 ### Changed
+- Documented the native-code quality gates, concurrency hardening, mmap checksum persistence, live thread-safety boundaries, and tag-based publishing workflow.
+- Added a release metadata validation gate so tag-based publishing fails when package versions drift.
+- Standardized publishing ownership around `.github/workflows/publish.yml` and removed stale release logic from CI.
+- Expanded wheel publishing to include Python 3.13 and 3.14.
+- Switched PyPI release publishing to Trusted Publishing/OIDC and added `twine check` validation before upload.
+- Published Linux package repositories under `gh-pages/packages` to avoid overwriting the documentation site.
 - Expanded the public README with prerequisites, installation paths, platform support, a working example, and links to the published docs site.
 - Added `CONTRIBUTING.md` with contributor build, test, and plugin-development guidance.
 - Removed `progress.md` from the repository root to keep the public repo surface focused on user and contributor documentation.

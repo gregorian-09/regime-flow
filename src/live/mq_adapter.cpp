@@ -30,7 +30,8 @@ namespace regimeflow::live
 {
     namespace {
 
-        std::pair<std::string, int> parse_host_port(const std::string& endpoint, int default_port) {
+        [[maybe_unused]] std::pair<std::string, int> parse_host_port(const std::string& endpoint,
+                                                                     int default_port) {
             auto pos = endpoint.find(':');
             if (pos == std::string::npos) {
                 return {endpoint, default_port};
@@ -40,7 +41,7 @@ namespace regimeflow::live
             return {host, port};
         }
 
-        int get_process_id() {
+        [[maybe_unused]] int get_process_id() {
 #if defined(_WIN32)
             return _getpid();
 #else
@@ -494,6 +495,7 @@ namespace regimeflow::live
 
     std::unique_ptr<MessageQueueAdapter> create_message_queue_adapter(
         const MessageQueueConfig& config) {
+        (void)config;
 #if defined(REGIMEFLOW_USE_ZMQ)
         if (config.type == "zeromq") {
             return std::make_unique<ZmqAdapter>(config);

@@ -8,12 +8,20 @@ on:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  validate_release:
+    name: Validate release metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+
+      - name: Check tag and package versions
+        run: python3 tools/check_versions.py "${GITHUB_REF_NAME}"
+
   build_wheels:
     name: Build wheels (${{ matrix.label }})
+    needs: validate_release
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -57,14 +65,14 @@ jobs:
           package-dir: .
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_SKIP: "pp* *-musllinux_*"
           CIBW_ARCHS_LINUX: "${{ matrix.cibw_archs_linux }}"
           CIBW_ARCHS_MACOS: "${{ matrix.cibw_archs_macos }}"
           CIBW_ARCHS_WINDOWS: "${{ matrix.cibw_archs_windows }}"
-          CIBW_ENVIRONMENT_LINUX: 'CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF"'
-          CIBW_ENVIRONMENT_MACOS: 'MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }} CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}"'
-          CIBW_ENVIRONMENT_WINDOWS: 'CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF"'
+          CIBW_ENVIRONMENT_LINUX: 'CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF"'
+          CIBW_ENVIRONMENT_MACOS: 'MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }} CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}"'
+          CIBW_ENVIRONMENT_WINDOWS: 'CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF" SKBUILD_CMAKE_ARGS="-DREGIMEFLOW_FETCH_DEPS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_IBAPI=OFF -DENABLE_ZMQ=OFF -DENABLE_REDIS=OFF -DENABLE_KAFKA=OFF -DENABLE_POSTGRES=OFF -DENABLE_CURL=OFF -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF"'
           CIBW_BEFORE_ALL_LINUX: >
             python -m pip install cmake &&
             (if command -v yum >/dev/null 2>&1; then yum install -y protobuf-devel;
@@ -83,6 +91,7 @@ jobs:
 
   build_sdist:
     name: Build sdist
+    needs: validate_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
@@ -107,7 +116,13 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
     steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+
       - name: Download artifacts
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         with:
@@ -120,15 +135,49 @@ jobs:
           find dist -maxdepth 1 \( -name "*.whl" -o -name "*.tar.gz" \) -exec cp -t publish-dist {} +
           ls -la publish-dist
 
+      - name: Generate artifact checksum manifest
+        env:
+          REGIMEFLOW_ARTIFACT_SIGNING_KEY: ${{ secrets.REGIMEFLOW_ARTIFACT_SIGNING_KEY }}
+        run: |
+          mkdir -p artifact-verification
+          if [ -n "${REGIMEFLOW_ARTIFACT_SIGNING_KEY}" ]; then
+            python3 tools/security/generate_artifact_manifest.py \
+              --artifact-dir publish-dist \
+              --output artifact-verification/SHA256SUMS \
+              --signature-output artifact-verification/SHA256SUMS.hmac
+          else
+            python3 tools/security/generate_artifact_manifest.py \
+              --artifact-dir publish-dist \
+              --output artifact-verification/SHA256SUMS
+            echo "::warning::REGIMEFLOW_ARTIFACT_SIGNING_KEY is not configured; uploaded checksum manifest is unsigned."
+          fi
+
+      - name: Upload artifact checksum manifest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: python-artifact-checksums
+          path: artifact-verification/*
+
+      - name: Validate Python distributions
+        run: |
+          python -m pip install --upgrade pip twine
+          twine check publish-dist/*
+
+      - name: Upload Python distributions to release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
+        with:
+          files: |
+            publish-dist/*
+            artifact-verification/*
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3
         with:
           packages-dir: publish-dist
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
 
   build_linux_packages:
     name: Build Linux packages (deb + rpm)
+    needs: [validate_release, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -155,7 +204,7 @@ jobs:
             -DENABLE_KAFKA=OFF \
             -DENABLE_POSTGRES=OFF \
             -DENABLE_CURL=OFF \
-            -DENABLE_OPENSSL=OFF
+            -DENABLE_OPENSSL=OFF -DENABLE_WEBSOCKET=OFF
           cmake --build build
           cmake --install build --prefix /tmp/regimeflow
 
@@ -276,8 +325,10 @@ jobs:
           path: repo
 
       - name: Publish to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@329bcc8f12caed2cefe5a5b80781499a6f3b361b
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: repo
+          destination_dir: packages
+          keep_files: true

@@ -9,6 +9,7 @@
 #include "regimeflow/common/memory.h"
 
 #include <atomic>
+#include <mutex>
 #include <optional>
 #include <queue>
 #include <vector>
@@ -46,8 +47,12 @@ namespace regimeflow::events
             event.sequence = next_sequence_.fetch_add(1, std::memory_order_relaxed);
             Node* node = pool_.allocate();
             new (node) Node{std::move(event), nullptr};
-            Node* prev = pending_.exchange(node, std::memory_order_acq_rel);
-            node->next = prev;
+            Node* head = pending_.load(std::memory_order_acquire);
+            do {
+                node->next = head;
+            } while (!pending_.compare_exchange_weak(head, node,
+                                                     std::memory_order_release,
+                                                     std::memory_order_acquire));
         }
 
         /**
@@ -55,7 +60,8 @@ namespace regimeflow::events
          * @return Optional event, empty if none.
          */
         std::optional<Event> pop() {
-            drain_pending();
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            drain_pending_locked();
             if (queue_.empty()) {
                 return std::nullopt;
             }
@@ -69,7 +75,8 @@ namespace regimeflow::events
          * @return Optional event, empty if none.
          */
         std::optional<Event> peek() {
-            drain_pending();
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            drain_pending_locked();
             if (queue_.empty()) {
                 return std::nullopt;
             }
@@ -81,7 +88,8 @@ namespace regimeflow::events
          * @return True if empty.
          */
         bool empty() {
-            drain_pending();
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            drain_pending_locked();
             return queue_.empty();
         }
 
@@ -90,7 +98,8 @@ namespace regimeflow::events
          * @return Queue size.
          */
         size_t size() {
-            drain_pending();
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            drain_pending_locked();
             return queue_.size();
         }
 
@@ -98,7 +107,8 @@ namespace regimeflow::events
          * @brief Clear all queued events.
          */
         void clear() {
-            drain_pending();
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            drain_pending_locked();
             queue_ = std::priority_queue<Event, std::vector<Event>, EventComparator>();
         }
 
@@ -116,7 +126,7 @@ namespace regimeflow::events
             Node* next = nullptr;
         };
 
-        void drain_pending() {
+        void drain_pending_locked() {
             Node* list = pending_.exchange(nullptr, std::memory_order_acq_rel);
             while (list) {
                 Node* next = list->next;
@@ -127,6 +137,7 @@ namespace regimeflow::events
             }
         }
 
+        std::mutex queue_mutex_;
         std::priority_queue<Event, std::vector<Event>, EventComparator> queue_;
         std::atomic<Node*> pending_{nullptr};
         std::atomic<uint64_t> next_sequence_{0};

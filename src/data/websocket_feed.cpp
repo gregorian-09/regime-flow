@@ -37,7 +37,7 @@ namespace regimeflow::data
             std::string target;
         };
 
-        ParsedUrl parse_url(const std::string& url) {
+        [[maybe_unused]] ParsedUrl parse_url(const std::string& url) {
             ParsedUrl out;
             const auto scheme_pos = url.find("://");
             if (scheme_pos == std::string::npos) {
@@ -215,7 +215,7 @@ namespace regimeflow::data
             return levels;
         }
 
-        std::string apply_template(const std::string& tpl, const std::vector<std::string>& symbols) {
+        [[maybe_unused]] std::string apply_template(const std::string& tpl, const std::vector<std::string>& symbols) {
             if (tpl.empty()) {
                 return {};
             }
@@ -489,8 +489,7 @@ namespace regimeflow::data
 
     void WebSocketFeed::unsubscribe(const std::vector<std::string>& symbols) {
         for (const auto& sym : symbols) {
-            subscriptions_.erase(std::ranges::remove(subscriptions_, sym).begin(),
-                                 subscriptions_.end());
+            std::erase(subscriptions_, sym);
         }
 #ifdef REGIMEFLOW_USE_BOOST_BEAST
         if (connected_) {

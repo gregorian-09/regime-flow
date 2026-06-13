@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "regimeflow/regime/hmm.h"
+#include "temp_path_guard.h"
 
 #include <filesystem>
 
@@ -22,7 +23,9 @@ namespace regimeflow::test
         detector.train(data);
         double ll_before = detector.log_likelihood(data);
 
-        auto path = std::filesystem::temp_directory_path() / "regimeflow_hmm_model.txt";
+        regimeflow::test::TempPathGuard temp_model(
+            std::filesystem::temp_directory_path() / "regimeflow_hmm_model.txt");
+        const auto& path = temp_model.path();
         detector.save(path.string());
 
         regimeflow::regime::HMMRegimeDetector loaded(1, 5);
@@ -30,5 +33,35 @@ namespace regimeflow::test
         double ll_after = loaded.log_likelihood(data);
 
         EXPECT_NEAR(ll_before, ll_after, 1e-3);
+    }
+
+    TEST(HMMRegimeDetector, SaveLoadPreservesModelGovernanceMetadata) {
+        regimeflow::regime::HMMRegimeDetector detector(2, 5);
+        detector.set_features({regimeflow::regime::FeatureType::Return,
+                               regimeflow::regime::FeatureType::Volatility});
+
+        regimeflow::regime::ModelGovernanceMetadata metadata;
+        metadata.detector_type = "hmm";
+        metadata.model_version = "test-model-7";
+        metadata.training_start_us = 100;
+        metadata.training_end_us = 200;
+        metadata.feature_schema = "return,volatility";
+        metadata.parameter_digest = "sha256:abc123";
+        detector.set_model_metadata(metadata);
+
+        regimeflow::test::TempPathGuard temp_model(
+            std::filesystem::temp_directory_path() / "regimeflow_hmm_metadata.txt");
+        detector.save(temp_model.path().string());
+
+        regimeflow::regime::HMMRegimeDetector loaded(1, 5);
+        loaded.load(temp_model.path().string());
+        const auto loaded_metadata = loaded.model_metadata();
+
+        EXPECT_EQ(loaded_metadata.detector_type, "hmm");
+        EXPECT_EQ(loaded_metadata.model_version, "test-model-7");
+        EXPECT_EQ(loaded_metadata.training_start_us, 100);
+        EXPECT_EQ(loaded_metadata.training_end_us, 200);
+        EXPECT_EQ(loaded_metadata.feature_schema, "return,volatility");
+        EXPECT_EQ(loaded_metadata.parameter_digest, "sha256:abc123");
     }
 }  // namespace regimeflow::test

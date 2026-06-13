@@ -5,6 +5,7 @@
 #include <pybind11/numpy.h>
 
 #include <cstddef>
+#include <filesystem>
 
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
@@ -76,12 +77,25 @@ static ConfigValue::Object to_object(const py::dict& dict) {
     return obj;
 }
 
+static int64_t py_int_to_int64(const py::handle& obj) {
+    int overflow = 0;
+    const long long value = PyLong_AsLongLongAndOverflow(obj.ptr(), &overflow);
+    if (overflow != 0) {
+        PyErr_SetString(PyExc_OverflowError, "integer value is outside int64 range");
+        throw py::error_already_set();
+    }
+    if (value == -1 && PyErr_Occurred()) {
+        throw py::error_already_set();
+    }
+    return static_cast<int64_t>(value);
+}
+
 static ConfigValue to_config_value(const py::handle& obj) {
     if (py::isinstance<py::bool_>(obj)) {
         return {obj.cast<bool>()};
     }
     if (py::isinstance<py::int_>(obj)) {
-        return {static_cast<int64_t>(obj.cast<long long>())};
+        return {py_int_to_int64(obj)};
     }
     if (py::isinstance<py::float_>(obj)) {
         return {obj.cast<double>()};
@@ -905,6 +919,12 @@ struct BacktestConfig {
 
     static BacktestConfig from_yaml_file(const std::string& path) {
         BacktestConfig cfg;
+        std::error_code ec;
+        if (!std::filesystem::exists(path, ec)) {
+            PyErr_SetString(PyExc_FileNotFoundError,
+                            ("YAML config file does not exist: " + path).c_str());
+            throw py::error_already_set();
+        }
         auto config = YamlConfigLoader::load_file(path);
         if (auto v = config.get_as<std::string>("data_source")) cfg.data_source = *v;
         if (auto v = config.get_as<ConfigValue::Object>("data")) {
@@ -1787,7 +1807,8 @@ PYBIND11_MODULE(_core, m) {
         .value("BULL", regime::RegimeType::Bull)
         .value("NEUTRAL", regime::RegimeType::Neutral)
         .value("BEAR", regime::RegimeType::Bear)
-        .value("CRISIS", regime::RegimeType::Crisis);
+        .value("CRISIS", regime::RegimeType::Crisis)
+        .value("CUSTOM", regime::RegimeType::Custom);
 
     py::class_<regime::RegimeState>(m, "RegimeState")
         .def_readonly("regime", &regime::RegimeState::regime)

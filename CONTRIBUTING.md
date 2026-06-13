@@ -41,7 +41,7 @@ cmake -S . -B build \
 cmake --build build --target all
 ```
 
-## Tests
+## Tests And Quality Gates
 
 C++ test suite:
 
@@ -49,10 +49,38 @@ C++ test suite:
 ctest --test-dir build --output-on-failure
 ```
 
-Python tests:
+Python tests from the root package layout:
 
 ```bash
+pip install -e .[dev]
 pytest python/tests
+```
+
+Static analysis after configuring with `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON`:
+
+```bash
+cppcheck --project=build/compile_commands.json \
+  --std=c++20 \
+  --enable=warning,portability \
+  --inline-suppr \
+  --suppress=missingIncludeSystem \
+  --suppress=unmatchedSuppression \
+  --suppress=invalidPointerCast \
+  --suppress=preprocessorErrorDirective \
+  --error-exitcode=2 \
+  --file-filter='include/*' \
+  --file-filter='src/*'
+```
+
+Valgrind is Linux-only and is used for targeted memory-sensitive tests:
+
+```bash
+valgrind --leak-check=full \
+  --show-leak-kinds=definite,indirect \
+  --errors-for-leak-kinds=definite,indirect \
+  --error-exitcode=9 \
+  ./build/bin/regimeflow_tests \
+  --gtest_filter='MonotonicArena.*:MmapWriter.*:EventBus.*:ReplayJournal.*:LiveOrderManager.*:PluginRegistry.*'
 ```
 
 Sanitizer build:
@@ -68,9 +96,13 @@ ctest --test-dir build-clang-debug --output-on-failure
 clang-tidy build:
 
 ```bash
-cmake -S . -B build-tidy -DENABLE_CLANG_TIDY=ON
+cmake -S . -B build-tidy \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DENABLE_CLANG_TIDY=ON
 cmake --build build-tidy --target all
 ```
+
+See [Developer Quality Gates](docs/reference/developer-quality-gates.md) for the CI policy and local equivalents.
 
 ## Plugin Development
 

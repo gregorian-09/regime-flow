@@ -123,9 +123,9 @@ namespace regimeflow::live
         }
 #endif
 
-        Error make_binance_http_error(const char* operation,
-                                      const long status,
-                                      const std::string& response) {
+        [[maybe_unused]] Error make_binance_http_error(const char* operation,
+                                                       const long status,
+                                                       const std::string& response) {
             Error error;
             if (status == 401 || status == 403) {
                 error = Error(Error::Code::BrokerError, "Binance authentication failed");
@@ -159,7 +159,7 @@ namespace regimeflow::live
             if (value == "FILLED") return LiveOrderStatus::Filled;
             if (value == "CANCELED" || value == "CANCELLED") return LiveOrderStatus::Cancelled;
             if (value == "REJECTED" || value == "EXPIRED") return LiveOrderStatus::Rejected;
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
 #ifdef REGIMEFLOW_USE_OPENSSL
@@ -244,12 +244,10 @@ namespace regimeflow::live
         std::vector<std::string> stream_symbols;
         stream_symbols.reserve(symbols.size());
         for (const auto& sym : symbols) {
-            stream_symbols.push_back(build_trade_stream_symbol(sym));
-            symbols_.erase(std::ranges::remove(symbols_,
-                                               build_trade_stream_symbol(sym)).begin(),
-                           symbols_.end());
-            raw_symbols_.erase(std::ranges::remove(raw_symbols_, sym).begin(),
-                               raw_symbols_.end());
+            const auto stream_symbol = build_trade_stream_symbol(sym);
+            stream_symbols.push_back(stream_symbol);
+            std::erase(symbols_, stream_symbol);
+            std::erase(raw_symbols_, sym);
         }
         if (stream_) {
             stream_->unsubscribe(stream_symbols);
@@ -514,7 +512,8 @@ namespace regimeflow::live
             get_number(*obj, "price", price);
             report.quantity = qty;
             report.price = price;
-            report.status = map_order_status(get_string(*obj, "status"));
+            report.text = get_string(*obj, "status");
+            report.status = map_order_status(report.text);
             report.timestamp = Timestamp::now();
             if (!report.broker_order_id.empty()) {
                 std::lock_guard<std::mutex> lock(mutex_);
@@ -546,22 +545,27 @@ namespace regimeflow::live
     }
 
     bool BinanceAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
-        if (tif == engine::TimeInForce::GTD) {
-            return false;
-        }
-        if (type == engine::OrderType::Limit) {
-            return tif == engine::TimeInForce::GTC
-                || tif == engine::TimeInForce::IOC
-                || tif == engine::TimeInForce::FOK;
-        }
-        if (type == engine::OrderType::Market) {
+        return capabilities().supports(type, tif);
+    }
+
+    BrokerCapabilities BinanceAdapter::capabilities() const {
+        BrokerCapabilities caps;
+        caps.broker = "binance";
+        caps.asset_classes = {AssetClass::Crypto};
+        caps.supports_fractional_quantity = true;
+        caps.supports_short_selling = false;
+        caps.supports_crypto = true;
+        caps.supports_bracket_orders = false;
+        caps.max_orders_per_second = max_orders_per_second();
+        caps.max_messages_per_second = max_messages_per_second();
+        caps.order_types = {
             // Binance market orders do not carry a timeInForce field on submit.
-            // Accept the engine default Day setting so default market orders remain
-            // broker-compatible without caller-side mutation.
-            return tif == engine::TimeInForce::Day
-                || tif == engine::TimeInForce::IOC;
-        }
-        return false;
+            // Accept Day so default engine market orders remain broker-compatible.
+            {engine::OrderType::Market, {engine::TimeInForce::Day, engine::TimeInForce::IOC}},
+            {engine::OrderType::Limit,
+             {engine::TimeInForce::GTC, engine::TimeInForce::IOC, engine::TimeInForce::FOK}},
+        };
+        return caps;
     }
 
     void BinanceAdapter::poll() {

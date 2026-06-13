@@ -3,6 +3,7 @@
 #include "regimeflow/data/bar.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <iostream>
 
 int main() {
@@ -27,8 +28,13 @@ int main() {
     }
     const auto end = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed = end - start;
+    if (popped != kEvents || elapsed.count() <= 0.0) {
+        std::cerr << "Event processing benchmark failed sanity checks: popped=" << popped
+                  << ", elapsed=" << elapsed.count() << '\n';
+        return EXIT_FAILURE;
+    }
 
     const double eps = static_cast<double>(popped) / elapsed.count();
-    std::cout << "Event processing: " << eps << " events/sec" << std::endl;
-    return 0;
+    std::cout << "Event processing: " << eps << " events/sec" << '\n';
+    return EXIT_SUCCESS;
 }

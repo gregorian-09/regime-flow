@@ -22,34 +22,14 @@ namespace regimeflow::test
 #else
                 std::string("libregimeflow_test_plugin") + plugin_ext;
 #endif
-        fs::path plugin_path;
+        fs::path plugin_path =
+#if defined(REGIMEFLOW_TEST_PLUGIN_DIR)
+            fs::path(REGIMEFLOW_TEST_PLUGIN_DIR) / plugin_name;
+#else
+            fs::current_path() / "tests" / "plugins" / plugin_name;
+#endif
 
-        if (plugin_path.empty()) {
-            fs::path base = fs::current_path();
-            for (int i = 0; i < 6; ++i) {
-                auto candidate = base / "build" / "tests" / "plugins" / plugin_name;
-                if (fs::exists(candidate)) {
-                    plugin_path = candidate;
-                    break;
-                }
-                candidate = base / "build" / "bin" / plugin_name;
-                if (fs::exists(candidate)) {
-                    plugin_path = candidate;
-                    break;
-                }
-                candidate = base / "tests" / "plugins" / plugin_name;
-                if (fs::exists(candidate)) {
-                    plugin_path = candidate;
-                    break;
-                }
-                if (!base.has_parent_path()) {
-                    break;
-                }
-                base = base.parent_path();
-            }
-        }
-
-        ASSERT_FALSE(plugin_path.empty()) << "Missing plugin " << plugin_name;
+        ASSERT_TRUE(fs::exists(plugin_path)) << "Missing plugin " << plugin_path;
 
         auto& registry = regimeflow::plugins::PluginRegistry::instance();
         auto load_res = registry.load_dynamic_plugin(plugin_path.string());

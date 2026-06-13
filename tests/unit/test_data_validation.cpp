@@ -3,6 +3,7 @@
 #include "regimeflow/data/csv_reader.h"
 #include "regimeflow/data/tick_csv_reader.h"
 #include "regimeflow/common/time.h"
+#include "temp_path_guard.h"
 
 #include <filesystem>
 #include <fstream>
@@ -14,9 +15,7 @@ using namespace regimeflow::data;
 namespace
 {
     std::filesystem::path make_temp_dir(const std::string& name) {
-        auto base = std::filesystem::temp_directory_path() / "regimeflow_tests" / name;
-        std::filesystem::create_directories(base);
-        return base;
+        return std::filesystem::temp_directory_path() / "regimeflow_tests" / name;
     }
 
     void write_file(const std::filesystem::path& path, const std::string& content) {
@@ -27,6 +26,8 @@ namespace
 
 TEST(DataValidation, CsvVolumeBoundsSkipsInvalidRow) {
     const auto dir = make_temp_dir("csv_volume_bounds");
+    const regimeflow::test::TempPathGuard temp_dir(dir);
+    std::filesystem::create_directories(dir);
     const auto path = dir / "AAPL.csv";
     write_file(path,
                "timestamp,open,high,low,close,volume\n"
@@ -50,6 +51,8 @@ TEST(DataValidation, CsvVolumeBoundsSkipsInvalidRow) {
 
 TEST(DataValidation, CsvOutlierAddsWarning) {
     const auto dir = make_temp_dir("csv_outliers");
+    const regimeflow::test::TempPathGuard temp_dir(dir);
+    std::filesystem::create_directories(dir);
     const auto path = dir / "MSFT.csv";
     write_file(path,
                "timestamp,open,high,low,close,volume\n"
@@ -74,9 +77,11 @@ TEST(DataValidation, CsvOutlierAddsWarning) {
 
 TEST(DataValidation, TickFutureTimestampIsRejected) {
     auto dir = make_temp_dir("tick_future_ts");
+    const regimeflow::test::TempPathGuard temp_dir(dir);
+    std::filesystem::create_directories(dir);
     auto path = dir / "AAPL_ticks.csv";
 
-    auto future = (Timestamp::now() + Duration::days(1)).to_string();
+    auto future = Timestamp::from_string("2099-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").to_string();
     write_file(path,
                "timestamp,price,quantity\n" + future + ",10,1\n");
 
@@ -97,6 +102,8 @@ TEST(DataValidation, TickFutureTimestampIsRejected) {
 
 TEST(DataValidation, CsvGapFillInsertsMissingBars) {
     const auto dir = make_temp_dir("csv_gap_fill");
+    const regimeflow::test::TempPathGuard temp_dir(dir);
+    std::filesystem::create_directories(dir);
     const auto path = dir / "AAPL.csv";
     write_file(path,
                "timestamp,open,high,low,close,volume\n"

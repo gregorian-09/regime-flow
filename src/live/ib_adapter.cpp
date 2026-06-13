@@ -61,11 +61,19 @@ namespace regimeflow::live
             if (value == "SUBMITTED" || value == "PRESUBMITTED") {
                 return LiveOrderStatus::New;
             }
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
         bool quote_complete(const data::Quote& quote) {
             return quote.symbol != 0 && quote.bid > 0.0 && quote.ask > 0.0;
+        }
+
+        bool is_loopback_host(const std::string& host) {
+            return host.empty()
+                || host == "localhost"
+                || host == "127.0.0.1"
+                || host == "::1"
+                || host == "[::1]";
         }
 
         void apply_contract_override(IBAdapter::ContractConfig& target,
@@ -143,6 +151,12 @@ namespace regimeflow::live
         if (client_->isConnected() && trading_ready_.load()) {
             connected_ = true;
             return Ok();
+        }
+        if (!config_.allow_plaintext_remote && !is_loopback_host(config_.host)) {
+            return Result<void>(Error(
+                Error::Code::BrokerError,
+                "IB TWS/Gateway uses plaintext TCP; refusing non-loopback host without "
+                "allow_plaintext_remote=true and a protected transport such as SSH, VPN, or stunnel"));
         }
         {
             std::lock_guard<std::mutex> lock(state_mutex_);
@@ -345,17 +359,41 @@ namespace regimeflow::live
     }
 
     bool IBAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
-        (void)type;
-        switch (tif) {
-        case engine::TimeInForce::Day:
-        case engine::TimeInForce::GTC:
-        case engine::TimeInForce::IOC:
-        case engine::TimeInForce::FOK:
-        case engine::TimeInForce::GTD:
-            return true;
-        default:
-            return false;
-        }
+        return capabilities().supports(type, tif);
+    }
+
+    BrokerCapabilities IBAdapter::capabilities() const {
+        const std::vector<engine::TimeInForce> core_tifs{
+            engine::TimeInForce::Day,
+            engine::TimeInForce::GTC,
+            engine::TimeInForce::IOC,
+            engine::TimeInForce::FOK,
+            engine::TimeInForce::GTD,
+        };
+
+        BrokerCapabilities caps;
+        caps.broker = "interactive-brokers";
+        caps.asset_classes = {
+            AssetClass::Equity,
+            AssetClass::Futures,
+            AssetClass::Forex,
+            AssetClass::Options,
+        };
+        caps.supports_fractional_quantity = true;
+        caps.supports_short_selling = true;
+        caps.supports_crypto = false;
+        caps.supports_bracket_orders = false;
+        caps.max_orders_per_second = max_orders_per_second();
+        caps.max_messages_per_second = max_messages_per_second();
+        caps.order_types = {
+            {engine::OrderType::Market, core_tifs},
+            {engine::OrderType::Limit, core_tifs},
+            {engine::OrderType::Stop, core_tifs},
+            {engine::OrderType::StopLimit, core_tifs},
+            {engine::OrderType::MarketOnClose, core_tifs},
+            {engine::OrderType::MarketOnOpen, core_tifs},
+        };
+        return caps;
     }
 
     void IBAdapter::poll() {}
@@ -404,6 +442,7 @@ namespace regimeflow::live
         ib_order.orderId = static_cast<OrderId>(order_id);
         ib_order.totalQuantity = DecimalFunctions::doubleToDecimal(order.quantity);
         ib_order.action = order.side == engine::OrderSide::Sell ? "SELL" : "BUY";
+        bool order_type_sets_tif = false;
         switch (order.type) {
         case engine::OrderType::Limit:
             ib_order.orderType = "LMT";
@@ -418,9 +457,20 @@ namespace regimeflow::live
             ib_order.auxPrice = order.stop_price;
             ib_order.lmtPrice = order.limit_price;
             break;
-        default:
+        case engine::OrderType::MarketOnClose:
+            ib_order.orderType = "MOC";
+            break;
+        case engine::OrderType::MarketOnOpen:
+            ib_order.orderType = "MKT";
+            ib_order.tif = "OPG";
+            order_type_sets_tif = true;
+            break;
+        case engine::OrderType::Market:
             ib_order.orderType = "MKT";
             break;
+        }
+        if (order_type_sets_tif) {
+            return ib_order;
         }
         switch (order.tif) {
         case engine::TimeInForce::Day:

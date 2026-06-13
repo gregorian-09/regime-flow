@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "test_time.h"
 
 #include "regimeflow/regime/ensemble.h"
 #include "regimeflow/regime/constant_detector.h"
@@ -14,7 +15,7 @@ namespace
             regimeflow::regime::RegimeType::Bear), 1.0);
 
         regimeflow::data::Bar bar{};
-        bar.timestamp = regimeflow::Timestamp::now();
+        bar.timestamp = regimeflow::test::fixed_timestamp();
         bar.close = 100.0;
 
         const auto state = ensemble.on_bar(bar);

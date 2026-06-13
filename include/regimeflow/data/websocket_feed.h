@@ -228,9 +228,11 @@ namespace regimeflow::data
         std::function<void(const OrderBook&)> book_cb_;
         std::function<void(const std::string&)> raw_cb_;
         std::function<void(const ReconnectState&)> reconnect_cb_;
+#ifdef REGIMEFLOW_USE_BOOST_BEAST
         int reconnect_attempts_ = 0;
         Timestamp last_reconnect_attempt_;
         Timestamp next_reconnect_attempt_;
+#endif
         std::string last_reconnect_error_;
         std::unordered_map<SymbolId, StreamState> bar_state_;
         std::unordered_map<SymbolId, StreamState> tick_state_;

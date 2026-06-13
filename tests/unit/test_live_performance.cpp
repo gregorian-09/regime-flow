@@ -1,4 +1,6 @@
 #include "regimeflow/metrics/live_performance.h"
+#include "temp_path_guard.h"
+#include "test_time.h"
 
 #include <gtest/gtest.h>
 
@@ -7,13 +9,12 @@
 
 using regimeflow::metrics::LivePerformanceConfig;
 using regimeflow::metrics::LivePerformanceTracker;
-using regimeflow::Timestamp;
 
 TEST(LivePerformanceTrackerTest, WritesFiles) {
     auto tmp = std::filesystem::temp_directory_path()
         / ("regimeflow_live_metrics_test_"
            + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::filesystem::remove_all(tmp);
+    regimeflow::test::TempPathGuard temp_dir(tmp);
 
     LivePerformanceConfig cfg;
     cfg.enabled = true;
@@ -22,7 +23,7 @@ TEST(LivePerformanceTrackerTest, WritesFiles) {
 
     LivePerformanceTracker tracker(cfg);
     tracker.start(100000.0);
-    tracker.update(Timestamp::now(), 101000.0, 1000.0);
+    tracker.update(regimeflow::test::fixed_timestamp(), 101000.0, 1000.0);
     tracker.flush();
 
     auto csv_path = tmp / "live_drift.csv";
@@ -30,6 +31,4 @@ TEST(LivePerformanceTrackerTest, WritesFiles) {
 
     EXPECT_TRUE(std::filesystem::exists(csv_path));
     EXPECT_TRUE(std::filesystem::exists(json_path));
-
-    std::filesystem::remove_all(tmp);
 }

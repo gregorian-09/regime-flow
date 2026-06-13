@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "test_time.h"
 
 #include "regimeflow/execution/order_book_execution_model.h"
 
@@ -18,7 +19,7 @@ namespace
         order.side = regimeflow::engine::OrderSide::Buy;
         order.quantity = 200.0;
 
-        auto fills = model.execute(order, 100.0, regimeflow::Timestamp::now());
+        auto fills = model.execute(order, 100.0, regimeflow::test::fixed_timestamp());
         double filled = 0.0;
         for (const auto& f : fills) {
             filled += std::abs(f.quantity);

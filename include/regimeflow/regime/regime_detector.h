@@ -12,8 +12,24 @@
 #include "regimeflow/regime/types.h"
 #include "regimeflow/regime/features.h"
 
+#include <cstdint>
+#include <string>
+#include <vector>
+
 namespace regimeflow::regime
 {
+    /**
+     * @brief User-facing governance metadata for persisted regime models.
+     */
+    struct ModelGovernanceMetadata {
+        std::string detector_type;
+        std::string model_version = "unversioned";
+        int64_t training_start_us = 0;
+        int64_t training_end_us = 0;
+        std::string feature_schema;
+        std::string parameter_digest;
+    };
+
     /**
      * @brief Abstract interface for regime detectors.
      */
@@ -80,5 +96,13 @@ namespace regimeflow::regime
          * @brief State names for display.
          */
         [[nodiscard]] virtual std::vector<std::string> state_names() const { return {}; }
+        /**
+         * @brief Return model governance metadata for audit/replay records.
+         */
+        [[nodiscard]] virtual ModelGovernanceMetadata model_metadata() const { return {}; }
+        /**
+         * @brief Set model governance metadata.
+         */
+        virtual void set_model_metadata(ModelGovernanceMetadata metadata) { (void)metadata; }
     };
 }  // namespace regimeflow::regime

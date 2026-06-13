@@ -1,6 +1,6 @@
 # Plugin API
 
-This page documents how to build plugins that integrate with the RegimeFlow runtime. Plugins can extend regime detection, strategies, execution models, data sources, risk managers, and metrics.
+This page documents how to build plugins that integrate with the RegimeFlow runtime. Plugins can extend regime detection, strategies, execution models, data sources, risk managers, broker adapters, and metrics.
 
 ## Plugin Types
 
@@ -11,6 +11,7 @@ Supported plugin interfaces (from `include/regimeflow/plugins/interfaces.h`):
 - `DataSourcePlugin`
 - `RiskManagerPlugin`
 - `StrategyPlugin`
+- `BrokerAdapterPlugin`
 - `MetricsPlugin`
 
 ## Required Exports (Dynamic Plugins)
@@ -91,6 +92,20 @@ extern "C" {
     REGIMEFLOW_EXPORT const char* regimeflow_abi_version() { return REGIMEFLOW_ABI_VERSION; }
 }
 ```
+
+## Plugin SDK Template
+
+Copyable plugin SDK templates live under `examples/plugins/`:
+
+- `template/` for strategy plugins;
+- `regime_detector_template/` for regime detector plugins;
+- `risk_manager_template/` for risk manager plugins;
+- `data_source_template/` for market-data source plugins;
+- `broker_adapter_template/` for live broker adapter plugins;
+- `metrics_template/` for custom performance-metric plugins.
+
+Each template includes standalone CMake, lifecycle hooks, required C ABI exports, and README
+instructions for source-tree builds and runtime loading.
 
 ## Build Guidance
 

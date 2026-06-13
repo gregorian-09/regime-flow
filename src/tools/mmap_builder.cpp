@@ -40,7 +40,7 @@ namespace regimeflow::data
             std::cout << "Usage: regimeflow_mmap_builder --source csv|db --data-dir PATH --output-dir PATH \n"
                          "       [--mode bars|ticks] [--connection-string STR] [--symbols AAPL,MSFT] [--bar-type 1d] \n"
                          "       [--start YYYY-MM-DD] [--end YYYY-MM-DD] \n"
-                         "       [--volume-threshold N] [--tick-threshold N] [--dollar-threshold N]" << std::endl;
+                         "       [--volume-threshold N] [--tick-threshold N] [--dollar-threshold N]" << '\n';
         }
 
         std::optional<std::string> arg_value(const std::string& arg, const std::string& key) {
@@ -220,21 +220,21 @@ int main(int argc, char** argv) {
         return 1;
     }
     if (args.source == "csv" && args.data_dir.empty()) {
-        std::cerr << "Missing --data-dir for csv source" << std::endl;
+        std::cerr << "Missing --data-dir for csv source" << '\n';
         return 1;
     }
     if (args.source == "db" && args.connection_string.empty()) {
-        std::cerr << "Missing --connection-string for db source" << std::endl;
+        std::cerr << "Missing --connection-string for db source" << '\n';
         return 1;
     }
 
     auto bar_type = parse_bar_type(args.bar_type);
     if (!bar_type) {
-        std::cerr << "Invalid bar type" << std::endl;
+        std::cerr << "Invalid bar type" << '\n';
         return 1;
     }
     if (args.mode != "bars" && args.mode != "ticks") {
-        std::cerr << "Invalid mode" << std::endl;
+        std::cerr << "Invalid mode" << '\n';
         return 1;
     }
 
@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
 
     auto source = DataSourceFactory::create(cfg);
     if (!source) {
-        std::cerr << "Failed to create data source" << std::endl;
+        std::cerr << "Failed to create data source" << '\n';
         return 1;
     }
 
@@ -269,7 +269,7 @@ int main(int argc, char** argv) {
     }
 
     if (symbols.empty()) {
-        std::cerr << "No symbols found" << std::endl;
+        std::cerr << "No symbols found" << '\n';
         return 1;
     }
 
@@ -288,7 +288,7 @@ int main(int argc, char** argv) {
             out_path /= info.ticker + ".rft";
             auto result = tick_writer.write_ticks(out_path.string(), info.ticker, std::move(ticks));
             if (result.is_err()) {
-                std::cerr << result.error().to_string() << std::endl;
+                std::cerr << result.error().to_string() << '\n';
                 return 1;
             }
             continue;
@@ -315,7 +315,7 @@ int main(int argc, char** argv) {
         std::filesystem::path out_path = args.output_dir;
         out_path /= info.ticker + "_" + bar_type_suffix(*bar_type) + ".rfb";
         if (auto result = writer.write_bars(out_path.string(), info.ticker, *bar_type, std::move(bars)); result.is_err()) {
-            std::cerr << result.error().to_string() << std::endl;
+            std::cerr << result.error().to_string() << '\n';
             return 1;
         }
     }

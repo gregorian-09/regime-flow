@@ -1,7 +1,10 @@
 #include "regimeflow/live/live_order_manager.h"
 
 #include <algorithm>
+#include <charconv>
+#include <optional>
 #include <ranges>
+#include <sstream>
 
 namespace regimeflow::live
 {
@@ -60,6 +63,27 @@ namespace regimeflow::live
             }
         }
 
+        bool is_terminal_status(const LiveOrderStatus status) {
+            return status == LiveOrderStatus::Filled || status == LiveOrderStatus::Cancelled
+                || status == LiveOrderStatus::Rejected || status == LiveOrderStatus::Expired
+                || status == LiveOrderStatus::Inactive || status == LiveOrderStatus::Error;
+        }
+
+        std::optional<double> metadata_double(const engine::Order& order, const std::string& key) {
+            const auto it = order.metadata.find(key);
+            if (it == order.metadata.end() || it->second.empty()) {
+                return std::nullopt;
+            }
+            double value = 0.0;
+            const auto* begin = it->second.data();
+            const auto* end = begin + it->second.size();
+            const auto [ptr, ec] = std::from_chars(begin, end, value);
+            if (ec != std::errc{} || ptr != end) {
+                return std::nullopt;
+            }
+            return value;
+        }
+
     }  // namespace
 
     LiveOrderManager::LiveOrderManager(BrokerAdapter* broker) : broker_(broker) {}
@@ -71,12 +95,30 @@ namespace regimeflow::live
         if (!validate_order(order)) {
             return Result<engine::OrderId>(Error(Error::Code::InvalidArgument, "Order validation failed"));
         }
+        const Timestamp now = Timestamp::now();
+        if (order.id != 0) {
+            const auto existing = orders_.find(order.id);
+            if (existing != orders_.end() && !is_terminal_status(existing->second.status)) {
+                execution_quality_.record_submit_rejected(now);
+                Error error(Error::Code::AlreadyExists, "Duplicate live order id rejected");
+                error.details = "order_id=" + std::to_string(order.id);
+                return Result<engine::OrderId>(std::move(error));
+            }
+        }
+        if (is_duplicate_order(order, now)) {
+            execution_quality_.record_submit_rejected(now);
+            Error error(Error::Code::AlreadyExists, "Duplicate live order rejected");
+            error.details = duplicate_key(order);
+            return Result<engine::OrderId>(std::move(error));
+        }
+
         engine::OrderId id = order.id != 0 ? order.id : next_order_id_++;
         if (id >= next_order_id_) {
             next_order_id_ = id + 1;
         }
         auto broker_id = broker_->submit_order(order);
         if (broker_id.is_err()) {
+            execution_quality_.record_submit_rejected(Timestamp::now());
             const auto& err = broker_id.error();
             Error copy(err.code, err.message, err.location);
             copy.details = err.details;
@@ -92,16 +134,33 @@ namespace regimeflow::live
         live.quantity = order.quantity;
         live.limit_price = order.limit_price;
         live.stop_price = order.stop_price;
+        if (const auto venue = order.metadata.find("venue"); venue != order.metadata.end()) {
+            live.venue = venue->second;
+        }
+        live.expected_queue_delay_ms = metadata_double(order, "expected_queue_delay_ms").value_or(0.0);
+        live.queue_position = metadata_double(order, "queue_position").value_or(0.0);
         live.created_at = order.created_at.microseconds() ? order.created_at : Timestamp::now();
         live.submitted_at = Timestamp::now();
         live.status = LiveOrderStatus::PendingNew;
         orders_[id] = live;
+        execution_quality_.record_submitted(live);
 
         for (const auto& cb : order_callbacks_) {
             cb(live);
         }
 
+        if (duplicate_order_window_us_ > 0) {
+            recent_order_keys_[duplicate_key(order)] = now;
+        }
+
         return Result<engine::OrderId>(id);
+    }
+
+    void LiveOrderManager::set_duplicate_order_window(const Duration window) {
+        duplicate_order_window_us_ = std::max<int64_t>(0, window.total_microseconds());
+        if (duplicate_order_window_us_ == 0) {
+            recent_order_keys_.clear();
+        }
     }
 
     Result<void> LiveOrderManager::cancel_order(engine::OrderId id) {
@@ -204,6 +263,7 @@ namespace regimeflow::live
         for (auto& order : orders_ | std::views::values) {
             if (order.broker_order_id == report.broker_order_id) {
                 update_order_state(order, report);
+                execution_quality_.record_execution_report(order, report);
                 for (const auto& cb : exec_callbacks_) {
                     cb(report);
                 }
@@ -307,6 +367,63 @@ namespace regimeflow::live
             next_order_id_ = internal_id + 1;
         }
         orders_[internal_id] = std::move(live);
+    }
+
+
+    const ExecutionQualitySnapshot& LiveOrderManager::execution_quality() const noexcept {
+        return execution_quality_.snapshot();
+    }
+
+    const std::vector<ExecutionQualitySample>& LiveOrderManager::execution_quality_samples() const noexcept {
+        return execution_quality_.samples();
+    }
+
+    void LiveOrderManager::record_reference_quote(const engine::OrderId id, const data::Quote& quote) {
+        if (!orders_.contains(id)) {
+            return;
+        }
+        execution_quality_.record_reference_quote(id, quote);
+    }
+
+    void LiveOrderManager::prune_duplicate_keys(const Timestamp now) {
+        if (duplicate_order_window_us_ <= 0) {
+            recent_order_keys_.clear();
+            return;
+        }
+        for (auto it = recent_order_keys_.begin(); it != recent_order_keys_.end();) {
+            if ((now - it->second).total_microseconds() > duplicate_order_window_us_) {
+                it = recent_order_keys_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    std::string LiveOrderManager::duplicate_key(const engine::Order& order) const {
+        std::ostringstream out;
+        out << order.symbol << '|'
+            << static_cast<int>(order.side) << '|'
+            << static_cast<int>(order.type) << '|'
+            << static_cast<int>(order.tif) << '|'
+            << order.quantity << '|'
+            << order.limit_price << '|'
+            << order.stop_price << '|'
+            << order.strategy_id;
+        if (const auto it = order.metadata.find("client_order_id"); it != order.metadata.end()) {
+            out << "|client=" << it->second;
+        }
+        if (const auto it = order.metadata.find("idempotency_key"); it != order.metadata.end()) {
+            out << "|idem=" << it->second;
+        }
+        return out.str();
+    }
+
+    bool LiveOrderManager::is_duplicate_order(const engine::Order& order, const Timestamp now) {
+        if (duplicate_order_window_us_ <= 0) {
+            return false;
+        }
+        prune_duplicate_keys(now);
+        return recent_order_keys_.contains(duplicate_key(order));
     }
 
     void LiveOrderManager::update_order_state(LiveOrder& order, const ExecutionReport& report) {

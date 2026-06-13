@@ -155,8 +155,10 @@ namespace regimeflow::regime
         if (voting_method_ == VotingMethod::Majority) {
             std::array<double, 4> counts{0, 0, 0, 0};
             for (const auto& state : states) {
-                const size_t idx = static_cast<size_t>(std::min(static_cast<int>(state.regime), 3));
-                counts[idx] += 1.0;
+                const auto idx = static_cast<int>(state.regime);
+                if (idx >= 0 && idx < static_cast<int>(counts.size())) {
+                    counts[static_cast<size_t>(idx)] += 1.0;
+                }
             }
             for (size_t i = 0; i < prob_size; ++i) {
                 result.probabilities[i] = counts[i];
@@ -221,7 +223,7 @@ namespace regimeflow::regime
 
         const auto max_it = std::ranges::max_element(result.probabilities);
         const int idx = static_cast<int>(std::distance(result.probabilities.begin(), max_it));
-        result.regime = static_cast<RegimeType>(std::min(idx, 3));
+        result.regime = idx < 4 ? static_cast<RegimeType>(idx) : RegimeType::Custom;
         result.confidence = *max_it;
         result.state_count = prob_size;
         result.probabilities_all.assign(result.probabilities.begin(), result.probabilities.end());

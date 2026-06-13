@@ -6,10 +6,13 @@
 #pragma once
 
 #include "regimeflow/common/result.h"
+#include "regimeflow/data/tick.h"
 #include "regimeflow/engine/order.h"
 #include "regimeflow/live/broker_adapter.h"
+#include "regimeflow/live/execution_quality.h"
 #include "regimeflow/regime/types.h"
 
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -34,6 +37,9 @@ namespace regimeflow::live
         double limit_price = 0.0;
         double stop_price = 0.0;
         double avg_fill_price = 0.0;
+        std::string venue;
+        double expected_queue_delay_ms = 0.0;
+        double queue_position = 0.0;
 
         LiveOrderStatus status = LiveOrderStatus::PendingNew;
         std::string status_message;
@@ -64,6 +70,10 @@ namespace regimeflow::live
          * @return Internal order ID.
          */
         Result<engine::OrderId> submit_order(const engine::Order& order);
+        /**
+         * @brief Configure duplicate-order rejection window. Zero disables duplicate detection.
+         */
+        void set_duplicate_order_window(Duration window);
         /**
          * @brief Cancel a live order by internal ID.
          * @param id Internal order ID.
@@ -141,12 +151,35 @@ namespace regimeflow::live
                            std::string symbol,
                            LiveOrderStatus status);
 
+        /**
+         * @brief Access aggregated live execution-quality metrics.
+         */
+        [[nodiscard]] const ExecutionQualitySnapshot& execution_quality() const noexcept;
+
+        /**
+         * @brief Access retained execution-quality observations.
+         */
+        [[nodiscard]] const std::vector<ExecutionQualitySample>& execution_quality_samples() const noexcept;
+
+        /**
+         * @brief Attach the quote visible at broker submission time for spread attribution.
+         */
+        void record_reference_quote(engine::OrderId id, const data::Quote& quote);
+
     private:
         void update_order_state(LiveOrder& order, const ExecutionReport& report);
+        void prune_duplicate_keys(Timestamp now);
+        [[nodiscard]] std::string duplicate_key(const engine::Order& order) const;
+        [[nodiscard]] bool is_duplicate_order(const engine::Order& order, Timestamp now);
+
 
         std::unordered_map<engine::OrderId, LiveOrder> orders_;
         BrokerAdapter* broker_ = nullptr;
         engine::OrderId next_order_id_ = 1;
+        int64_t duplicate_order_window_us_ = 0;
+        std::unordered_map<std::string, Timestamp> recent_order_keys_;
+
+        ExecutionQualityTracker execution_quality_;
 
         std::vector<std::function<void(const ExecutionReport&)>> exec_callbacks_;
         std::vector<std::function<void(const LiveOrder&)>> order_callbacks_;

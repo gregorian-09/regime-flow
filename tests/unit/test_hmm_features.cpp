@@ -2,6 +2,8 @@
 
 #include "regimeflow/regime/features.h"
 
+#include <cmath>
+
 namespace
 {
     TEST(FeatureExtractorTest, ComputesReturnAndVolatility) {
@@ -39,6 +41,8 @@ namespace
         bar.volume = 200;
         auto v = extractor.on_bar(bar);
         ASSERT_EQ(v.size(), 2u);
+        EXPECT_NEAR(v[0], std::sqrt(0.5), 1e-12);
+        EXPECT_DOUBLE_EQ(v[1], 0.0);
     }
 
     TEST(FeatureExtractorTest, ComputesVolumeRatiosAndObv) {

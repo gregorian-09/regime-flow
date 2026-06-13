@@ -10,14 +10,23 @@ Live config is loaded by `src/tools/live_main.cpp` and mapped into `live::LiveCo
 ## Core Keys
 
 - `live.paper` boolean for paper trading.
+- `live.dry_run` boolean; validates, audits, and suppresses broker submission.
+- `live.duplicate_order_window_ms` duplicate-order rejection window. `0` disables the guard.
 - `live.reconnect.enabled` boolean.
 - `live.reconnect.initial_ms` and `live.reconnect.max_ms`.
 - `live.heartbeat.enabled` boolean.
-- `live.heartbeat.interval_ms` heartbeat timeout in milliseconds.
+- `live.heartbeat.interval_ms` stale-data threshold.
+- `live.heartbeat.disable_trading_on_timeout` fail-closed trading gate.
+- `live.heartbeat.cancel_orders_on_timeout` open-order cancellation gate.
+- `live.reconciliation.disable_trading_on_error` fail-closed order reconciliation gate.
+- `live.replay_journal_path` optional JSONL path for normalized live market-data replay capture.
+- `live.audit.format` audit-log encoding: `csv` (default) or `jsonl` for structured log pipelines.
 - `live.risk` risk configuration block. This is passed to the risk factory.
 - `live.broker_config` key/value map of broker-specific settings.
 - `live.log_dir` output directory for logs and metrics.
 - `live.broker_asset_class` default `equity`, used for TIF support.
+- `metrics.prometheus.enabled` enables the built-in HTTP scrape endpoint.
+- `metrics.prometheus.host`, `metrics.prometheus.port`, and `metrics.prometheus.path` configure the scrape listener.
 
 ## Strategy
 

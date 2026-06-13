@@ -108,6 +108,7 @@ See `guide/risk-management.md`.
 - `metrics.live.baseline_report` path to backtest report JSON.
 - `metrics.live.output_dir` directory for `live_drift.csv` and `live_performance.json`.
 - `metrics.live.sinks` array, supports `file` and `postgres`.
+- Prometheus text exposition helpers are available in `regimeflow/live/prometheus_exporter.h` for deployment wrappers.
 - `metrics.live.postgres.connection_string`.
 - `metrics.live.postgres.table`.
 - `metrics.live.postgres.pool_size`.

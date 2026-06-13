@@ -95,7 +95,7 @@ public:
             }
         }
         auto deleter = plugin.get_deleter();
-        plugin.release();
+        static_cast<void>(plugin.release());
         auto result = std::unique_ptr<PluginT, std::function<void(PluginT*)>>(
             typed, [deleter](PluginT* p) { deleter(p); });
         result->set_state(PluginState::Initialized);

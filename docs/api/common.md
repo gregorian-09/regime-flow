@@ -46,6 +46,13 @@ Related diagrams:
 - Queue types are safe for the event loop and live adapters; keep usage aligned with producer/consumer expectations.
 - `Config` and `YamlConfig` are used by both backtest and live engine factories; config validation should happen before engine initialization.
 
+
+## Memory Utilities
+
+`regimeflow/common/memory.h` provides `MonotonicArena` and `PoolAllocator` for allocation-heavy engine paths. `MonotonicArena::allocate` returns properly aligned pointers both within the current block and after block rollover. Code using the arena must still treat returned memory as arena-owned; individual allocations are not freed separately.
+
+`PoolAllocator` is optimized for reuse, not automatic shrinking. Use it for bounded high-churn object pools and prefer explicit lifecycle boundaries for long-running processes.
+
 ## Type Details
 
 ### `Config`

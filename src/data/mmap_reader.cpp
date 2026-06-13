@@ -1,6 +1,7 @@
 #include "regimeflow/data/mmap_reader.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cerrno>
 #include <cstring>
 #include <limits>
@@ -438,14 +439,14 @@ namespace regimeflow::data
         if (!date_index_ || index_count_ == 0) {
             return;
         }
-        volatile int32_t sink = 0;
+        std::atomic<int32_t> sink{0};
         constexpr size_t stride = 64;
         for (size_t i = 0; i < index_count_; i += stride) {
-            sink ^= date_index_[i].date_yyyymmdd;
+            sink.fetch_xor(date_index_[i].date_yyyymmdd, std::memory_order_relaxed);
         }
         if (index_count_ > 0) {
-            sink ^= date_index_[index_count_ - 1].date_yyyymmdd;
+            sink.fetch_xor(date_index_[index_count_ - 1].date_yyyymmdd, std::memory_order_relaxed);
         }
-        (void)sink;
+        (void)sink.load(std::memory_order_relaxed);
     }
 }  // namespace regimeflow::data

@@ -1,5 +1,6 @@
 #include "regimeflow/engine/execution_pipeline.h"
 #include "regimeflow/execution/latency_model.h"
+#include "test_time.h"
 
 #include <gtest/gtest.h>
 
@@ -27,7 +28,7 @@ TEST(ExecutionPipelineRestingTest, LimitOrderRestsUntilQuoteCrosses) {
     const auto symbol = SymbolRegistry::instance().intern("REST");
     auto order = Order::limit(symbol, OrderSide::Buy, 10.0, 100.0);
     order.id = 1;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
 
     pipeline.on_order_submitted(order);
     EXPECT_TRUE(queue.empty());
@@ -65,7 +66,7 @@ TEST(ExecutionPipelineRestingTest, StopOrderTriggersOnLaterTick) {
     const auto symbol = SymbolRegistry::instance().intern("STOP");
     auto order = Order::stop(symbol, OrderSide::Buy, 5.0, 101.0);
     order.id = 2;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
 
     Tick before;
     before.symbol = symbol;
@@ -100,7 +101,7 @@ TEST(ExecutionPipelineRestingTest, OpenOnlyBarModeUsesBarOpenForLimitFills) {
     const auto symbol = SymbolRegistry::instance().intern("BAROPEN");
     auto order = Order::limit(symbol, OrderSide::Buy, 4.0, 100.0);
     order.id = 3;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
 
     pipeline.on_order_submitted(order);
     EXPECT_TRUE(queue.empty());
@@ -133,7 +134,7 @@ TEST(ExecutionPipelineRestingTest, IntrabarOhlcModeTriggersStopWithinBarRange) {
     const auto symbol = SymbolRegistry::instance().intern("BARSTOP");
     auto order = Order::stop(symbol, OrderSide::Buy, 3.0, 105.0);
     order.id = 4;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
 
     pipeline.on_order_submitted(order);
     EXPECT_TRUE(queue.empty());
@@ -166,7 +167,7 @@ TEST(ExecutionPipelineRestingTest, StopOrderRejectsOnAdversePriceDrift) {
     const auto symbol = SymbolRegistry::instance().intern("DRIFT_REJECT");
     Tick before;
     before.symbol = symbol;
-    before.timestamp = Timestamp::now();
+    before.timestamp = regimeflow::test::fixed_timestamp();
     before.price = 100.0;
     market_data.update(before);
 
@@ -201,7 +202,7 @@ TEST(ExecutionPipelineRestingTest, StopOrderRequotesBeforeFilling) {
     const auto symbol = SymbolRegistry::instance().intern("DRIFT_REQUOTE");
     Tick before;
     before.symbol = symbol;
-    before.timestamp = Timestamp::now();
+    before.timestamp = regimeflow::test::fixed_timestamp();
     before.price = 100.0;
     market_data.update(before);
 
@@ -250,7 +251,7 @@ TEST(ExecutionPipelineRestingTest, MarketOrderWaitsForLatencyWindow) {
     const auto symbol = SymbolRegistry::instance().intern("LATENCY");
     Quote quote;
     quote.symbol = symbol;
-    quote.timestamp = Timestamp::now();
+    quote.timestamp = regimeflow::test::fixed_timestamp();
     quote.bid = 99.9;
     quote.ask = 100.1;
     market_data.update(quote);
@@ -291,7 +292,7 @@ TEST(ExecutionPipelineRestingTest, RestingLimitAdvancesQueueBeforeMakerFill) {
     const auto symbol = SymbolRegistry::instance().intern("QUEUE_MAKER");
     Quote away;
     away.symbol = symbol;
-    away.timestamp = Timestamp::now();
+    away.timestamp = regimeflow::test::fixed_timestamp();
     away.bid = 100.0;
     away.ask = 101.0;
     away.bid_size = 4.0;
@@ -335,7 +336,7 @@ TEST(ExecutionPipelineRestingTest, CrossThroughLimitFillsAsTaker) {
     const auto symbol = SymbolRegistry::instance().intern("QUEUE_TAKER");
     Quote away;
     away.symbol = symbol;
-    away.timestamp = Timestamp::now();
+    away.timestamp = regimeflow::test::fixed_timestamp();
     away.bid = 100.0;
     away.ask = 101.0;
     away.bid_size = 8.0;
@@ -377,7 +378,7 @@ TEST(ExecutionPipelineRestingTest, FullDepthQueueModelHandlesNonTopLevelOrders) 
     const auto symbol = SymbolRegistry::instance().intern("QUEUE_DEPTH");
     auto order = Order::limit(symbol, OrderSide::Buy, 1.0, 99.0);
     order.id = 10;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
     pipeline.on_order_submitted(order);
     EXPECT_TRUE(queue.empty());
 
@@ -460,7 +461,7 @@ TEST(ExecutionPipelineRestingTest, QueueAgingReducesQueueAheadAcrossAwayEvents) 
     const auto symbol = SymbolRegistry::instance().intern("QUEUE_AGE");
     Quote quote;
     quote.symbol = symbol;
-    quote.timestamp = Timestamp::now();
+    quote.timestamp = regimeflow::test::fixed_timestamp();
     quote.bid = 100.0;
     quote.ask = 101.0;
     quote.bid_size = 4.0;
@@ -508,7 +509,7 @@ TEST(ExecutionPipelineRestingTest, QueueReplenishmentDelaysMakerFillWhenVisibleS
     const auto symbol = SymbolRegistry::instance().intern("QUEUE_REPLENISH");
     Quote quote;
     quote.symbol = symbol;
-    quote.timestamp = Timestamp::now();
+    quote.timestamp = regimeflow::test::fixed_timestamp();
     quote.bid = 100.0;
     quote.ask = 101.0;
     quote.bid_size = 2.0;
@@ -557,7 +558,7 @@ TEST(ExecutionPipelineRestingTest, VenuePriceAdjustmentCanPreventTouchFill) {
     const auto symbol = SymbolRegistry::instance().intern("VENUE_PRICE");
     Quote quote;
     quote.symbol = symbol;
-    quote.timestamp = Timestamp::now();
+    quote.timestamp = regimeflow::test::fixed_timestamp();
     quote.bid = 99.5;
     quote.ask = 100.0;
     market_data.update(quote);
@@ -595,7 +596,7 @@ TEST(ExecutionPipelineRestingTest, VenueLatencyOverrideDelaysActivationBeyondGlo
     const auto symbol = SymbolRegistry::instance().intern("VENUE_LATENCY");
     Quote quote;
     quote.symbol = symbol;
-    quote.timestamp = Timestamp::now();
+    quote.timestamp = regimeflow::test::fixed_timestamp();
     quote.bid = 99.5;
     quote.ask = 100.0;
     market_data.update(quote);

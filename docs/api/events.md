@@ -24,7 +24,7 @@ Related diagrams:
 | Type | Description |
 | --- | --- |
 | `Event` | Base event interface (timestamp, source, type). |
-| `EventQueue` | Lock-free event queue used in the loop. |
+| `EventQueue` | Multi-producer queue with serialized consumer-side draining and priority ordering. |
 | `MarketEvent` | Tick/bar/order book events. |
 | `OrderEvent` | Submit, fill, cancel, reject events. |
 | `SystemEvent` | Start/stop/heartbeat and control events. |
@@ -32,6 +32,7 @@ Related diagrams:
 ## Lifecycle & Usage Notes
 
 - `EventQueue` is the backbone for `EventLoop` and must respect producer/consumer constraints.
+- Producers may enqueue concurrently, but draining and priority-queue rebuilds are serialized by the queue internals; do not add alternate drain paths that bypass that ownership model.
 - `Dispatcher` implementations should avoid blocking; long tasks should be delegated.
 
 ## Type Details
@@ -151,7 +152,7 @@ Alias:
 
 ### `EventQueue`
 
-Lock-free queue for `Event` objects. Designed for high-throughput dispatch.
+Multi-producer event queue for `Event` objects. Producers append to a pending list and consumer-side operations drain into the priority queue under internal synchronization. This preserves deterministic priority ordering without racing producer appends.
 
 Methods:
 

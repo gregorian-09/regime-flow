@@ -1,7 +1,3 @@
-if(POLICY CMP0167)
-    cmake_policy(SET CMP0167 OLD)
-endif()
-
 add_library(regimeflow_common
     common/config.cpp
     common/json.cpp
@@ -16,17 +12,247 @@ endif()
 
 set(IBAPI_ROOT "${CMAKE_SOURCE_DIR}/third_party/ibapi/IBJts/source/cppclient/client")
 if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
-    file(GLOB IBAPI_SOURCES "${IBAPI_ROOT}/*.cpp")
     set(IBAPI_PROTO_DIR "${IBAPI_ROOT}/protobufUnix")
-    file(GLOB IBAPI_PROTO_SOURCES "${IBAPI_PROTO_DIR}/*.pb.cc")
+    set(IBAPI_SOURCES
+        "${IBAPI_ROOT}/ContractCondition.cpp"
+        "${IBAPI_ROOT}/Decimal.cpp"
+        "${IBAPI_ROOT}/DefaultEWrapper.cpp"
+        "${IBAPI_ROOT}/EClient.cpp"
+        "${IBAPI_ROOT}/EClientSocket.cpp"
+        "${IBAPI_ROOT}/EClientUtils.cpp"
+        "${IBAPI_ROOT}/EDecoder.cpp"
+        "${IBAPI_ROOT}/EDecoderUtils.cpp"
+        "${IBAPI_ROOT}/EMessage.cpp"
+        "${IBAPI_ROOT}/EMutex.cpp"
+        "${IBAPI_ROOT}/EOrderDecoder.cpp"
+        "${IBAPI_ROOT}/EReader.cpp"
+        "${IBAPI_ROOT}/EReaderOSSignal.cpp"
+        "${IBAPI_ROOT}/ESocket.cpp"
+        "${IBAPI_ROOT}/ExecutionCondition.cpp"
+        "${IBAPI_ROOT}/MarginCondition.cpp"
+        "${IBAPI_ROOT}/OperatorCondition.cpp"
+        "${IBAPI_ROOT}/OrderCondition.cpp"
+        "${IBAPI_ROOT}/PercentChangeCondition.cpp"
+        "${IBAPI_ROOT}/PriceCondition.cpp"
+        "${IBAPI_ROOT}/SoftDollarTier.cpp"
+        "${IBAPI_ROOT}/StdAfx.cpp"
+        "${IBAPI_ROOT}/TimeCondition.cpp"
+        "${IBAPI_ROOT}/Utils.cpp"
+        "${IBAPI_ROOT}/VolumeCondition.cpp"
+    )
+    set(IBAPI_PROTO_SOURCES
+        "${IBAPI_PROTO_DIR}/AccountDataEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountSummary.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountSummaryEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountSummaryRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountUpdateMulti.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountUpdateMultiEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountUpdateTime.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountUpdatesMultiRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/AccountValue.pb.cc"
+        "${IBAPI_PROTO_DIR}/AllOpenOrdersRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/AttachedOrders.pb.cc"
+        "${IBAPI_PROTO_DIR}/AutoOpenOrdersRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/CalculateImpliedVolatilityRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/CalculateOptionPriceRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelAccountSummary.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelAccountUpdatesMulti.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelCalculateImpliedVolatility.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelCalculateOptionPrice.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelContractData.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelFundamentalsData.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelHeadTimestamp.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelHistogramData.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelHistoricalData.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelHistoricalTicks.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelMarketData.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelMarketDepth.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelNewsBulletins.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelOrderRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelPnL.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelPnLSingle.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelPositions.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelPositionsMulti.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelRealTimeBars.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelScannerSubscription.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelTickByTick.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelWshEventData.pb.cc"
+        "${IBAPI_PROTO_DIR}/CancelWshMetaData.pb.cc"
+        "${IBAPI_PROTO_DIR}/ComboLeg.pb.cc"
+        "${IBAPI_PROTO_DIR}/CommissionAndFeesReport.pb.cc"
+        "${IBAPI_PROTO_DIR}/CompletedOrder.pb.cc"
+        "${IBAPI_PROTO_DIR}/CompletedOrdersEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/CompletedOrdersRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/Contract.pb.cc"
+        "${IBAPI_PROTO_DIR}/ContractData.pb.cc"
+        "${IBAPI_PROTO_DIR}/ContractDataEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/ContractDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/ContractDescription.pb.cc"
+        "${IBAPI_PROTO_DIR}/ContractDetails.pb.cc"
+        "${IBAPI_PROTO_DIR}/CurrentTime.pb.cc"
+        "${IBAPI_PROTO_DIR}/CurrentTimeInMillis.pb.cc"
+        "${IBAPI_PROTO_DIR}/CurrentTimeInMillisRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/CurrentTimeRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/DeltaNeutralContract.pb.cc"
+        "${IBAPI_PROTO_DIR}/DepthMarketDataDescription.pb.cc"
+        "${IBAPI_PROTO_DIR}/DisplayGroupList.pb.cc"
+        "${IBAPI_PROTO_DIR}/DisplayGroupUpdated.pb.cc"
+        "${IBAPI_PROTO_DIR}/ErrorMessage.pb.cc"
+        "${IBAPI_PROTO_DIR}/Execution.pb.cc"
+        "${IBAPI_PROTO_DIR}/ExecutionDetails.pb.cc"
+        "${IBAPI_PROTO_DIR}/ExecutionDetailsEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/ExecutionFilter.pb.cc"
+        "${IBAPI_PROTO_DIR}/ExecutionRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/ExerciseOptionsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/FAReplace.pb.cc"
+        "${IBAPI_PROTO_DIR}/FARequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/FamilyCode.pb.cc"
+        "${IBAPI_PROTO_DIR}/FamilyCodes.pb.cc"
+        "${IBAPI_PROTO_DIR}/FamilyCodesRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/FundamentalsData.pb.cc"
+        "${IBAPI_PROTO_DIR}/FundamentalsDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/GlobalCancelRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/HeadTimestamp.pb.cc"
+        "${IBAPI_PROTO_DIR}/HeadTimestampRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistogramData.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistogramDataEntry.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistogramDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalData.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalDataBar.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalDataEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalDataUpdate.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalNews.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalNewsEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalNewsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalSchedule.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalSession.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalTick.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalTickBidAsk.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalTickLast.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalTicks.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalTicksBidAsk.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalTicksLast.pb.cc"
+        "${IBAPI_PROTO_DIR}/HistoricalTicksRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/IdsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/IneligibilityReason.pb.cc"
+        "${IBAPI_PROTO_DIR}/ManagedAccounts.pb.cc"
+        "${IBAPI_PROTO_DIR}/ManagedAccountsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDataType.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDataTypeRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDepth.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDepthData.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDepthExchanges.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDepthExchangesRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDepthL2.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketDepthRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketRule.pb.cc"
+        "${IBAPI_PROTO_DIR}/MarketRuleRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/MatchingSymbolsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/NewsArticle.pb.cc"
+        "${IBAPI_PROTO_DIR}/NewsArticleRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/NewsBulletin.pb.cc"
+        "${IBAPI_PROTO_DIR}/NewsBulletinsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/NewsProvider.pb.cc"
+        "${IBAPI_PROTO_DIR}/NewsProviders.pb.cc"
+        "${IBAPI_PROTO_DIR}/NewsProvidersRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/NextValidId.pb.cc"
+        "${IBAPI_PROTO_DIR}/OpenOrder.pb.cc"
+        "${IBAPI_PROTO_DIR}/OpenOrdersEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/OpenOrdersRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/Order.pb.cc"
+        "${IBAPI_PROTO_DIR}/OrderAllocation.pb.cc"
+        "${IBAPI_PROTO_DIR}/OrderBound.pb.cc"
+        "${IBAPI_PROTO_DIR}/OrderCancel.pb.cc"
+        "${IBAPI_PROTO_DIR}/OrderCondition.pb.cc"
+        "${IBAPI_PROTO_DIR}/OrderState.pb.cc"
+        "${IBAPI_PROTO_DIR}/OrderStatus.pb.cc"
+        "${IBAPI_PROTO_DIR}/PlaceOrderRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/PnL.pb.cc"
+        "${IBAPI_PROTO_DIR}/PnLRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/PnLSingle.pb.cc"
+        "${IBAPI_PROTO_DIR}/PnLSingleRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/PortfolioValue.pb.cc"
+        "${IBAPI_PROTO_DIR}/Position.pb.cc"
+        "${IBAPI_PROTO_DIR}/PositionEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/PositionMulti.pb.cc"
+        "${IBAPI_PROTO_DIR}/PositionMultiEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/PositionsMultiRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/PositionsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/PriceIncrement.pb.cc"
+        "${IBAPI_PROTO_DIR}/QueryDisplayGroupsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/RealTimeBarTick.pb.cc"
+        "${IBAPI_PROTO_DIR}/RealTimeBarsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/ReceiveFA.pb.cc"
+        "${IBAPI_PROTO_DIR}/ReplaceFAEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/RerouteMarketDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/RerouteMarketDepthRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/ScannerData.pb.cc"
+        "${IBAPI_PROTO_DIR}/ScannerDataElement.pb.cc"
+        "${IBAPI_PROTO_DIR}/ScannerParameters.pb.cc"
+        "${IBAPI_PROTO_DIR}/ScannerParametersRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/ScannerSubscription.pb.cc"
+        "${IBAPI_PROTO_DIR}/ScannerSubscriptionRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/SecDefOptParameter.pb.cc"
+        "${IBAPI_PROTO_DIR}/SecDefOptParameterEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/SecDefOptParamsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/SetServerLogLevelRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/SmartComponent.pb.cc"
+        "${IBAPI_PROTO_DIR}/SmartComponents.pb.cc"
+        "${IBAPI_PROTO_DIR}/SmartComponentsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/SoftDollarTier.pb.cc"
+        "${IBAPI_PROTO_DIR}/SoftDollarTiers.pb.cc"
+        "${IBAPI_PROTO_DIR}/SoftDollarTiersRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/StartApiRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/SubscribeToGroupEventsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/SymbolSamples.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickAttribBidAsk.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickAttribLast.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickByTickData.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickByTickRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickGeneric.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickNews.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickOptionComputation.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickPrice.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickReqParams.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickSize.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickSnapshotEnd.pb.cc"
+        "${IBAPI_PROTO_DIR}/TickString.pb.cc"
+        "${IBAPI_PROTO_DIR}/UnsubscribeFromGroupEventsRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/UpdateDisplayGroupRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/UserInfo.pb.cc"
+        "${IBAPI_PROTO_DIR}/UserInfoRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/VerifyCompleted.pb.cc"
+        "${IBAPI_PROTO_DIR}/VerifyMessageApi.pb.cc"
+        "${IBAPI_PROTO_DIR}/VerifyMessageRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/VerifyRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/WshEventData.pb.cc"
+        "${IBAPI_PROTO_DIR}/WshEventDataRequest.pb.cc"
+        "${IBAPI_PROTO_DIR}/WshMetaData.pb.cc"
+        "${IBAPI_PROTO_DIR}/WshMetaDataRequest.pb.cc"
+    )
     add_library(ibapi STATIC ${IBAPI_SOURCES} ${IBAPI_PROTO_SOURCES})
     target_include_directories(ibapi PUBLIC ${IBAPI_ROOT} ${IBAPI_PROTO_DIR})
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
-        target_compile_options(ibapi PRIVATE -w)
+        target_compile_options(ibapi PRIVATE
+            -Wno-deprecated-declarations
+            -Wno-unused-parameter
+        )
     elseif(MSVC)
-        target_compile_options(ibapi PRIVATE /w)
+        target_compile_options(ibapi PRIVATE /wd4996 /wd4100)
     endif()
-    set(_regimeflow_required_protobuf_version 3.21.12)
+    set(_regimeflow_ibapi_protobuf_version 3.21.12)
+    set(_regimeflow_ibapi_protobuf_version_macro 3021012)
+    file(READ "${IBAPI_PROTO_DIR}/ExecutionRequest.pb.h" _regimeflow_ibapi_proto_probe)
+    if(NOT _regimeflow_ibapi_proto_probe MATCHES "${_regimeflow_ibapi_protobuf_version_macro}[ \t]*< PROTOBUF_MIN_PROTOC_VERSION")
+        message(FATAL_ERROR
+            "Bundled IB API protobuf stubs are not generated for protobuf "
+            "${_regimeflow_ibapi_protobuf_version}; regenerate third_party/ibapi "
+            "stubs or update the pinned protobuf version together.")
+    endif()
+    set(_regimeflow_required_protobuf_version ${_regimeflow_ibapi_protobuf_version})
     set(_regimeflow_protobuf_target "")
     find_package(Protobuf ${_regimeflow_required_protobuf_version} QUIET)
     set(_protobuf_has_required_headers OFF)
@@ -78,31 +304,25 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
         target_link_libraries(ibapi PUBLIC ${Protobuf_LIBRARIES})
     endif()
     set(IBAPI_NEEDS_BID_COMPAT OFF)
-    if(EXISTS "/usr/local/lib/libbid.a")
-        target_link_libraries(ibapi PUBLIC /usr/local/lib/libbid.a)
-    elseif(EXISTS "/opt/homebrew/lib/libbid.a")
-        target_link_libraries(ibapi PUBLIC /opt/homebrew/lib/libbid.a)
-    else()
-        find_library(IBAPI_BID_LIBRARY NAMES
-            bid
-            bidgcc000
-            bidgcc001
-            bidgcc010
-            bidgcc011
-            bidgcc100
-            bidgcc101
-            bidgcc110
-            bidgcc111
-            bidvc
-            bidvc141
-            bidvc142
-            bidvc143
-            bidvc144
-            HINTS /opt/homebrew/lib /usr/local/lib ${_vcpkg_lib_hints}
-        )
-        if(IBAPI_BID_LIBRARY)
-            target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY})
-        endif()
+    find_library(IBAPI_BID_LIBRARY NAMES
+        bid
+        bidgcc000
+        bidgcc001
+        bidgcc010
+        bidgcc011
+        bidgcc100
+        bidgcc101
+        bidgcc110
+        bidgcc111
+        bidvc
+        bidvc141
+        bidvc142
+        bidvc143
+        bidvc144
+        HINTS /opt/homebrew/lib /usr/local/lib ${_vcpkg_lib_hints}
+    )
+    if(IBAPI_BID_LIBRARY)
+        target_link_libraries(ibapi PUBLIC ${IBAPI_BID_LIBRARY})
     endif()
     if((APPLE OR WIN32) AND NOT IBAPI_BID_LIBRARY)
         set(IBAPI_NEEDS_BID_COMPAT ON)
@@ -201,31 +421,35 @@ if(CURL_FOUND)
 endif()
 endif()
 
-find_package(Boost QUIET COMPONENTS system)
-set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND OFF)
-if(Boost_FOUND)
-    foreach(_boost_include IN LISTS Boost_INCLUDE_DIRS)
-        if(EXISTS "${_boost_include}/boost/asio/io_context.hpp"
-           AND EXISTS "${_boost_include}/boost/beast/core.hpp")
-            set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND ON)
-            break()
-        endif()
-    endforeach()
-endif()
-if(Boost_FOUND AND REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND)
-    target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_BOOST_BEAST)
-    if(TARGET Boost::headers)
-        target_link_libraries(regimeflow_data PUBLIC Boost::headers Boost::system)
-    elseif(TARGET Boost::boost)
-        target_link_libraries(regimeflow_data PUBLIC Boost::boost Boost::system)
-    else()
-        target_include_directories(regimeflow_data
-            PUBLIC
-                $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-        )
-        target_link_libraries(regimeflow_data PUBLIC Boost::system)
+if(ENABLE_WEBSOCKET)
+    find_package(Boost QUIET COMPONENTS system)
+    set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND OFF)
+    if(Boost_FOUND)
+        foreach(_boost_include IN LISTS Boost_INCLUDE_DIRS)
+            if(EXISTS "${_boost_include}/boost/asio/io_context.hpp"
+               AND EXISTS "${_boost_include}/boost/beast/core.hpp")
+                set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND ON)
+                break()
+            endif()
+        endforeach()
     endif()
-    set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
+    if(Boost_FOUND AND REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND)
+        target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_BOOST_BEAST)
+        if(TARGET Boost::headers)
+            target_link_libraries(regimeflow_data PUBLIC Boost::headers Boost::system)
+        elseif(TARGET Boost::boost)
+            target_link_libraries(regimeflow_data PUBLIC Boost::boost Boost::system)
+        else()
+            target_include_directories(regimeflow_data
+                PUBLIC
+                    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+            )
+            target_link_libraries(regimeflow_data PUBLIC Boost::system)
+        endif()
+        set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
+    elseif(REGIMEFLOW_FETCH_DEPS)
+        message(FATAL_ERROR "ENABLE_WEBSOCKET=ON requires Boost.Asio, Boost.Beast, and Boost.System; install Boost or configure with -DENABLE_WEBSOCKET=OFF.")
+    endif()
 endif()
 
 if(ENABLE_OPENSSL)
@@ -261,6 +485,7 @@ add_library(regimeflow_engine
     engine/portfolio.cpp
     engine/regime_tracker.cpp
     engine/parity_checker.cpp
+    engine/replay_journal.cpp
     engine/timer_service.cpp
 )
 
@@ -407,10 +632,12 @@ set(REGIMEFLOW_LIVE_SOURCES
     live/audit_log.cpp
     live/binance_adapter.cpp
     live/event_bus.cpp
+    live/execution_quality.cpp
     live/live_engine.cpp
     live/live_order_manager.cpp
     live/mq_adapter.cpp
     live/mq_codec.cpp
+    live/prometheus_exporter.cpp
     live/secret_hygiene.cpp
     live/types.cpp
 )
@@ -436,7 +663,7 @@ target_link_libraries(regimeflow_live
 )
 
 if(WIN32)
-    target_link_libraries(regimeflow_live PRIVATE Psapi)
+    target_link_libraries(regimeflow_live PRIVATE Psapi ws2_32)
     target_compile_definitions(regimeflow_live PRIVATE _WIN32_WINNT=0x0A00 NOMINMAX)
 endif()
 
@@ -494,6 +721,8 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
                     if(_vcpkg_inc_hints)
                         target_include_directories(regimeflow_live PRIVATE ${_vcpkg_inc_hints})
                     endif()
+                else()
+                    message(FATAL_ERROR "ENABLE_ZMQ=ON requires libzmq/cppzmq; install ZeroMQ or configure with -DENABLE_ZMQ=OFF.")
                 endif()
             endif()
         endif()
@@ -541,7 +770,11 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
                     target_compile_definitions(regimeflow_live PRIVATE REGIMEFLOW_USE_REDIS)
                     target_link_libraries(regimeflow_live PRIVATE hiredis)
                     target_include_directories(regimeflow_live SYSTEM PRIVATE "${HIREDIS_SHIM_DIR}")
+                else()
+                    message(FATAL_ERROR "REGIMEFLOW_FETCH_DEPS=ON fetched hiredis, but no hiredis target was exported.")
                 endif()
+            else()
+                message(FATAL_ERROR "ENABLE_REDIS=ON requires hiredis; install hiredis, enable REGIMEFLOW_FETCH_DEPS, or configure with -DENABLE_REDIS=OFF.")
             endif()
         endif()
     endif()
@@ -570,6 +803,8 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
                     if(_vcpkg_inc_hints)
                         target_include_directories(regimeflow_live PRIVATE ${_vcpkg_inc_hints})
                     endif()
+                else()
+                    message(FATAL_ERROR "ENABLE_KAFKA=ON requires librdkafka; install librdkafka or configure with -DENABLE_KAFKA=OFF.")
                 endif()
             endif()
         endif()
@@ -607,6 +842,19 @@ target_link_libraries(regimeflow_live_validate PRIVATE regimeflow_live)
 
 add_executable(regimeflow_parity_check tools/parity_check_main.cpp)
 target_link_libraries(regimeflow_parity_check PRIVATE regimeflow_engine regimeflow_common)
+
+add_executable(regimeflow_replay_journal tools/replay_journal_main.cpp)
+target_link_libraries(regimeflow_replay_journal PRIVATE
+    regimeflow_engine
+    regimeflow_strategy
+    regimeflow_execution
+    regimeflow_data
+    regimeflow_risk
+    regimeflow_metrics
+    regimeflow_regime
+    regimeflow_plugins
+    regimeflow_common
+)
 
 add_executable(regimeflow_backtest_controls_demo tools/backtest_controls_demo.cpp)
 target_link_libraries(regimeflow_backtest_controls_demo PRIVATE

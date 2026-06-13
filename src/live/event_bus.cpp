@@ -25,7 +25,10 @@ namespace regimeflow::live
         if (dispatcher_.joinable()) {
             dispatcher_.join();
         }
-        drain_pending();
+        {
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            drain_pending();
+        }
     }
 
     EventBus::SubscriptionId EventBus::subscribe(LiveTopic topic, Callback callback) {
@@ -43,8 +46,12 @@ namespace regimeflow::live
     void EventBus::publish(LiveMessage message) {
         Node* node = pool_.allocate();
         new (node) Node{std::move(message), nullptr};
-        Node* prev = pending_.exchange(node, std::memory_order_acq_rel);
-        node->next = prev;
+        Node* head = pending_.load(std::memory_order_acquire);
+        do {
+            node->next = head;
+        } while (!pending_.compare_exchange_weak(head, node,
+                                                 std::memory_order_release,
+                                                 std::memory_order_acquire));
         queue_cv_.notify_one();
     }
 

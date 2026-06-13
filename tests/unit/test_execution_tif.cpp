@@ -1,6 +1,7 @@
 #include "regimeflow/engine/execution_pipeline.h"
 #include "regimeflow/events/event_queue.h"
 #include "regimeflow/execution/execution_model.h"
+#include "test_time.h"
 
 #include <gtest/gtest.h>
 
@@ -42,7 +43,7 @@ TEST(ExecutionTifTest, IocCancelsRemainder) {
                                 OrderSide::Buy,
                                 10.0);
     order.tif = TimeInForce::IOC;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
     Quote quote;
     quote.symbol = order.symbol;
     quote.timestamp = order.created_at;
@@ -80,7 +81,7 @@ TEST(ExecutionTifTest, FokRejectsPartial) {
                                 OrderSide::Buy,
                                 10.0);
     order.tif = TimeInForce::FOK;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
     Quote quote;
     quote.symbol = order.symbol;
     quote.timestamp = order.created_at;
@@ -119,7 +120,7 @@ TEST(ExecutionTifTest, DefaultIocPolicyAppliesToDayOrders) {
                                 OrderSide::Buy,
                                 8.0);
     order.tif = TimeInForce::Day;
-    order.created_at = Timestamp::now();
+    order.created_at = regimeflow::test::fixed_timestamp();
     Quote quote;
     quote.symbol = order.symbol;
     quote.timestamp = order.created_at;

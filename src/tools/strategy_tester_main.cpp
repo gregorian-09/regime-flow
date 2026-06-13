@@ -74,7 +74,6 @@ namespace {
         }
 
     private:
-        strategy::StrategyContext* ctx_ = nullptr;
         bool entry_submitted_ = false;
         bool exit_submitted_ = false;
     };

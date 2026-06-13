@@ -21,7 +21,7 @@ Use this page as the operational checklist before promoting a live strategy from
 - Market-data subscriptions cover the feeds required by your symbols and strategy cadence.
 - Time-in-force, order type, and asset-class combinations match the broker account you are actually using.
 - Rate limits, reconnect behavior, and heartbeat thresholds are sized for the venue and network path you operate.
-- Audit logging and live metrics sinks write to persistent storage, not just stdout.
+- Audit logging, live metrics sinks, and execution-quality snapshots are reviewed and persisted by the deployment wrapper. Use `live.audit.format: jsonl` when logs are ingested by structured-log tooling.
 - Startup logs, runtime error logs, and audit logs should be checked for secret redaction before promotion.
 
 ## Recommended Promotion Path
@@ -61,6 +61,13 @@ Use this only on paper/demo accounts. It attempts a small round-trip:
 This mode is intentionally manual because it mutates the paper account state.
 
 ## Broker Notes
+
+RegimeFlow exposes each adapter's static broker matrix through `BrokerAdapter::capabilities()`.
+Use that matrix for UI display, validation tooling, and pre-trade checks instead of duplicating
+broker-specific order type and time-in-force assumptions. The live order manager also exposes
+`execution_quality()` so promotion reviews can inspect acknowledgement latency, fill latency,
+rejection rate, reference-price slippage, spread cost, queue-model attribution, and venue-level
+rollups before production capital is used.
 
 ### Alpaca
 

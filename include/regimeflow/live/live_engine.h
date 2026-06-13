@@ -10,6 +10,7 @@
 #include "regimeflow/common/mpsc_queue.h"
 #include "regimeflow/common/spsc_queue.h"
 #include "regimeflow/engine/dashboard_snapshot.h"
+#include "regimeflow/engine/replay_journal.h"
 #include "regimeflow/engine/portfolio.h"
 #include "regimeflow/engine/order_routing.h"
 #include "regimeflow/live/audit_log.h"
@@ -17,6 +18,7 @@
 #include "regimeflow/live/event_bus.h"
 #include "regimeflow/live/live_order_manager.h"
 #include "regimeflow/live/mq_adapter.h"
+#include "regimeflow/live/prometheus_exporter.h"
 #include "regimeflow/live/types.h"
 #include "regimeflow/metrics/live_performance.h"
 #include "regimeflow/regime/regime_detector.h"
@@ -86,6 +88,14 @@ namespace regimeflow::live
          */
         bool paper_trading = true;
         /**
+         * @brief Validate and audit orders without submitting them to the broker.
+         */
+        bool dry_run_orders = false;
+        /**
+         * @brief Reject identical live orders submitted inside this window; zero disables the guard.
+         */
+        Duration duplicate_order_window = Duration::microseconds(0);
+        /**
          * @brief Max orders per minute.
          */
         int max_orders_per_minute = 60;
@@ -101,6 +111,10 @@ namespace regimeflow::live
          * @brief Interval for order reconciliation.
          */
         Duration order_reconcile_interval = Duration::seconds(30);
+        /**
+         * @brief Disable trading when broker order reconciliation fails.
+         */
+        bool disable_trading_on_reconcile_error = true;
         /**
          * @brief Interval for position reconciliation.
          */
@@ -121,6 +135,14 @@ namespace regimeflow::live
          * @brief Heartbeat timeout for live feed.
          */
         Duration heartbeat_timeout = Duration::seconds(30);
+        /**
+         * @brief Disable trading when market data becomes stale.
+         */
+        bool disable_trading_on_heartbeat_timeout = true;
+        /**
+         * @brief Cancel open live orders when market data becomes stale.
+         */
+        bool cancel_orders_on_heartbeat_timeout = true;
         /**
          * @brief Enable automatic broker reconnects.
          */
@@ -164,11 +186,27 @@ namespace regimeflow::live
          * @brief Log output directory.
          */
         std::string log_dir = "./logs";
+        /**
+         * @brief Audit log encoding.
+         */
+        AuditLogFormat audit_log_format = AuditLogFormat::Csv;
+        /**
+         * @brief Optional JSONL replay journal path for normalized live market-data events.
+         */
+        std::string replay_journal_path;
 
         /**
          * @brief Live performance tracking configuration.
          */
         metrics::LivePerformanceConfig metrics_config;
+        /**
+         * @brief Enable built-in Prometheus HTTP scrape endpoint.
+         */
+        bool enable_prometheus_endpoint = false;
+        /**
+         * @brief Built-in Prometheus scrape endpoint configuration.
+         */
+        PrometheusScrapeEndpointConfig prometheus_endpoint;
 
         /**
          * @brief Routing configuration for smart order routing.
@@ -284,7 +322,7 @@ namespace regimeflow::live
         /**
          * @brief Close all open positions.
          */
-        void close_all_positions() const;
+        void close_all_positions();
 
         /**
          * @brief Register trade callback.
@@ -310,8 +348,9 @@ namespace regimeflow::live
         void handle_execution_report(const ExecutionReport& report);
         void refresh_account_info();
         void refresh_derived_account_state(Timestamp timestamp);
+        void refresh_derived_account_state_locked(Timestamp timestamp);
         void refresh_positions();
-        void reconcile_orders() const;
+        void reconcile_orders();
         void apply_positions(const std::vector<Position>& positions, Timestamp timestamp);
         void apply_position_update(const Position& position, Timestamp timestamp);
         void check_daily_loss_limit();
@@ -319,6 +358,12 @@ namespace regimeflow::live
         void normalize_order_for_broker(engine::Order& order) const;
         [[nodiscard]] std::optional<Price> find_last_price(SymbolId symbol) const;
         [[nodiscard]] std::optional<data::Quote> find_last_quote(SymbolId symbol) const;
+        void append_replay_event(const events::Event& event);
+        void append_replay_order_update(const LiveOrder& order);
+        void append_replay_system_event(events::SystemEventKind kind,
+                                        Timestamp timestamp,
+                                        std::string id,
+                                        int64_t code = 0);
         void record_reconciliation_entry(const std::string& source,
                                          engine::OrderId internal_id,
                                          const std::string& broker_order_id,
@@ -346,6 +391,7 @@ namespace regimeflow::live
         std::unique_ptr<LiveOrderManager> order_manager_;
         std::unique_ptr<MessageQueueAdapter> mq_adapter_;
         std::unique_ptr<AuditLogger> audit_logger_;
+        std::unique_ptr<PrometheusScrapeEndpoint> prometheus_endpoint_;
         std::unique_ptr<metrics::LivePerformanceTracker> live_metrics_;
         engine::OrderManager strategy_order_manager_;
 
@@ -353,6 +399,7 @@ namespace regimeflow::live
         std::atomic<bool> trading_enabled_{false};
         regime::RegimeState current_regime_;
         std::unique_ptr<engine::Portfolio> portfolio_;
+        mutable std::mutex portfolio_mutex_;
 
         std::thread event_loop_thread_;
         std::thread regime_thread_;
@@ -381,6 +428,7 @@ namespace regimeflow::live
         std::function<void(const std::string&)> error_cb_;
         std::function<void(const DashboardSnapshot&)> dashboard_cb_;
         std::string reconciliation_journal_path_;
+        std::unique_ptr<engine::ReplayJournalWriter> replay_journal_writer_;
 
         mutable std::mutex dashboard_mutex_;
         DashboardSnapshot last_dashboard_;

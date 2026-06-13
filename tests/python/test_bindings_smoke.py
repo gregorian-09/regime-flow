@@ -2,34 +2,37 @@ import os
 import sys
 
 TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
-if not TEST_ROOT:
-    raise RuntimeError("REGIMEFLOW_TEST_ROOT not set")
-
-# Ensure Windows DLL search paths are configured before importing extension.
-if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
-    candidates = [
-        os.path.join(TEST_ROOT, "build", "python"),
-        os.path.join(TEST_ROOT, "build", "lib"),
-        os.path.join(TEST_ROOT, "build", "bin"),
-        os.path.join(TEST_ROOT, "vcpkg_installed", "x64-windows", "bin"),
-        os.path.join(TEST_ROOT, "vcpkg_installed", "x64-windows", "debug", "bin"),
-    ]
-    for entry in candidates:
-        if os.path.isdir(entry):
-            os.add_dll_directory(entry)
-
-# Ensure package + built module are visible
-build_lib = os.path.join(TEST_ROOT, "build", "lib")
-build_python = os.path.join(TEST_ROOT, "build", "python")
-source_python = os.path.join(TEST_ROOT, "python")
-for path in (build_lib, build_python, source_python):
-    if path not in sys.path:
-        sys.path.insert(0, path)
-
-import regimeflow as rf
 
 
 def main():
+    global rf
+
+    if not TEST_ROOT:
+        raise RuntimeError("REGIMEFLOW_TEST_ROOT not set")
+
+    # Ensure Windows DLL search paths are configured before importing extension.
+    if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+        candidates = [
+            os.path.join(TEST_ROOT, "build", "python"),
+            os.path.join(TEST_ROOT, "build", "lib"),
+            os.path.join(TEST_ROOT, "build", "bin"),
+            os.path.join(TEST_ROOT, "vcpkg_installed", "x64-windows", "bin"),
+            os.path.join(TEST_ROOT, "vcpkg_installed", "x64-windows", "debug", "bin"),
+        ]
+        for entry in candidates:
+            if os.path.isdir(entry):
+                os.add_dll_directory(entry)
+
+    # Ensure package + built module are visible.
+    build_lib = os.path.join(TEST_ROOT, "build", "lib")
+    build_python = os.path.join(TEST_ROOT, "build", "python")
+    source_python = os.path.join(TEST_ROOT, "python")
+    for path in (build_lib, build_python, source_python):
+        if path not in sys.path:
+            sys.path.insert(0, path)
+
+    import regimeflow as rf
+
     try:
         import numpy as np
     except Exception as exc:

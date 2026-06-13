@@ -39,6 +39,16 @@ namespace
         return cfg.get_as<bool>(key);
     }
 
+    regimeflow::live::AuditLogFormat parse_audit_log_format(const std::optional<std::string>& value) {
+        if (!value.has_value() || *value == "csv") {
+            return regimeflow::live::AuditLogFormat::Csv;
+        }
+        if (*value == "jsonl" || *value == "json") {
+            return regimeflow::live::AuditLogFormat::Jsonl;
+        }
+        return regimeflow::live::AuditLogFormat::Csv;
+    }
+
     std::vector<std::string> get_string_array(const regimeflow::Config& cfg, const std::string& key) {
         std::vector<std::string> out;
         if (const auto arr = cfg.get_as<regimeflow::ConfigValue::Array>(key); arr.has_value()) {
@@ -194,17 +204,45 @@ namespace
         cfg.broker_asset_class = get_string(root, "live.broker_asset_class").value_or("equity");
         cfg.symbols = get_string_array(root, "live.symbols");
         cfg.paper_trading = get_bool(root, "live.paper").value_or(true);
+        cfg.dry_run_orders = get_bool(root, "live.dry_run").value_or(cfg.dry_run_orders);
+        if (const auto duplicate_window_ms = get_int(root, "live.duplicate_order_window_ms")) {
+            cfg.duplicate_order_window = regimeflow::Duration::milliseconds(*duplicate_window_ms);
+        }
         cfg.strategy_name = get_string(root, "strategy.name").value_or("buy_and_hold");
         cfg.strategy_config = get_object_config(root, "strategy.params");
         cfg.risk_config = get_object_config(root, "live.risk");
         cfg.broker_config = get_object_map(root, "live.broker_config");
         cfg.broker_config["paper"] = cfg.paper_trading ? "true" : "false";
         cfg.log_dir = get_string(root, "live.log_dir").value_or("./logs");
+        cfg.audit_log_format = parse_audit_log_format(get_string(root, "live.audit.format"));
+        cfg.replay_journal_path =
+            get_string(root, "live.replay_journal_path").value_or(cfg.replay_journal_path);
         cfg.max_order_value = get_double(root, "live.max_order_value").value_or(cfg.max_order_value);
 
-        if (const auto interval_ms = get_int(root, "live.heartbeat.interval_ms")) {
+        if (!get_bool(root, "live.heartbeat.enabled").value_or(true)) {
+            cfg.heartbeat_timeout = Duration::microseconds(0);
+        } else if (const auto interval_ms = get_int(root, "live.heartbeat.interval_ms")) {
             cfg.heartbeat_timeout = Duration::milliseconds(*interval_ms);
         }
+        cfg.disable_trading_on_heartbeat_timeout =
+            get_bool(root, "live.heartbeat.disable_trading_on_timeout").value_or(
+                cfg.disable_trading_on_heartbeat_timeout);
+        cfg.cancel_orders_on_heartbeat_timeout =
+            get_bool(root, "live.heartbeat.cancel_orders_on_timeout").value_or(
+                cfg.cancel_orders_on_heartbeat_timeout);
+        cfg.disable_trading_on_reconcile_error =
+            get_bool(root, "live.reconciliation.disable_trading_on_error").value_or(
+                cfg.disable_trading_on_reconcile_error);
+
+        cfg.enable_prometheus_endpoint =
+            get_bool(root, "metrics.prometheus.enabled").value_or(cfg.enable_prometheus_endpoint);
+        cfg.prometheus_endpoint.host =
+            get_string(root, "metrics.prometheus.host").value_or(cfg.prometheus_endpoint.host);
+        if (const auto port = get_int(root, "metrics.prometheus.port")) {
+            cfg.prometheus_endpoint.port = static_cast<uint16_t>(*port);
+        }
+        cfg.prometheus_endpoint.path =
+            get_string(root, "metrics.prometheus.path").value_or(cfg.prometheus_endpoint.path);
 
         if (cfg.broker_type == "alpaca") {
             set_broker_config_from_env(cfg.broker_config, "api_key", "ALPACA_API_KEY");

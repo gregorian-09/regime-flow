@@ -4,7 +4,9 @@
 #include "regimeflow/common/types.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <fstream>
 #include <limits>
@@ -31,6 +33,19 @@ namespace regimeflow::data
         int32_t yyyymmdd_from_timestamp(const Timestamp& ts) {
             const auto text = ts.to_string("%Y%m%d");
             return static_cast<int32_t>(std::stoi(text));
+        }
+
+        void write_date_index(std::ofstream& out, const std::vector<DateIndex>& index) {
+            for (const auto& entry : index) {
+                std::array<unsigned char, sizeof(DateIndex)> raw{};
+                std::memcpy(raw.data() + offsetof(DateIndex, date_yyyymmdd),
+                            &entry.date_yyyymmdd,
+                            sizeof(entry.date_yyyymmdd));
+                std::memcpy(raw.data() + offsetof(DateIndex, offset),
+                            &entry.offset,
+                            sizeof(entry.offset));
+                write_bytes(out, raw.data(), raw.size(), nullptr);
+            }
         }
 
     }  // namespace
@@ -103,13 +118,14 @@ namespace regimeflow::data
         write_bytes(out, volumes.data(), volumes.size() * sizeof(uint64_t), &sha);
 
         if (!index.empty()) {
-            write_bytes(out, index.data(), index.size() * sizeof(DateIndex), nullptr);
+            write_date_index(out, index);
         }
 
         auto checksum = sha.digest();
         std::memcpy(header.checksum, checksum.data(), checksum.size());
 
         out.seekp(0);
+        write_bytes(out, &header, sizeof(header), nullptr);
         return Ok();
     }
 
@@ -162,7 +178,10 @@ namespace regimeflow::data
         int32_t last_date = 0;
         for (size_t i = 0; i < bars.size(); ++i) {
             if (const int32_t date = yyyymmdd_from_timestamp(bars[i].timestamp); i == 0 || date != last_date) {
-                index.push_back(DateIndex{date, static_cast<uint64_t>(i)});
+                DateIndex entry{};
+                entry.date_yyyymmdd = date;
+                entry.offset = static_cast<uint64_t>(i);
+                index.push_back(entry);
                 last_date = date;
             }
         }

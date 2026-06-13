@@ -166,6 +166,35 @@ This makes multi-venue routing analysis available directly from the result objec
 For a single runnable example that combines these controls in one place, see `examples/python_execution_realism/`.
 For a compiled C++ example focused on calendar closures and runtime halt/resume control, run `./build/bin/regimeflow_backtest_controls_demo` and see `examples/backtest_controls_demo/README.md`.
 
+## Replay Journals
+
+`regimeflow/engine/replay_journal.h` provides an append-only JSONL event journal for deterministic replay/live parity checks. It serializes the same `events::Event` type consumed by the backtest event loop, including market, order, and system events.
+
+Typical uses:
+
+- record normalized live market/order/system events for later replay analysis;
+- compare backtest assumptions against a captured live session;
+- build deterministic regression tests from real broker-facing event streams.
+
+The journal API includes:
+
+- `engine::ReplayJournalWriter::append(event)` for JSONL writes;
+- `engine::read_replay_journal(path)` for loading a captured trace;
+- `engine::serialize_replay_event(event)` and `engine::parse_replay_event(line)` for custom transports.
+
+Live market data can be converted into this shared event model with `live::to_engine_event(update)`.
+
+Captured journals can also be replayed through the compiled backtest engine:
+
+```bash
+./build/bin/regimeflow_replay_journal --input live_replay.jsonl
+./build/bin/regimeflow_replay_journal --input live_replay.jsonl --summary-only
+```
+
+The command loads the JSONL journal, enqueues each event into `BacktestEngine`, runs the event
+loop, and prints portfolio plus event-count diagnostics. This gives live captures a first-class
+CLI path for parity checks instead of requiring ad hoc parsing scripts.
+
 ## Configuration Modes
 
 RegimeFlow supports two config formats:

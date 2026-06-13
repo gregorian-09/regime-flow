@@ -85,7 +85,7 @@ namespace regimeflow::engine
         /**
          * @brief Enqueue all events from the iterators.
          */
-        void enqueue_all() const;
+        void enqueue_all();
 
     private:
         std::unique_ptr<data::DataIterator> bar_iterator_;

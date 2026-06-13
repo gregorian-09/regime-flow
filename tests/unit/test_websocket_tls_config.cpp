@@ -27,7 +27,9 @@ namespace regimeflow::test
     }
 #else
     TEST(WebSocketFeedTlsConfig, SkippedWithoutDependencies) {
-        GTEST_SKIP() << "Boost.Beast/OpenSSL not available";
+        GTEST_SKIP()
+            << "Skipped because REGIMEFLOW_USE_BOOST_BEAST or REGIMEFLOW_USE_OPENSSL is not defined; "
+               "configure with -DENABLE_WEBSOCKET=ON -DENABLE_OPENSSL=ON and provide Boost.Beast/OpenSSL.";
     }
 #endif
 }  // namespace regimeflow::test

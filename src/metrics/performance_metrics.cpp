@@ -133,8 +133,6 @@ namespace regimeflow::metrics
         }
 
         if (!snapshots.empty()) {
-            Timestamp drawdown_start = snapshots.front().timestamp;
-            Timestamp drawdown_end = snapshots.front().timestamp;
             double peak_equity = snapshots.front().equity;
             for (const auto& snapshot : snapshots) {
                 if (snapshot.equity > peak_equity) {
@@ -145,11 +143,8 @@ namespace regimeflow::metrics
                     : 0.0;
                 if (drawdown > stats.max_drawdown) {
                     stats.max_drawdown = drawdown;
-                    drawdown_end = snapshot.timestamp;
                 }
             }
-            (void) drawdown_start;
-            (void) drawdown_end;
         }
 
         if (!returns.empty()) {

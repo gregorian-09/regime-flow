@@ -35,8 +35,7 @@ namespace regimeflow::data
     void PollingRestFeed::unsubscribe(const std::vector<std::string>& symbols) {
         for (const auto& symbol : symbols) {
             auto id = SymbolRegistry::instance().intern(symbol);
-            subscribed_.erase(std::ranges::remove(subscribed_, id).begin(),
-                              subscribed_.end());
+            std::erase(subscribed_, id);
             last_bar_ts_.erase(id);
             last_tick_ts_.erase(id);
         }

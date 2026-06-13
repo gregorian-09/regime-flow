@@ -115,25 +115,8 @@ struct Error {
           SourceLocation loc = SourceLocation::current())
         : code(c), message(std::move(msg)), location(loc) {}
 
-    /**
-     * @brief Copy constructor.
-     */
-    Error(const Error& other)
-        : code(other.code),
-          message(other.message),
-          details(other.details),
-          location(other.location) {}
-
-    Error& operator=(const Error& other) {
-        if (this == &other) {
-            return *this;
-        }
-        code = other.code;
-        message = other.message;
-        details = other.details;
-        location = other.location;
-        return *this;
-    }
+    Error(const Error&) = default;  // NOLINT(clang-analyzer-core.uninitialized.Assign)
+    Error& operator=(const Error&) = default;
 
     Error(Error&&) noexcept = default;
     Error& operator=(Error&&) noexcept = default;
@@ -171,18 +154,18 @@ public:
     /**
      * @brief True if the result holds a value.
      */
-    [[nodiscard]] bool is_ok() const { return std::holds_alternative<T>(value_); }
+    [[nodiscard]] bool is_ok() const noexcept { return std::holds_alternative<T>(value_); }
     /**
      * @brief True if the result holds an error.
      */
-    [[nodiscard]] bool is_err() const { return std::holds_alternative<Error>(value_); }
+    [[nodiscard]] bool is_err() const noexcept { return std::holds_alternative<Error>(value_); }
 
     /**
      * @brief Access the value or throw on error.
      * @return Mutable reference to value.
      * @throws std::runtime_error if the result is an error.
      */
-    T& value() & {
+    [[nodiscard]] T& value() & {
         if (is_err()) throw std::runtime_error(error().to_string());
         return std::get<T>(value_);
     }
@@ -191,7 +174,7 @@ public:
      * @return Const reference to value.
      * @throws std::runtime_error if the result is an error.
      */
-    const T& value() const& {
+    [[nodiscard]] const T& value() const& {
         if (is_err()) throw std::runtime_error(error().to_string());
         return std::get<T>(value_);
     }
@@ -200,7 +183,7 @@ public:
      * @return Rvalue reference to value.
      * @throws std::runtime_error if the result is an error.
      */
-    T&& value() && {
+    [[nodiscard]] T&& value() && {
         if (is_err()) throw std::runtime_error(error().to_string());
         return std::move(std::get<T>(value_));
     }
@@ -209,7 +192,7 @@ public:
      * @brief Access the stored error.
      * @return Mutable reference to error.
      */
-    Error& error() & { return std::get<Error>(value_); }
+    [[nodiscard]] Error& error() & { return std::get<Error>(value_); }
     /**
      * @brief Access the stored error.
      * @return Const reference to error.
@@ -223,7 +206,7 @@ public:
      * @return Result of the mapped value, or existing error.
      */
     template<typename F>
-    auto map(F&& f) -> Result<std::invoke_result_t<F, T>> {
+    [[nodiscard]] auto map(F&& f) -> Result<std::invoke_result_t<F, T>> {
         if (is_ok()) {
             return Result<std::invoke_result_t<F, T>>(f(value()));
         }
@@ -237,7 +220,7 @@ public:
      * @return Result from the continuation, or existing error.
      */
     template<typename F>
-    auto and_then(F&& f) -> std::invoke_result_t<F, T> {
+    [[nodiscard]] auto and_then(F&& f) -> std::invoke_result_t<F, T> {
         if (is_ok()) {
             return f(value());
         }
@@ -249,8 +232,17 @@ public:
      * @param default_value Value to return on error.
      * @return Stored value or default.
      */
-    T value_or(T default_value) const {
+    [[nodiscard]] T value_or(const T& default_value) const {
         return is_ok() ? value() : default_value;
+    }
+
+    /**
+     * @brief Return the value or a movable default if this is an error.
+     * @param default_value Value to move-return on error.
+     * @return Stored value or default.
+     */
+    [[nodiscard]] T value_or(T&& default_value) const {
+        return is_ok() ? value() : std::move(default_value);
     }
 
 private:
@@ -276,17 +268,17 @@ public:
     /**
      * @brief True if the result has no error.
      */
-    [[nodiscard]] bool is_ok() const { return !error_.has_value(); }
+    [[nodiscard]] bool is_ok() const noexcept { return !error_.has_value(); }
     /**
      * @brief True if the result carries an error.
      */
-    [[nodiscard]] bool is_err() const { return error_.has_value(); }
+    [[nodiscard]] bool is_err() const noexcept { return error_.has_value(); }
 
     /**
      * @brief Access the stored error.
      * @return Const reference to error.
      */
-    [[nodiscard]] const Error& error() const { return *error_; }
+    [[nodiscard]] const Error& error() const noexcept { return *error_; }
 
 private:
     std::optional<Error> error_;
@@ -299,13 +291,13 @@ template<typename T>
  * @param value Value to wrap.
  * @return Result containing the value.
  */
-Result<T> Ok(T value) { return Result<T>(std::move(value)); }
+[[nodiscard]] Result<T> Ok(T value) { return Result<T>(std::move(value)); }
 
 /**
  * @brief Helper to construct a successful Result<void>.
  * @return Success result.
  */
-inline Result<void> Ok() { return {}; }
+[[nodiscard]] inline Result<void> Ok() { return {}; }
 
 #if defined(__cpp_lib_format)
 
@@ -318,7 +310,7 @@ template<typename... Args>
  * @param args Format arguments.
  * @return Error with formatted message.
  */
-Error Err(Error::Code code, std::string_view fmt, Args&&... args) {
+[[nodiscard]] Error Err(Error::Code code, std::string_view fmt, Args&&... args) {
     return Error(code, std::vformat(fmt, std::make_format_args(args...)));
 }
 
@@ -332,7 +324,7 @@ template<typename... Args>
  * @param fmt String to use as the message.
  * @return Error with the provided message.
  */
-Error Err(const Error::Code code, const std::string_view fmt, Args&&...) {
+[[nodiscard]] Error Err(const Error::Code code, const std::string_view fmt, Args&&...) {
     return {code, std::string(fmt)};
 }
 

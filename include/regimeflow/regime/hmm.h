@@ -110,6 +110,14 @@ namespace regimeflow::regime
          * @brief State names for display.
          */
         std::vector<std::string> state_names() const override;
+        /**
+         * @brief Return model governance metadata.
+         */
+        [[nodiscard]] ModelGovernanceMetadata model_metadata() const override;
+        /**
+         * @brief Set model governance metadata.
+         */
+        void set_model_metadata(ModelGovernanceMetadata metadata) override;
 
     private:
         FeatureVector extract_features(const data::Bar& bar);
@@ -131,5 +139,6 @@ namespace regimeflow::regime
         double kalman_measurement_noise_ = 1e-2;
         std::vector<KalmanFilter1D> kalman_filters_;
         FeatureExtractor extractor_;
+        ModelGovernanceMetadata metadata_;
     };
 }  // namespace regimeflow::regime

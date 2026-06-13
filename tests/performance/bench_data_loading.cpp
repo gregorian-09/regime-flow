@@ -2,6 +2,7 @@
 #include "regimeflow/common/time.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <iostream>
 
 int main() {
@@ -32,8 +33,13 @@ int main() {
     }
     const auto end = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed = end - start;
+    if (count != kBars || elapsed.count() <= 0.0) {
+        std::cerr << "Data loading benchmark failed sanity checks: count=" << count
+                  << ", elapsed=" << elapsed.count() << '\n';
+        return EXIT_FAILURE;
+    }
 
     const double eps = static_cast<double>(count) / elapsed.count();
-    std::cout << "Data loading: " << eps << " bars/sec" << std::endl;
-    return 0;
+    std::cout << "Data loading: " << eps << " bars/sec" << '\n';
+    return EXIT_SUCCESS;
 }

@@ -40,7 +40,6 @@ namespace {
         }
 
     private:
-        strategy::StrategyContext* ctx_ = nullptr;
         engine::OrderId order_id_ = 0;
         bool submitted_ = false;
     };

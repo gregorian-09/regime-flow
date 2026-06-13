@@ -94,6 +94,12 @@ The live CLI loads `.env` automatically if present and merges environment variab
 - Emits audit logs and system health events.
 - Optionally tracks live performance drift vs a backtest baseline.
 
+## Replay And Parity Capture
+
+Live market updates now have a direct adapter into the shared backtest event model through `live::to_engine_event(update)`. Set `live.replay_journal_path` to capture normalized live market-data events as JSONL through `engine::ReplayJournalWriter`; the same parser is available from `regimeflow/engine/replay_journal.h` for replay inspection and parity tests.
+
+This is intentionally below the broker adapter layer: the journal records normalized engine events, not raw broker socket payloads. The live journal also captures order-manager lifecycle updates and risk/safety gate decisions as replay events, keeping replay artifacts portable across Alpaca, Binance, Interactive Brokers, and simulated feeds.
+
 ## Live Performance Drift Tracking
 
 Enable live drift tracking by setting `metrics.live.enable: true`. When enabled, the engine writes:
@@ -102,6 +108,27 @@ Enable live drift tracking by setting `metrics.live.enable: true`. When enabled,
 - `live_performance.json` for a summary.
 
 You can also point the tracker at a backtest report JSON via `metrics.live.baseline_report`.
+
+## Execution Quality Tracking
+
+`LiveOrderManager` now keeps an in-process `ExecutionQualitySnapshot` for broker-order outcomes.
+It tracks submitted orders, submit rejections, broker rejections, acknowledgements, partial fills,
+filled orders, cancellation reports, average acknowledgement latency, average fill latency, and
+limit/stop-reference slippage in basis points. When a submit-time quote is available, it also
+tracks effective spread cost versus the quote midpoint. Orders that carry `queue_position` and
+`expected_queue_delay_ms` metadata also get queue-model attribution, reporting realized fill
+latency versus the model estimate. Filled orders are rolled up by routing venue so promotion
+reviews can compare fill latency, quantity, slippage, and spread cost across venues. Use
+`execution_quality()` for dashboards, audit exports, and paper-live validation reports.
+
+## Prometheus Export
+
+`regimeflow/live/prometheus_exporter.h` provides Prometheus text exposition helpers and a minimal
+HTTP scrape endpoint for live operations. Use `dashboard_snapshot_to_prometheus(...)` for
+account/health/dashboard gauges and `live_metrics_to_prometheus(...)` when you also want
+execution-quality counters, latency/slippage, queue-attribution, and spread-cost gauges in the
+same scrape payload. Set `metrics.prometheus.enabled: true` to let `LiveTradingEngine` serve the
+payload directly.
 
 ## Read This Section With The Right Mental Model
 

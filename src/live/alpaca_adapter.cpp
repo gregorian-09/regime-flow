@@ -71,9 +71,9 @@ namespace regimeflow::live
         }
 #endif
 
-        Error make_alpaca_http_error(const char* operation,
-                                     const long status,
-                                     const std::string& response) {
+        [[maybe_unused]] Error make_alpaca_http_error(const char* operation,
+                                                      const long status,
+                                                      const std::string& response) {
             Error error;
             if (status == 401 || status == 403) {
                 error = Error(Error::Code::BrokerError, "Alpaca authentication failed");
@@ -184,7 +184,7 @@ namespace regimeflow::live
             if (value == "rejected") {
                 return LiveOrderStatus::Rejected;
             }
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
         LiveOrderStatus parse_trade_update_status_local(const std::string& value) {
@@ -207,7 +207,7 @@ namespace regimeflow::live
             if (v == "new" || v == "accepted") {
                 return LiveOrderStatus::New;
             }
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
         const common::JsonValue::Object* as_object(const common::JsonValue& value) {
@@ -351,12 +351,14 @@ namespace regimeflow::live
             }
             if (status.empty()) {
                 if (auto event = optional_string(*payload, "event"); event.is_ok()) {
-                    report.status = parse_trade_update_status_local(event.value());
+                    report.text = event.value();
+                    report.status = parse_trade_update_status_local(report.text);
                 } else {
                     return Result<ExecutionReport>(Error(Error::Code::ParseError, "Missing status/event"));
                 }
             } else {
-                report.status = parse_order_status(status);
+                report.text = status;
+                report.status = parse_order_status(report.text);
             }
             report.timestamp = Timestamp::now();
             return Result<ExecutionReport>(report);
@@ -444,7 +446,7 @@ namespace regimeflow::live
     void AlpacaAdapter::unsubscribe_market_data(const std::vector<std::string>& symbols) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (const auto& sym : symbols) {
-            symbols_.erase(std::ranges::remove(symbols_, sym).begin(), symbols_.end());
+            std::erase(symbols_, sym);
         }
         if (stream_) {
             stream_->unsubscribe(symbols);
@@ -642,7 +644,8 @@ namespace regimeflow::live
             report.side = side.value() == "sell" ? engine::OrderSide::Sell : engine::OrderSide::Buy;
             report.quantity = qty.value();
             if (avg_price.is_ok()) report.price = avg_price.value();
-            report.status = parse_order_status(status.value());
+            report.text = status.value();
+            report.status = parse_order_status(report.text);
             report.timestamp = Timestamp::now();
             out.push_back(report);
         }
@@ -670,21 +673,49 @@ namespace regimeflow::live
     }
 
     bool AlpacaAdapter::supports_tif(const engine::OrderType type, const engine::TimeInForce tif) const {
+        return capabilities().supports(type, tif);
+    }
+
+    BrokerCapabilities AlpacaAdapter::capabilities() const {
         const bool is_crypto = config_.asset_class == "crypto";
-        if (tif == engine::TimeInForce::GTD) {
-            return false;
-        }
+        BrokerCapabilities caps;
+        caps.broker = "alpaca";
+        caps.asset_classes = is_crypto ? std::vector<AssetClass>{AssetClass::Crypto}
+                                       : std::vector<AssetClass>{AssetClass::Equity};
+        caps.supports_fractional_quantity = true;
+        caps.supports_short_selling = !is_crypto;
+        caps.supports_crypto = is_crypto;
+        caps.supports_bracket_orders = !is_crypto;
+        caps.max_orders_per_second = max_orders_per_second();
+        caps.max_messages_per_second = max_messages_per_second();
+
         if (is_crypto) {
-            return tif == engine::TimeInForce::GTC || tif == engine::TimeInForce::IOC;
+            const std::vector<engine::TimeInForce> crypto_tifs{
+                engine::TimeInForce::GTC,
+                engine::TimeInForce::IOC,
+            };
+            caps.order_types = {
+                {engine::OrderType::Market, crypto_tifs},
+                {engine::OrderType::Limit, crypto_tifs},
+                {engine::OrderType::Stop, crypto_tifs},
+                {engine::OrderType::StopLimit, crypto_tifs},
+            };
+            return caps;
         }
-        if (type == engine::OrderType::Limit || type == engine::OrderType::Market
-            || type == engine::OrderType::Stop || type == engine::OrderType::StopLimit) {
-            return tif == engine::TimeInForce::Day
-                || tif == engine::TimeInForce::GTC
-                || tif == engine::TimeInForce::IOC
-                || tif == engine::TimeInForce::FOK;
-        }
-        return false;
+
+        const std::vector<engine::TimeInForce> equity_tifs{
+            engine::TimeInForce::Day,
+            engine::TimeInForce::GTC,
+            engine::TimeInForce::IOC,
+            engine::TimeInForce::FOK,
+        };
+        caps.order_types = {
+            {engine::OrderType::Market, equity_tifs},
+            {engine::OrderType::Limit, equity_tifs},
+            {engine::OrderType::Stop, equity_tifs},
+            {engine::OrderType::StopLimit, equity_tifs},
+        };
+        return caps;
     }
 
     void AlpacaAdapter::poll() {

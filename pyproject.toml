@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "regimeflow"
-version = "1.0.11"
+version = "1.0.12"
 description = "Regime-aware quantitative backtesting and research bindings for the RegimeFlow C++ engine"
 readme = {file = "python/README.md", content-type = "text/markdown"}
 requires-python = ">=3.9"
@@ -36,6 +36,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: C++",
     "Topic :: Scientific/Engineering",
     "Topic :: Office/Business :: Financial :: Investment",
@@ -87,6 +89,7 @@ cmake.args = [
     "-DENABLE_ZMQ=OFF",
     "-DENABLE_REDIS=OFF",
     "-DENABLE_KAFKA=OFF",
+    "-DENABLE_WEBSOCKET=OFF",
 ]
 wheel.packages = ["python/regimeflow"]
 sdist.exclude = [
@@ -108,7 +111,7 @@ markers = [
 
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311", "py312", "py313"]
 
 [tool.ruff]
 line-length = 100

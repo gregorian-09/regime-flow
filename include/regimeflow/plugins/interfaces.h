@@ -10,6 +10,7 @@
 #include "regimeflow/execution/slippage.h"
 #include "regimeflow/execution/commission.h"
 #include "regimeflow/data/data_source.h"
+#include "regimeflow/live/broker_adapter.h"
 #include "regimeflow/metrics/performance_metric.h"
 #include "regimeflow/risk/risk_limits.h"
 #include "regimeflow/strategy/strategy.h"
@@ -86,5 +87,16 @@ namespace regimeflow::plugins
          * @brief Create a performance metric instance.
          */
         virtual std::unique_ptr<metrics::PerformanceMetric> create_metric() = 0;
+    };
+
+    /**
+     * @brief Plugin interface for custom live broker adapters.
+     */
+    class BrokerAdapterPlugin : public Plugin {
+    public:
+        /**
+         * @brief Create a broker adapter instance.
+         */
+        virtual std::unique_ptr<live::BrokerAdapter> create_broker_adapter() = 0;
     };
 }  // namespace regimeflow::plugins

@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
+#include "test_time.h"
 
 #include "regimeflow/data/memory_data_source.h"
 #include "regimeflow/engine/backtest_engine.h"
 #include "regimeflow/engine/backtest_runner.h"
+#include "regimeflow/risk/stop_loss.h"
 #include "regimeflow/strategy/strategy.h"
 
 namespace regimeflow::test
@@ -137,7 +139,7 @@ namespace regimeflow::test
     TEST(StopLoss, TimeStopTriggersExit) {
         auto symbol = SymbolRegistry::instance().intern("TIME");
         std::vector<data::Bar> bars;
-        auto base = Timestamp::now();
+        auto base = regimeflow::test::fixed_timestamp();
         data::Bar b1{};
         b1.symbol = symbol;
         b1.timestamp = base;
@@ -156,5 +158,41 @@ namespace regimeflow::test
         auto pos = portfolio.get_position(symbol);
         ASSERT_TRUE(pos.has_value());
         EXPECT_EQ(pos->quantity, 0);
+    }
+
+    TEST(StopLoss, ReopenedSameDirectionPositionCanRequestAnotherExit) {
+        const auto symbol = SymbolRegistry::instance().intern("RESET_STOP");
+
+        risk::StopLossManager stops;
+        risk::StopLossConfig config;
+        config.enable_fixed = true;
+        config.stop_loss_pct = 0.05;
+        stops.configure(config);
+
+        engine::OrderManager orders;
+        engine::Position position;
+        position.symbol = symbol;
+        position.quantity = 10.0;
+        position.avg_cost = 100.0;
+        position.current_price = 100.0;
+        position.last_update = regimeflow::test::fixed_timestamp();
+        stops.on_position_update(position);
+
+        data::Tick tick;
+        tick.symbol = symbol;
+        tick.timestamp = position.last_update + Duration::seconds(1);
+        tick.price = 94.0;
+        tick.quantity = 1.0;
+        stops.on_tick(tick, orders);
+        ASSERT_EQ(orders.get_open_orders().size(), 1u);
+
+        position.quantity = 20.0;
+        position.current_price = 100.0;
+        position.last_update = tick.timestamp + Duration::seconds(1);
+        stops.on_position_update(position);
+
+        tick.timestamp = position.last_update + Duration::seconds(1);
+        stops.on_tick(tick, orders);
+        EXPECT_EQ(orders.get_open_orders().size(), 2u);
     }
 }  // namespace regimeflow::test

@@ -77,8 +77,30 @@ regime:
 
 Plugin detectors are created through `RegimeFactory`. Provide the plugin name in `regime.detector`, and pass plugin parameters in `regime.params`.
 
+
+## Model Governance Metadata
+
+Regime detectors expose `model_metadata()` so backtest, live, and replay artifacts can record
+which detector version produced each prediction. HMM persistence now writes and reads:
+
+- detector type;
+- model version;
+- training start/end timestamps in microseconds;
+- feature schema;
+- parameter digest.
+
+Use this metadata in audit records and model promotion reports so a regime decision can be traced
+back to the exact training window and feature contract.
+
 ## Next Steps
 
 - `guide/strategies.md`
 - `guide/risk-management.md`
 - `reference/configuration.md`
+
+
+## Runtime Governance Audits
+
+Live regime-change audit events include detector governance metadata when the active detector exposes it through `model_metadata()`. The audit metadata keys use the `model.*` prefix, including `model.detector_type`, `model.version`, `model.training_start_us`, `model.training_end_us`, `model.feature_schema`, and `model.parameter_digest`.
+
+This makes replay and incident review easier because a regime transition can be tied back to the model version and feature schema that produced it.

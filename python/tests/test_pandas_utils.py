@@ -1,17 +1,19 @@
 import os
 import sys
 
+import pytest
+
 TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
 if not TEST_ROOT:
-    raise RuntimeError("REGIMEFLOW_TEST_ROOT not set")
+    pytest.skip("REGIMEFLOW_TEST_ROOT not set", allow_module_level=True)
 
 build_python = os.path.join(TEST_ROOT, "build", "python")
 if build_python not in sys.path:
     sys.path.insert(0, build_python)
 
-import pandas as pd
 import numpy as np
-import pytest
+
+pd = pytest.importorskip("pandas")
 
 import regimeflow as rf
 from regimeflow.data import pandas_utils

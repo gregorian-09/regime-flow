@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "regimeflow/data/csv_reader.h"
+#include "temp_path_guard.h"
 
 #include <filesystem>
 #include <fstream>
@@ -10,6 +11,7 @@ namespace regimeflow::test
     TEST(CSVNormalization, AppliesUtcOffset) {
         namespace fs = std::filesystem;
         fs::path dir = fs::temp_directory_path() / "regimeflow_csv_norm";
+        regimeflow::test::TempPathGuard temp_dir(dir);
         fs::create_directories(dir);
 
         const std::string symbol = "AAA";
@@ -35,6 +37,7 @@ namespace regimeflow::test
     TEST(CSVNormalization, FillsMissingDailyBars) {
         namespace fs = std::filesystem;
         fs::path dir = fs::temp_directory_path() / "regimeflow_csv_fill";
+        regimeflow::test::TempPathGuard temp_dir(dir);
         fs::create_directories(dir);
 
         const std::string symbol = "BBB";

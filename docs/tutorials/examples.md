@@ -99,8 +99,8 @@ cmake --build examples/custom_regime_ensemble/build
 Path: `examples/python_custom_regime_ensemble/`
 
 ```bash
-.venv/bin/python tools/download_intraday_spx_sample.py
-.venv/bin/python tools/download_intraday_spx_sample.py --multi
+.venv/bin/python tools/download_intraday_crypto_sample.py
+.venv/bin/python tools/download_intraday_crypto_sample.py --multi
 
 PYTHONPATH=python:build/lib .venv/bin/python \
   examples/python_custom_regime_ensemble/run_python_custom_regime_ensemble.py \

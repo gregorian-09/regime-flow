@@ -76,6 +76,14 @@ namespace regimeflow::live
              */
             int client_id = 1;
             /**
+             * @brief Explicitly allow IB's plaintext TCP API to a non-loopback host.
+             *
+             * @details The upstream TWS/Gateway socket protocol is not TLS-protected.
+             * Keep this false unless the connection is protected by an SSH tunnel,
+             * VPN, stunnel, or an equivalent private transport boundary.
+             */
+            bool allow_plaintext_remote = false;
+            /**
              * @brief Default contract shape for symbols without per-symbol overrides.
              */
             ContractConfig default_contract;
@@ -150,6 +158,7 @@ namespace regimeflow::live
         int max_messages_per_second() const override;
         bool supports_tif(engine::OrderType type,
                           engine::TimeInForce tif) const override;
+        [[nodiscard]] BrokerCapabilities capabilities() const override;
 
         /**
          * @brief Return the normalized IB contract config used for a symbol.

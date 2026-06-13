@@ -7,8 +7,8 @@ a compiled plugin.
 ## Run
 
 ```bash
-.venv/bin/python tools/download_intraday_spx_sample.py
-.venv/bin/python tools/download_intraday_spx_sample.py --multi
+.venv/bin/python tools/download_intraday_crypto_sample.py
+.venv/bin/python tools/download_intraday_crypto_sample.py --multi
 
 PYTHONPATH=python:build/lib .venv/bin/python \
   examples/python_custom_regime_ensemble/run_python_custom_regime_ensemble.py \
@@ -22,7 +22,7 @@ PYTHONPATH=python:build/lib .venv/bin/python \
 ## Notes
 
 - Uses intraday 1-minute BTCUSDT data from Binance public data.
-- `tools/download_intraday_spx_sample.py` converts the raw format into RegimeFlow CSVs.
+- `tools/download_intraday_crypto_sample.py` converts the raw format into RegimeFlow CSVs.
 - Use `--multi` to download BTCUSDT and ETHUSDT and run `config_intraday_multi.yaml`.
 - Strategy inputs are configured inside the Python script (lookback, thresholds, weights).
 - The ensemble combines momentum, mean reversion, and breakout signals with normalized weights.

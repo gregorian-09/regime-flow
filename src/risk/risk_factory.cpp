@@ -3,8 +3,71 @@
 #include "regimeflow/plugins/interfaces.h"
 #include "regimeflow/plugins/registry.h"
 
+#include <optional>
+#include <unordered_map>
+
 namespace regimeflow::risk
 {
+
+    namespace {
+        std::optional<double> object_double(const ConfigValue::Object& object, const std::string& key) {
+            const auto it = object.find(key);
+            if (it == object.end()) {
+                return std::nullopt;
+            }
+            if (const auto* value = it->second.get_if<double>()) {
+                return *value;
+            }
+            if (const auto* value = it->second.get_if<int64_t>()) {
+                return static_cast<double>(*value);
+            }
+            return std::nullopt;
+        }
+
+        std::optional<bool> object_bool(const ConfigValue::Object& object, const std::string& key) {
+            const auto it = object.find(key);
+            if (it == object.end()) {
+                return std::nullopt;
+            }
+            if (const auto* value = it->second.get_if<bool>()) {
+                return *value;
+            }
+            return std::nullopt;
+        }
+
+        std::optional<std::unordered_map<std::string, RegimeRiskOverlayProfile>> parse_regime_overlays(
+            const ConfigValue::Object& overlays) {
+            std::unordered_map<std::string, RegimeRiskOverlayProfile> profiles;
+            for (const auto& [name, value] : overlays) {
+                const auto* object = value.get_if<ConfigValue::Object>();
+                if (object == nullptr) {
+                    continue;
+                }
+                RegimeRiskOverlayProfile profile;
+                if (auto allow = object_bool(*object, "allow_new_exposure")) {
+                    profile.allow_new_exposure = *allow;
+                }
+                if (auto max_notional = object_double(*object, "max_order_notional")) {
+                    profile.max_order_notional = *max_notional;
+                }
+                if (auto max_position_pct = object_double(*object, "max_position_pct")) {
+                    profile.max_position_pct = *max_position_pct;
+                }
+                if (auto allow_market_orders = object_bool(*object, "allow_market_orders")) {
+                    profile.allow_market_orders = *allow_market_orders;
+                }
+                if (auto allow_aggressive_tif = object_bool(*object, "allow_aggressive_tif")) {
+                    profile.allow_aggressive_tif = *allow_aggressive_tif;
+                }
+                profiles.emplace(name, profile);
+            }
+            if (profiles.empty()) {
+                return std::nullopt;
+            }
+            return profiles;
+        }
+    }  // namespace
+
     RiskManager RiskFactory::create_risk_manager(const Config& config) {
         if (auto type = config.get_as<std::string>("type")) {
             Config plugin_cfg = config;
@@ -92,6 +155,16 @@ namespace regimeflow::risk
                 cfg.max_pair_exposure_pct = *v;
             }
             manager.add_limit(std::make_unique<MaxCorrelationExposureLimit>(cfg));
+        }
+
+        if (auto overlays = config.get_as<ConfigValue::Object>("regime_overlays")) {
+            if (auto profiles = parse_regime_overlays(*overlays)) {
+                manager.add_limit(std::make_unique<RegimeRiskOverlayLimit>(std::move(*profiles)));
+            }
+        } else if (auto overlays = config.get_as<ConfigValue::Object>("limits.regime_overlays")) {
+            if (auto profiles = parse_regime_overlays(*overlays)) {
+                manager.add_limit(std::make_unique<RegimeRiskOverlayLimit>(std::move(*profiles)));
+            }
         }
 
         if (auto regime_limits_obj = config.get_as<ConfigValue::Object>("limits_by_regime")) {

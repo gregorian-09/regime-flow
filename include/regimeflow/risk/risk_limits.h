@@ -12,6 +12,7 @@
 #include <cmath>
 #include <deque>
 #include <memory>
+#include <string>
 #include <vector>
 #include <unordered_map>
 
@@ -370,6 +371,55 @@ namespace regimeflow::risk
 
     private:
         double max_net_exposure_ = 0.0;
+    };
+
+    /**
+     * @brief Regime-specific risk overlay applied from order metadata.
+     */
+    struct RegimeRiskOverlayProfile {
+        /**
+         * @brief Whether the regime permits increasing exposure.
+         */
+        bool allow_new_exposure = true;
+        /**
+         * @brief Maximum single-order notional in this regime; 0 disables.
+         */
+        double max_order_notional = 0.0;
+        /**
+         * @brief Maximum projected position notional as a fraction of equity; 0 disables.
+         */
+        double max_position_pct = 0.0;
+        /**
+         * @brief Whether the regime permits market-style orders.
+         */
+        bool allow_market_orders = true;
+        /**
+         * @brief Whether the regime permits immediate-or-cancel/fill-or-kill orders.
+         */
+        bool allow_aggressive_tif = true;
+    };
+
+    /**
+     * @brief Applies compact regime-specific exposure gates using `order.metadata["regime"]`.
+     */
+    class RegimeRiskOverlayLimit final : public RiskLimit {
+    public:
+        /**
+         * @brief Construct from regime-name profiles.
+         */
+        explicit RegimeRiskOverlayLimit(std::unordered_map<std::string, RegimeRiskOverlayProfile> profiles);
+
+        /**
+         * @brief Validate order against the active regime profile, when present.
+         */
+        [[nodiscard]] Result<void> validate(const engine::Order& order,
+                                            const engine::Portfolio& portfolio) const override;
+
+    private:
+        std::unordered_map<std::string, RegimeRiskOverlayProfile> profiles_;
+
+        [[nodiscard]] static Quantity signed_quantity(const engine::Order& order);
+        [[nodiscard]] static double reference_price(const engine::Order& order);
     };
 
     /**
