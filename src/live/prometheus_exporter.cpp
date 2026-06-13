@@ -23,19 +23,6 @@ namespace regimeflow::live
             out << name << ' ' << value << "\n\n";
         }
 
-        std::string http_response(const unsigned status,
-                                  const std::string_view reason,
-                                  const std::string& body,
-                                  const std::string_view content_type) {
-            std::ostringstream out;
-            out << "HTTP/1.1 " << status << ' ' << reason << "\r\n"
-                << "Content-Type: " << content_type << "\r\n"
-                << "Content-Length: " << body.size() << "\r\n"
-                << "Connection: close\r\n\r\n"
-                << body;
-            return out.str();
-        }
-
         void counter(std::ostringstream& out,
                      const std::string_view name,
                      const std::string_view help,
@@ -49,6 +36,21 @@ namespace regimeflow::live
                    const double value) {
             metric(out, name, help, "gauge", value);
         }
+
+#if defined(REGIMEFLOW_USE_BOOST_BEAST)
+        std::string http_response(const unsigned status,
+                                  const std::string_view reason,
+                                  const std::string& body,
+                                  const std::string_view content_type) {
+            std::ostringstream out;
+            out << "HTTP/1.1 " << status << ' ' << reason << "\r\n"
+                << "Content-Type: " << content_type << "\r\n"
+                << "Content-Length: " << body.size() << "\r\n"
+                << "Connection: close\r\n\r\n"
+                << body;
+            return out.str();
+        }
+#endif
     }  // namespace
 
     struct PrometheusScrapeEndpoint::Impl {
