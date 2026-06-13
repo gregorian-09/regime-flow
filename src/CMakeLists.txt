@@ -843,6 +843,19 @@ target_link_libraries(regimeflow_live_validate PRIVATE regimeflow_live)
 add_executable(regimeflow_parity_check tools/parity_check_main.cpp)
 target_link_libraries(regimeflow_parity_check PRIVATE regimeflow_engine regimeflow_common)
 
+add_executable(regimeflow_replay_journal tools/replay_journal_main.cpp)
+target_link_libraries(regimeflow_replay_journal PRIVATE
+    regimeflow_engine
+    regimeflow_strategy
+    regimeflow_execution
+    regimeflow_data
+    regimeflow_risk
+    regimeflow_metrics
+    regimeflow_regime
+    regimeflow_plugins
+    regimeflow_common
+)
+
 add_executable(regimeflow_backtest_controls_demo tools/backtest_controls_demo.cpp)
 target_link_libraries(regimeflow_backtest_controls_demo PRIVATE
     regimeflow_engine

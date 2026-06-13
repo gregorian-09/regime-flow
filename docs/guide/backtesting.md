@@ -184,6 +184,17 @@ The journal API includes:
 
 Live market data can be converted into this shared event model with `live::to_engine_event(update)`.
 
+Captured journals can also be replayed through the compiled backtest engine:
+
+```bash
+./build/bin/regimeflow_replay_journal --input live_replay.jsonl
+./build/bin/regimeflow_replay_journal --input live_replay.jsonl --summary-only
+```
+
+The command loads the JSONL journal, enqueues each event into `BacktestEngine`, runs the event
+loop, and prints portfolio plus event-count diagnostics. This gives live captures a first-class
+CLI path for parity checks instead of requiring ad hoc parsing scripts.
+
 ## Configuration Modes
 
 RegimeFlow supports two config formats:
