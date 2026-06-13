@@ -66,8 +66,8 @@ RegimeFlow exposes each adapter's static broker matrix through `BrokerAdapter::c
 Use that matrix for UI display, validation tooling, and pre-trade checks instead of duplicating
 broker-specific order type and time-in-force assumptions. The live order manager also exposes
 `execution_quality()` so promotion reviews can inspect acknowledgement latency, fill latency,
-rejection rate, reference-price slippage, spread cost, and venue-level rollups before production
-capital is used.
+rejection rate, reference-price slippage, spread cost, queue-model attribution, and venue-level
+rollups before production capital is used.
 
 ### Alpaca
 

@@ -36,6 +36,9 @@ namespace regimeflow::test
         quality.rejection_rate = 0.3;
         quality.average_ack_latency_ms = 12.5;
         quality.average_signed_slippage_bps = -1.25;
+        quality.queue_observations = 4;
+        quality.average_queue_position = 2.5;
+        quality.average_queue_delay_error_ms = 7.0;
 
         const auto text = regimeflow::live::live_metrics_to_prometheus(dashboard, quality);
 
@@ -45,5 +48,8 @@ namespace regimeflow::test
         EXPECT_NE(text.find("regimeflow_live_rejection_rate 0.3"), std::string::npos);
         EXPECT_NE(text.find("regimeflow_live_average_ack_latency_ms 12.5"), std::string::npos);
         EXPECT_NE(text.find("regimeflow_live_average_signed_slippage_bps -1.25"), std::string::npos);
+        EXPECT_NE(text.find("regimeflow_live_queue_observations_total 4"), std::string::npos);
+        EXPECT_NE(text.find("regimeflow_live_average_queue_position 2.5"), std::string::npos);
+        EXPECT_NE(text.find("regimeflow_live_average_queue_delay_error_ms 7"), std::string::npos);
     }
 }  // namespace regimeflow::test

@@ -37,6 +37,9 @@ namespace regimeflow::live
         double effective_spread_bps = 0.0;
         double reference_mid_price = 0.0;
         double reference_spread_bps = 0.0;
+        double expected_queue_delay_ms = 0.0;
+        double queue_position = 0.0;
+        double queue_delay_error_ms = 0.0;
         double ack_latency_ms = 0.0;
         double fill_latency_ms = 0.0;
         Timestamp timestamp;
@@ -68,11 +71,14 @@ namespace regimeflow::live
         uint64_t errored = 0;
         uint64_t slippage_observations = 0;
         uint64_t spread_observations = 0;
+        uint64_t queue_observations = 0;
         double average_ack_latency_ms = 0.0;
         double average_fill_latency_ms = 0.0;
         double average_signed_slippage_bps = 0.0;
         double average_absolute_slippage_bps = 0.0;
         double average_effective_spread_bps = 0.0;
+        double average_queue_position = 0.0;
+        double average_queue_delay_error_ms = 0.0;
         double rejection_rate = 0.0;
         std::vector<ExecutionQualityVenueSummary> venue_summaries;
         Timestamp last_timestamp;
@@ -126,6 +132,8 @@ namespace regimeflow::live
         double total_signed_slippage_bps_ = 0.0;
         double total_absolute_slippage_bps_ = 0.0;
         double total_effective_spread_bps_ = 0.0;
+        double total_queue_position_ = 0.0;
+        double total_queue_delay_error_ms_ = 0.0;
         std::unordered_set<engine::OrderId> acknowledged_orders_;
 
         struct ReferenceQuote {

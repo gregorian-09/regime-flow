@@ -166,4 +166,37 @@ namespace regimeflow::test
         EXPECT_NEAR(venues[1].average_signed_slippage_bps, 20.0, 1e-9);
     }
 
+    TEST(ExecutionQualityTracker, AttributesQueueModelError) {
+        regimeflow::live::ExecutionQualityTracker tracker;
+
+        regimeflow::live::LiveOrder order;
+        order.internal_id = 12;
+        order.broker_order_id = "BRK-12";
+        order.symbol = "AAPL";
+        order.side = regimeflow::engine::OrderSide::Buy;
+        order.quantity = 10.0;
+        order.expected_queue_delay_ms = 12.0;
+        order.queue_position = 3.0;
+        order.created_at = fixed_timestamp();
+        order.submitted_at = fixed_timestamp();
+
+        regimeflow::live::ExecutionReport fill;
+        fill.broker_order_id = order.broker_order_id;
+        fill.symbol = order.symbol;
+        fill.quantity = 10.0;
+        fill.price = 100.0;
+        fill.status = regimeflow::live::LiveOrderStatus::Filled;
+        fill.timestamp = fixed_timestamp(20'000);
+
+        tracker.record_submitted(order);
+        tracker.record_execution_report(order, fill);
+
+        const auto& snapshot = tracker.snapshot();
+        EXPECT_EQ(snapshot.queue_observations, 1u);
+        EXPECT_DOUBLE_EQ(snapshot.average_queue_position, 3.0);
+        EXPECT_DOUBLE_EQ(snapshot.average_queue_delay_error_ms, 8.0);
+        ASSERT_EQ(tracker.samples().size(), 1u);
+        EXPECT_DOUBLE_EQ(tracker.samples().back().queue_delay_error_ms, 8.0);
+    }
+
 }  // namespace regimeflow::test

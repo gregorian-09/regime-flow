@@ -115,9 +115,11 @@ You can also point the tracker at a backtest report JSON via `metrics.live.basel
 It tracks submitted orders, submit rejections, broker rejections, acknowledgements, partial fills,
 filled orders, cancellation reports, average acknowledgement latency, average fill latency, and
 limit/stop-reference slippage in basis points. When a submit-time quote is available, it also
-tracks effective spread cost versus the quote midpoint. Filled orders are rolled up by routing
-venue so promotion reviews can compare fill latency, quantity, slippage, and spread cost across
-venues. Use `execution_quality()` for dashboards, audit exports, and paper-live validation reports.
+tracks effective spread cost versus the quote midpoint. Orders that carry `queue_position` and
+`expected_queue_delay_ms` metadata also get queue-model attribution, reporting realized fill
+latency versus the model estimate. Filled orders are rolled up by routing venue so promotion
+reviews can compare fill latency, quantity, slippage, and spread cost across venues. Use
+`execution_quality()` for dashboards, audit exports, and paper-live validation reports.
 
 ## Prometheus Export
 

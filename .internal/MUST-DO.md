@@ -81,7 +81,7 @@ Status:
 - Added factory coverage in `tests/unit/test_risk_limits.cpp`.
 - Added regime execution-aggressiveness controls that can block market orders and IOC/FOK time-in-force values in stressed regimes.
 
-4. Execution quality analytics -- PARTIALLY IMPLEMENTED
+4. Execution quality analytics -- IMPLEMENTED
 
 Track slippage, queue model behavior, spread cost, rejected orders, cancel/fill latency, and venue comparison.
 
@@ -93,11 +93,8 @@ Status:
 - Documented execution-quality tracking in `docs/live/overview.md` and `docs/live/production-readiness.md`.
 - Added submit-time quote capture and effective-spread attribution to execution-quality samples/snapshots.
 - Added venue-level execution-quality rollups for filled orders, including fill count, quantity, latency, slippage, and effective spread cost by venue.
-- Prometheus export now includes `regimeflow_live_average_effective_spread_bps`.
-
-Remaining:
-
-- Add queue-model attribution.
+- Added queue-model attribution for orders carrying `queue_position` and `expected_queue_delay_ms` metadata.
+- Prometheus export now includes effective-spread and queue-attribution metrics.
 
 5. Operational safety layer
 

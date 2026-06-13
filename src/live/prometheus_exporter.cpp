@@ -88,6 +88,13 @@ namespace regimeflow::live
               quality.average_absolute_slippage_bps);
         gauge(out, "regimeflow_live_average_effective_spread_bps", "Average fill cost versus submit-time quote midpoint.",
               quality.average_effective_spread_bps);
+        counter(out, "regimeflow_live_queue_observations_total", "Total fills with queue-model attribution.",
+                quality.queue_observations);
+        gauge(out, "regimeflow_live_average_queue_position", "Average model-estimated queue position.",
+              quality.average_queue_position);
+        gauge(out, "regimeflow_live_average_queue_delay_error_ms",
+              "Average realized fill latency minus model-estimated queue delay.",
+              quality.average_queue_delay_error_ms);
         return out.str();
     }
 }  // namespace regimeflow::live

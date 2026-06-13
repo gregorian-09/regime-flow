@@ -48,6 +48,8 @@ namespace regimeflow::live
         sample.status = report.status;
         sample.quantity = report.quantity;
         sample.fill_price = report.price;
+        sample.expected_queue_delay_ms = order.expected_queue_delay_ms;
+        sample.queue_position = order.queue_position;
         sample.timestamp = report.timestamp;
 
         const Timestamp submitted_at = order.submitted_at.microseconds() != 0
@@ -70,6 +72,16 @@ namespace regimeflow::live
         case LiveOrderStatus::Filled:
             ++snapshot_.filled;
             sample.fill_latency_ms = elapsed_ms(submitted_at, report.timestamp);
+            if (sample.expected_queue_delay_ms > 0.0 || sample.queue_position > 0.0) {
+                sample.queue_delay_error_ms = sample.fill_latency_ms - sample.expected_queue_delay_ms;
+                ++snapshot_.queue_observations;
+                total_queue_position_ += sample.queue_position;
+                total_queue_delay_error_ms_ += sample.queue_delay_error_ms;
+                snapshot_.average_queue_position =
+                    total_queue_position_ / static_cast<double>(snapshot_.queue_observations);
+                snapshot_.average_queue_delay_error_ms =
+                    total_queue_delay_error_ms_ / static_cast<double>(snapshot_.queue_observations);
+            }
             total_fill_latency_ms_ += sample.fill_latency_ms;
             snapshot_.average_fill_latency_ms = total_fill_latency_ms_ / static_cast<double>(snapshot_.filled);
             break;
@@ -129,6 +141,8 @@ namespace regimeflow::live
         total_signed_slippage_bps_ = 0.0;
         total_absolute_slippage_bps_ = 0.0;
         total_effective_spread_bps_ = 0.0;
+        total_queue_position_ = 0.0;
+        total_queue_delay_error_ms_ = 0.0;
         acknowledged_orders_.clear();
         reference_quotes_.clear();
         venue_accumulators_.clear();

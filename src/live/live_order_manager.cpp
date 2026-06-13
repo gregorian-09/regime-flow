@@ -1,6 +1,8 @@
 #include "regimeflow/live/live_order_manager.h"
 
 #include <algorithm>
+#include <charconv>
+#include <optional>
 #include <ranges>
 #include <sstream>
 
@@ -67,6 +69,21 @@ namespace regimeflow::live
                 || status == LiveOrderStatus::Inactive || status == LiveOrderStatus::Error;
         }
 
+        std::optional<double> metadata_double(const engine::Order& order, const std::string& key) {
+            const auto it = order.metadata.find(key);
+            if (it == order.metadata.end() || it->second.empty()) {
+                return std::nullopt;
+            }
+            double value = 0.0;
+            const auto* begin = it->second.data();
+            const auto* end = begin + it->second.size();
+            const auto [ptr, ec] = std::from_chars(begin, end, value);
+            if (ec != std::errc{} || ptr != end) {
+                return std::nullopt;
+            }
+            return value;
+        }
+
     }  // namespace
 
     LiveOrderManager::LiveOrderManager(BrokerAdapter* broker) : broker_(broker) {}
@@ -120,6 +137,8 @@ namespace regimeflow::live
         if (const auto venue = order.metadata.find("venue"); venue != order.metadata.end()) {
             live.venue = venue->second;
         }
+        live.expected_queue_delay_ms = metadata_double(order, "expected_queue_delay_ms").value_or(0.0);
+        live.queue_position = metadata_double(order, "queue_position").value_or(0.0);
         live.created_at = order.created_at.microseconds() ? order.created_at : Timestamp::now();
         live.submitted_at = Timestamp::now();
         live.status = LiveOrderStatus::PendingNew;

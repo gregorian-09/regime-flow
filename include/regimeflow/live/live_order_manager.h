@@ -38,6 +38,8 @@ namespace regimeflow::live
         double stop_price = 0.0;
         double avg_fill_price = 0.0;
         std::string venue;
+        double expected_queue_delay_ms = 0.0;
+        double queue_position = 0.0;
 
         LiveOrderStatus status = LiveOrderStatus::PendingNew;
         std::string status_message;
