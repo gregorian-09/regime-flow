@@ -244,12 +244,10 @@ namespace regimeflow::live
         std::vector<std::string> stream_symbols;
         stream_symbols.reserve(symbols.size());
         for (const auto& sym : symbols) {
-            stream_symbols.push_back(build_trade_stream_symbol(sym));
-            symbols_.erase(std::ranges::remove(symbols_,
-                                               build_trade_stream_symbol(sym)).begin(),
-                           symbols_.end());
-            raw_symbols_.erase(std::ranges::remove(raw_symbols_, sym).begin(),
-                               raw_symbols_.end());
+            const auto stream_symbol = build_trade_stream_symbol(sym);
+            stream_symbols.push_back(stream_symbol);
+            std::erase(symbols_, stream_symbol);
+            std::erase(raw_symbols_, sym);
         }
         if (stream_) {
             stream_->unsubscribe(stream_symbols);

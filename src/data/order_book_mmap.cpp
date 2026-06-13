@@ -4,8 +4,10 @@
 #include "regimeflow/common/types.h"
 
 #include <algorithm>
+#include <array>
 #include <cerrno>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <fstream>
 #include <limits>
@@ -69,6 +71,19 @@ namespace regimeflow::data
         int32_t yyyymmdd_from_timestamp(const Timestamp& ts) {
             const auto text = ts.to_string("%Y%m%d");
             return static_cast<int32_t>(std::stoi(text));
+        }
+
+        void write_date_index(std::ofstream& out, const std::vector<BookDateIndex>& index) {
+            for (const auto& entry : index) {
+                std::array<unsigned char, sizeof(BookDateIndex)> raw{};
+                std::memcpy(raw.data() + offsetof(BookDateIndex, date_yyyymmdd),
+                            &entry.date_yyyymmdd,
+                            sizeof(entry.date_yyyymmdd));
+                std::memcpy(raw.data() + offsetof(BookDateIndex, offset),
+                            &entry.offset,
+                            sizeof(entry.offset));
+                write_bytes(out, raw.data(), raw.size(), nullptr);
+            }
         }
 
     }  // namespace
@@ -426,7 +441,7 @@ namespace regimeflow::data
         write_bytes(out, ask_orders.data(), ask_orders.size() * sizeof(int64_t), &sha);
 
         if (!index.empty()) {
-            write_bytes(out, index.data(), index.size() * sizeof(BookDateIndex), nullptr);
+            write_date_index(out, index);
         }
 
         auto checksum = sha.digest();
@@ -460,7 +475,10 @@ namespace regimeflow::data
         int32_t last_date = 0;
         for (size_t i = 0; i < books.size(); ++i) {
             if (const int32_t date = yyyymmdd_from_timestamp(books[i].timestamp); i == 0 || date != last_date) {
-                index.push_back(BookDateIndex{date, static_cast<uint64_t>(i)});
+                BookDateIndex entry{};
+                entry.date_yyyymmdd = date;
+                entry.offset = static_cast<uint64_t>(i);
+                index.push_back(entry);
                 last_date = date;
             }
         }

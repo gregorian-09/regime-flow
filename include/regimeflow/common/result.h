@@ -115,25 +115,8 @@ struct Error {
           SourceLocation loc = SourceLocation::current())
         : code(c), message(std::move(msg)), location(loc) {}
 
-    /**
-     * @brief Copy constructor.
-     */
-    Error(const Error& other)
-        : code(other.code),
-          message(other.message),
-          details(other.details),
-          location(other.location) {}
-
-    Error& operator=(const Error& other) {
-        if (this == &other) {
-            return *this;
-        }
-        code = other.code;
-        message = other.message;
-        details = other.details;
-        location = other.location;
-        return *this;
-    }
+    Error(const Error&) = default;  // NOLINT(clang-analyzer-core.uninitialized.Assign)
+    Error& operator=(const Error&) = default;
 
     Error(Error&&) noexcept = default;
     Error& operator=(Error&&) noexcept = default;
@@ -249,8 +232,17 @@ public:
      * @param default_value Value to return on error.
      * @return Stored value or default.
      */
-    [[nodiscard]] T value_or(T default_value) const {
+    [[nodiscard]] T value_or(const T& default_value) const {
         return is_ok() ? value() : default_value;
+    }
+
+    /**
+     * @brief Return the value or a movable default if this is an error.
+     * @param default_value Value to move-return on error.
+     * @return Stored value or default.
+     */
+    [[nodiscard]] T value_or(T&& default_value) const {
+        return is_ok() ? value() : std::move(default_value);
     }
 
 private:

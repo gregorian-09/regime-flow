@@ -489,8 +489,7 @@ namespace regimeflow::data
 
     void WebSocketFeed::unsubscribe(const std::vector<std::string>& symbols) {
         for (const auto& sym : symbols) {
-            subscriptions_.erase(std::ranges::remove(subscriptions_, sym).begin(),
-                                 subscriptions_.end());
+            std::erase(subscriptions_, sym);
         }
 #ifdef REGIMEFLOW_USE_BOOST_BEAST
         if (connected_) {

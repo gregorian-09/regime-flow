@@ -71,7 +71,7 @@ namespace regimeflow::data
                     raw.pop_back();
                 }
                 if (const auto dot = raw.find('.'); dot != std::string::npos) {
-                    raw = raw.substr(0, dot);
+                    raw.resize(dot);
                 }
                 if (raw.size() == 10) {
                     return Timestamp::from_string(raw, "%Y-%m-%d");

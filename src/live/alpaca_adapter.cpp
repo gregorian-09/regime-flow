@@ -446,7 +446,7 @@ namespace regimeflow::live
     void AlpacaAdapter::unsubscribe_market_data(const std::vector<std::string>& symbols) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (const auto& sym : symbols) {
-            symbols_.erase(std::ranges::remove(symbols_, sym).begin(), symbols_.end());
+            std::erase(symbols_, sym);
         }
         if (stream_) {
             stream_->unsubscribe(symbols);

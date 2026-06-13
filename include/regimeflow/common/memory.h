@@ -95,14 +95,14 @@ namespace regimeflow::common
 
         void* try_allocate(size_t bytes, size_t alignment) {
             Block& block = blocks_.back();
-            void* ptr = block.data.get() + offset_;
+            auto* base = reinterpret_cast<std::byte*>(block.data.get());
+            void* ptr = static_cast<void*>(base + offset_);
             size_t space = block.size - offset_;
             if (std::align(alignment, bytes, ptr, space) == nullptr) {
                 return nullptr;
             }
 
-            const auto* base = block.data.get();
-            const auto* aligned = static_cast<const uint8_t*>(ptr);
+            const auto* aligned = static_cast<const std::byte*>(ptr);
             offset_ = static_cast<size_t>(aligned - base) + bytes;
             return ptr;
         }
