@@ -56,4 +56,5 @@ PYTHONPATH=build/lib:build/python:python .venv/bin/python \
 - `examples/plugins/regime_detector_template` provides a minimal dynamic regime-detector plugin template.
 - `examples/plugins/risk_manager_template` provides a minimal dynamic risk-manager plugin template.
 - `examples/plugins/data_source_template` provides a minimal dynamic data-source plugin template.
+- `examples/plugins/broker_adapter_template` provides a minimal dynamic live broker-adapter plugin template.
 - `examples/plugins/metrics_template` provides a minimal dynamic performance-metric plugin template.

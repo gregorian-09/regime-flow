@@ -30,6 +30,10 @@ TEMPLATES = {
         ROOT / "examples" / "plugins" / "metrics_template" / "metrics_template.cpp",
         "metrics",
     ),
+    "broker_adapter": (
+        ROOT / "examples" / "plugins" / "broker_adapter_template" / "broker_adapter_template.cpp",
+        "broker_adapter",
+    ),
 }
 
 

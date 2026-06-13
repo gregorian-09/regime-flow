@@ -5,6 +5,8 @@
 #if defined(REGIMEFLOW_ENABLE_IBAPI)
 #include "regimeflow/live/ib_adapter.h"
 #endif
+#include "regimeflow/plugins/interfaces.h"
+#include "regimeflow/plugins/registry.h"
 #include "regimeflow/regime/regime_factory.h"
 #include "regimeflow/risk/risk_factory.h"
 #include "regimeflow/strategy/strategy_factory.h"
@@ -317,7 +319,18 @@ namespace regimeflow::live
                 return nullptr;
 #endif
             }
-            return nullptr;
+            regimeflow::Config::Object plugin_config;
+            for (const auto& [key, value] : config.broker_config) {
+                plugin_config.emplace(key, ConfigValue(value));
+            }
+            plugin_config.emplace("broker_type", ConfigValue(config.broker_type));
+            plugin_config.emplace("asset_class", ConfigValue(config.broker_asset_class));
+            auto plugin = plugins::PluginRegistry::instance().create<plugins::BrokerAdapterPlugin>(
+                "broker_adapter", config.broker_type, Config(std::move(plugin_config)));
+            if (!plugin) {
+                return nullptr;
+            }
+            return plugin->create_broker_adapter();
         }
 
     }  // namespace
