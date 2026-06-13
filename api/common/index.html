@@ -1,0 +1,7113 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="RegimeFlow architecture, API design, and user guides">
+      
+      
+      
+        <link rel="canonical" href="https://gregorian-09.github.io/regime-flow/api/common/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../data/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Common - RegimeFlow Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/site-theme.css">
+    
+      <link rel="stylesheet" href="../../assets/katex.min.css">
+    
+      <link rel="stylesheet" href="../../assets/diagram-theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#package-regimeflowcommon" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <div class="rf-announce">
+    <div class="rf-announce__inner md-grid">
+      <span class="rf-announce__eyebrow">RegimeFlow</span>
+      <span class="rf-announce__copy">
+        Quant documentation for developers who need exact execution, risk, and broker semantics.
+      </span>
+      <a class="rf-announce__link" href="../../getting-started/quickstart/">Start with the quickstart</a>
+    </div>
+  </div>
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="RegimeFlow Docs" class="md-header__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RegimeFlow Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Common
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="RegimeFlow Docs" class="md-nav__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    RegimeFlow Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart (Backtest)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/project-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quant Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/backtesting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtesting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/data-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/risk-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Trading
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Live Trading
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/brokers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brokers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/production-readiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Readiness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/environment-and-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment And Flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/data-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Cheat Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/broker-message-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Message Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/developer-quality-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Quality Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugin-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/transformer_regime_plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Plugin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Design
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Utilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Config">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configvalues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config(values)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haskey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        has(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_pathpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_path(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_astkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_as&lt;T&gt;(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set(key, value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_pathpath-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_path(path, value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configschema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigSchema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ConfigSchema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validate_configconfig-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_config(config, schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#apply_defaultsinput-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        apply_defaults(input, schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigValue
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ConfigValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configvalue_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigValue()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configvalueboolintdoublestringarrayobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigValue(bool/int/double/string/array/object)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        raw()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_ift" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_if&lt;T&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resultt-resultvoid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result&lt;T&gt; / Result&lt;void&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Result&lt;T&gt; / Result&lt;void&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resultvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result(value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resulterror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result(error)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_ok-is_err" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_ok() / is_err()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        value()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        error()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        map(f)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#and_thenf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        and_then(f)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value_ordefault" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        value_or(default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#errorcode-msg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error(code, msg)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_string()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timestamp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Timestamp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timestamp_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timestamp()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timestampmicroseconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timestamp(microseconds)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        now()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from_stringstr-fmt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_string(str, fmt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from_dateyear-month-day" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_date(year, month, day)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#microseconds-milliseconds-seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        microseconds() / milliseconds() / seconds()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_stringfmt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_string(fmt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operatorduration-operator-duration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        operator+(duration) / operator-(duration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operator-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        operator-(timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Duration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Duration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#microsecondsmssecondsminuteshoursdaysmonths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        microseconds/ms/seconds/minutes/hours/days/months(...)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#total_microseconds-total_milliseconds-total_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        total_microseconds() / total_milliseconds() / total_seconds()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timerange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimeRange
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TimeRange">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containst" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contains(t)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        duration()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mpscqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MpscQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mpscqueuet-spscqueuet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MpscQueue&lt;T&gt; / SpscQueue&lt;T&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MpscQueue&lt;T&gt; / SpscQueue&lt;T&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mpscqueue_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MpscQueue()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pushvalue-pushstdmovevalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        push(value) / push(std::move(value))
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pop(out)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        empty()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueuepushvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue::push(value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueuepopout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue::pop(out)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueueempty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue::empty()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lrucache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LRUCache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lrucachekey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LruCache&lt;Key, Value&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LruCache&lt;Key, Value&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lrucachecapacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LRUCache(capacity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_capacitycapacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_capacity(capacity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capacity-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capacity() / size()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getkey_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#putkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        put(key, value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clear()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yamlconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YamlConfig
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="YamlConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load_filepath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_file(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jsonvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JsonValue
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JsonValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parse_jsoninput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parse_json(input)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sha256" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sha256
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sha256">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sha256_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sha256()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updatedata-len" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update(data, len)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        digest()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symbolregistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SymbolRegistry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SymbolRegistry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        instance()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internsymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        intern(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lookupid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lookup(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monotonicarena" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MonotonicArena
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MonotonicArena">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#monotonicarenablock_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MonotonicArena(block_size)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allocatebytes-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allocate(bytes, alignment)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poolallocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PoolAllocator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poolallocatort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PoolAllocator&lt;T&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PoolAllocator&lt;T&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#poolallocatorcapacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PoolAllocator(capacity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allocate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allocate()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deallocateptr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deallocate(ptr)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assetclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AssetClass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yamlconfigloader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YamlConfigLoader
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Events
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../regime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-metrics-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Full File Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../public-symbol-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Symbol Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coverage-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coverage Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/python-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-custom-regime-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Regime Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/intraday_strategy_tradecheck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intraday Strategy Tradecheck
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/multi_intraday_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi Intraday Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/transformer_regime_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/event-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/order-state-machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order State Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-resiliency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Resiliency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-order-reconciliation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Order Reconciliation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/broker-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Streaming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-transitions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Transitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/hmm-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HMM Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/strategy-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-limits-deep/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Limits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Costs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/slippage-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slippage Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/portfolio-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Portfolio Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/performance-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/backtest-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/walk-forward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/message-bus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Message Bus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagrams
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diagrams
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/component-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/structural-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structural Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/uml-class-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UML Class Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-backtest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Utilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Config">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configvalues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config(values)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haskey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        has(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_pathpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_path(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_astkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_as&lt;T&gt;(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set(key, value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_pathpath-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_path(path, value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configschema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigSchema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ConfigSchema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validate_configconfig-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_config(config, schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#apply_defaultsinput-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        apply_defaults(input, schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigValue
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ConfigValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configvalue_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigValue()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configvalueboolintdoublestringarrayobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigValue(bool/int/double/string/array/object)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        raw()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_ift" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_if&lt;T&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resultt-resultvoid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result&lt;T&gt; / Result&lt;void&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Result&lt;T&gt; / Result&lt;void&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resultvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result(value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resulterror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result(error)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_ok-is_err" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_ok() / is_err()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        value()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        error()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        map(f)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#and_thenf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        and_then(f)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value_ordefault" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        value_or(default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#errorcode-msg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error(code, msg)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_string()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timestamp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Timestamp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timestamp_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timestamp()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timestampmicroseconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timestamp(microseconds)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        now()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from_stringstr-fmt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_string(str, fmt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from_dateyear-month-day" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_date(year, month, day)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#microseconds-milliseconds-seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        microseconds() / milliseconds() / seconds()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_stringfmt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_string(fmt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operatorduration-operator-duration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        operator+(duration) / operator-(duration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operator-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        operator-(timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Duration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Duration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#microsecondsmssecondsminuteshoursdaysmonths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        microseconds/ms/seconds/minutes/hours/days/months(...)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#total_microseconds-total_milliseconds-total_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        total_microseconds() / total_milliseconds() / total_seconds()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timerange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimeRange
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TimeRange">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containst" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contains(t)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        duration()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mpscqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MpscQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mpscqueuet-spscqueuet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MpscQueue&lt;T&gt; / SpscQueue&lt;T&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MpscQueue&lt;T&gt; / SpscQueue&lt;T&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mpscqueue_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MpscQueue()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pushvalue-pushstdmovevalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        push(value) / push(std::move(value))
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pop(out)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        empty()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueuepushvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue::push(value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueuepopout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue::pop(out)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spscqueueempty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpscQueue::empty()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lrucache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LRUCache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lrucachekey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LruCache&lt;Key, Value&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LruCache&lt;Key, Value&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lrucachecapacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LRUCache(capacity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_capacitycapacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_capacity(capacity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capacity-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capacity() / size()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getkey_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get(key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#putkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        put(key, value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clear()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yamlconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YamlConfig
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="YamlConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load_filepath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_file(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jsonvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JsonValue
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JsonValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parse_jsoninput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parse_json(input)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sha256" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sha256
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sha256">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sha256_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sha256()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updatedata-len" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update(data, len)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        digest()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symbolregistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SymbolRegistry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SymbolRegistry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        instance()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internsymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        intern(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lookupid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lookup(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monotonicarena" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MonotonicArena
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MonotonicArena">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#monotonicarenablock_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MonotonicArena(block_size)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allocatebytes-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allocate(bytes, alignment)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poolallocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PoolAllocator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poolallocatort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PoolAllocator&lt;T&gt;
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PoolAllocator&lt;T&gt;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#poolallocatorcapacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PoolAllocator(capacity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allocate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allocate()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deallocateptr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deallocate(ptr)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assetclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AssetClass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yamlconfigloader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YamlConfigLoader
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../reference/configuration/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    API Design
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="package-regimeflowcommon">Package: <code>regimeflow::common</code><a class="headerlink" href="#package-regimeflowcommon" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Core utilities and foundational types used across the system: configuration loading, result handling, time primitives, hashing, lock-free queues, memory helpers, and lightweight data structures. This package is dependency-light and safe to use in low-level subsystems.</p>
+<p>Related diagrams:
+- <a href="../../diagrams/component-diagram/">Component Diagram</a>
+- <a href="../../diagrams/structural-flow/">Structural Flow</a></p>
+<h2 id="file-index">File Index<a class="headerlink" href="#file-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>regimeflow/common/config.h</code></td>
+<td>User-facing configuration object and access helpers.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/config_schema.h</code></td>
+<td>Configuration schema definitions and validation contracts.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/json.h</code></td>
+<td>JSON parse/emit utilities and safe helpers.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/lru_cache.h</code></td>
+<td>Bounded LRU cache for hot data.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/memory.h</code></td>
+<td>Memory utilities and safe allocation helpers.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/mpsc_queue.h</code></td>
+<td>Multi-producer/single-consumer queue.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/result.h</code></td>
+<td><code>Result&lt;T&gt;</code> error propagation type.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/sha256.h</code></td>
+<td>SHA-256 hashing helper.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/spsc_queue.h</code></td>
+<td>Single-producer/single-consumer queue.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/time.h</code></td>
+<td>Timestamp and time conversion utilities.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/types.h</code></td>
+<td>Common typedefs and shared enums.</td>
+</tr>
+<tr>
+<td><code>regimeflow/common/yaml_config.h</code></td>
+<td>YAML configuration loader and overrides.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="type-index">Type Index<a class="headerlink" href="#type-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Config</code></td>
+<td>Central configuration object used by engines and services.</td>
+</tr>
+<tr>
+<td><code>ConfigSchema</code></td>
+<td>Schema metadata used to validate config files.</td>
+</tr>
+<tr>
+<td><code>Json</code> helpers</td>
+<td>Minimal JSON parse/emit helpers with guardrails.</td>
+</tr>
+<tr>
+<td><code>LruCache&lt;Key, Value&gt;</code></td>
+<td>Fixed-capacity LRU cache.</td>
+</tr>
+<tr>
+<td><code>Result&lt;T&gt;</code> / <code>Result&lt;void&gt;</code></td>
+<td>Error-or-value return type used throughout.</td>
+</tr>
+<tr>
+<td><code>Timestamp</code></td>
+<td>Monotonic / wall-clock time abstraction.</td>
+</tr>
+<tr>
+<td><code>MpscQueue&lt;T&gt;</code></td>
+<td>Lock-free MPSC queue.</td>
+</tr>
+<tr>
+<td><code>SpscQueue&lt;T&gt;</code></td>
+<td>Lock-free SPSC queue.</td>
+</tr>
+<tr>
+<td><code>Sha256</code> helpers</td>
+<td>Deterministic hashing for identifiers and cache keys.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="lifecycle-usage-notes">Lifecycle &amp; Usage Notes<a class="headerlink" href="#lifecycle-usage-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>Result&lt;T&gt;</code> is the preferred error surface for non-throwing paths.</li>
+<li><code>Timestamp</code> is used consistently across events, bars, and fills to avoid time-domain drift.</li>
+<li>Queue types are safe for the event loop and live adapters; keep usage aligned with producer/consumer expectations.</li>
+<li><code>Config</code> and <code>YamlConfig</code> are used by both backtest and live engine factories; config validation should happen before engine initialization.</li>
+</ul>
+<h2 id="memory-utilities">Memory Utilities<a class="headerlink" href="#memory-utilities" title="Permanent link">&para;</a></h2>
+<p><code>regimeflow/common/memory.h</code> provides <code>MonotonicArena</code> and <code>PoolAllocator</code> for allocation-heavy engine paths. <code>MonotonicArena::allocate</code> returns properly aligned pointers both within the current block and after block rollover. Code using the arena must still treat returned memory as arena-owned; individual allocations are not freed separately.</p>
+<p><code>PoolAllocator</code> is optimized for reuse, not automatic shrinking. Use it for bounded high-churn object pools and prefer explicit lifecycle boundaries for long-running processes.</p>
+<h2 id="type-details">Type Details<a class="headerlink" href="#type-details" title="Permanent link">&para;</a></h2>
+<h3 id="config"><code>Config</code><a class="headerlink" href="#config" title="Permanent link">&para;</a></h3>
+<p>Central configuration object for engines, data sources, and risk policies. Provides typed accessors and validates against <code>ConfigSchema</code>.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Config()</code></td>
+<td>Construct empty config.</td>
+</tr>
+<tr>
+<td><code>Config(values)</code></td>
+<td>Construct from object map.</td>
+</tr>
+<tr>
+<td><code>has(key)</code></td>
+<td>Check top-level key presence.</td>
+</tr>
+<tr>
+<td><code>get(key)</code></td>
+<td>Get top-level value pointer.</td>
+</tr>
+<tr>
+<td><code>get_path(path)</code></td>
+<td>Get nested value by dotted path.</td>
+</tr>
+<tr>
+<td><code>get_as&lt;T&gt;(key)</code></td>
+<td>Typed fetch by key or path.</td>
+</tr>
+<tr>
+<td><code>set(key, value)</code></td>
+<td>Set top-level value.</td>
+</tr>
+<tr>
+<td><code>set_path(path, value)</code></td>
+<td>Set nested value by dotted path.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<p>Type Hints:</p>
+<ul>
+<li><code>key</code> → <code>std::string</code></li>
+<li><code>path</code> → <code>std::string</code> (dotted path)</li>
+<li><code>value</code> → <code>ConfigValue</code></li>
+<li><code>config</code> → <code>Config</code></li>
+<li><code>schema</code> → <code>ConfigSchema</code></li>
+</ul>
+<h4 id="config_1"><code>Config()</code><a class="headerlink" href="#config_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="configvalues"><code>Config(values)</code><a class="headerlink" href="#configvalues" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>values</code> root object map.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="haskey"><code>has(key)</code><a class="headerlink" href="#haskey" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>key</code> top-level key.
+Returns: <code>bool</code>.
+Throws: None.</p>
+<h4 id="getkey"><code>get(key)</code><a class="headerlink" href="#getkey" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>key</code> top-level key.
+Returns: Pointer to <code>ConfigValue</code> or null.
+Throws: None.</p>
+<h4 id="get_pathpath"><code>get_path(path)</code><a class="headerlink" href="#get_pathpath" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>path</code> dotted path.
+Returns: Pointer to <code>ConfigValue</code> or null.
+Throws: None.</p>
+<h4 id="get_astkey"><code>get_as&lt;T&gt;(key)</code><a class="headerlink" href="#get_astkey" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>key</code> key or dotted path.
+Returns: Optional <code>T</code>.
+Throws: None.</p>
+<h4 id="setkey-value"><code>set(key, value)</code><a class="headerlink" href="#setkey-value" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>key</code> top-level key; <code>value</code> config value.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_pathpath-value"><code>set_path(path, value)</code><a class="headerlink" href="#set_pathpath-value" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>path</code> dotted path; <code>value</code> config value.
+Returns: <code>void</code>.
+Throws: None.
+Related:
+| Helper | Description |
+| --- | --- |
+| <code>YamlConfigLoader::load_file(path)</code> | Load config from YAML. |</p>
+<h3 id="configschema"><code>ConfigSchema</code><a class="headerlink" href="#configschema" title="Permanent link">&para;</a></h3>
+<p>Schema definition for configuration validation. Ensures required keys, types, and ranges are enforced.</p>
+<p>Members and Helpers:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>properties</code></td>
+<td>Property map of schema entries.</td>
+</tr>
+<tr>
+<td><code>config_value_matches(value, type)</code></td>
+<td>Check value against schema type.</td>
+</tr>
+<tr>
+<td><code>validate_config(config, schema)</code></td>
+<td>Validate config against schema.</td>
+</tr>
+<tr>
+<td><code>apply_defaults(input, schema)</code></td>
+<td>Apply schema defaults to config.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="validate_configconfig-schema"><code>validate_config(config, schema)</code><a class="headerlink" href="#validate_configconfig-schema" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>config</code> to validate; <code>schema</code> schema definition.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::ConfigError</code> for missing/invalid fields.</p>
+<h4 id="apply_defaultsinput-schema"><code>apply_defaults(input, schema)</code><a class="headerlink" href="#apply_defaultsinput-schema" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>input</code> config; <code>schema</code> schema definition.
+Returns: Config with defaults applied.
+Throws: None.</p>
+<h3 id="configvalue"><code>ConfigValue</code><a class="headerlink" href="#configvalue" title="Permanent link">&para;</a></h3>
+<p>Variant-backed configuration value container.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ConfigValue()</code></td>
+<td>Construct empty value.</td>
+</tr>
+<tr>
+<td><code>ConfigValue(bool/int/double/string)</code></td>
+<td>Construct scalar value.</td>
+</tr>
+<tr>
+<td><code>ConfigValue(Array/Object)</code></td>
+<td>Construct array/object value.</td>
+</tr>
+<tr>
+<td><code>raw()</code></td>
+<td>Access underlying variant.</td>
+</tr>
+<tr>
+<td><code>get_if&lt;T&gt;()</code></td>
+<td>Typed pointer accessor.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="configvalue_1"><code>ConfigValue()</code><a class="headerlink" href="#configvalue_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="configvalueboolintdoublestringarrayobject"><code>ConfigValue(bool/int/double/string/array/object)</code><a class="headerlink" href="#configvalueboolintdoublestringarrayobject" title="Permanent link">&para;</a></h4>
+<p>Parameters: Typed value.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="raw"><code>raw()</code><a class="headerlink" href="#raw" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Underlying variant.
+Throws: None.</p>
+<h4 id="get_ift"><code>get_if&lt;T&gt;()</code><a class="headerlink" href="#get_ift" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Typed pointer or null.
+Throws: None.</p>
+<h3 id="resultt-resultvoid"><code>Result&lt;T&gt;</code> / <code>Result&lt;void&gt;</code><a class="headerlink" href="#resultt-resultvoid" title="Permanent link">&para;</a></h3>
+<p>Error-or-value wrapper for non-throwing control flow. Propagates error messages and error codes.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Result(value)</code></td>
+<td>Construct success result.</td>
+</tr>
+<tr>
+<td><code>Result(error)</code></td>
+<td>Construct error result.</td>
+</tr>
+<tr>
+<td><code>is_ok()</code></td>
+<td>True if success.</td>
+</tr>
+<tr>
+<td><code>is_err()</code></td>
+<td>True if error.</td>
+</tr>
+<tr>
+<td><code>value()</code></td>
+<td>Access value or throw on error.</td>
+</tr>
+<tr>
+<td><code>error()</code></td>
+<td>Access stored error.</td>
+</tr>
+<tr>
+<td><code>map(f)</code></td>
+<td>Map value to new Result.</td>
+</tr>
+<tr>
+<td><code>and_then(f)</code></td>
+<td>Chain fallible computation.</td>
+</tr>
+<tr>
+<td><code>value_or(default)</code></td>
+<td>Return value or default.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="resultvalue"><code>Result(value)</code><a class="headerlink" href="#resultvalue" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>value</code> to store.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="resulterror"><code>Result(error)</code><a class="headerlink" href="#resulterror" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>error</code> to store.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="is_ok-is_err"><code>is_ok()</code> / <code>is_err()</code><a class="headerlink" href="#is_ok-is_err" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>bool</code>.
+Throws: None.</p>
+<h4 id="value"><code>value()</code><a class="headerlink" href="#value" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Value reference.
+Throws: <code>std::runtime_error</code> on error state.</p>
+<h4 id="error"><code>error()</code><a class="headerlink" href="#error" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Error reference.
+Throws: None.</p>
+<h4 id="mapf"><code>map(f)</code><a class="headerlink" href="#mapf" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>f</code> mapping function.
+Returns: Mapped <code>Result</code>.
+Throws: None.</p>
+<h4 id="and_thenf"><code>and_then(f)</code><a class="headerlink" href="#and_thenf" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>f</code> continuation.
+Returns: Result of continuation.
+Throws: None.</p>
+<h4 id="value_ordefault"><code>value_or(default)</code><a class="headerlink" href="#value_ordefault" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>default</code> value.
+Returns: Value or default.
+Throws: None.
+Helpers:</p>
+<table>
+<thead>
+<tr>
+<th>Helper</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ok(value)</code> / <code>Ok()</code></td>
+<td>Construct successful result.</td>
+</tr>
+<tr>
+<td><code>Err(code, fmt, ...)</code></td>
+<td>Construct error with message.</td>
+</tr>
+<tr>
+<td><code>TRY(expr)</code></td>
+<td>Propagate error or unwrap value.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="error_1"><code>Error</code><a class="headerlink" href="#error_1" title="Permanent link">&para;</a></h3>
+<p>Structured error information with code, message, and source location.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Error()</code></td>
+<td>Construct unknown error.</td>
+</tr>
+<tr>
+<td><code>Error(code, msg)</code></td>
+<td>Construct error with code/message.</td>
+</tr>
+<tr>
+<td><code>to_string()</code></td>
+<td>Render error as string.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="error_2"><code>Error()</code><a class="headerlink" href="#error_2" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="errorcode-msg"><code>Error(code, msg)</code><a class="headerlink" href="#errorcode-msg" title="Permanent link">&para;</a></h4>
+<p>Parameters: error code and message.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="to_string"><code>to_string()</code><a class="headerlink" href="#to_string" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: String.
+Throws: None.</p>
+<h3 id="code"><code>Code</code><a class="headerlink" href="#code" title="Permanent link">&para;</a></h3>
+<p>Error code enumeration (<code>Error::Code</code>).</p>
+<h3 id="timestamp"><code>Timestamp</code><a class="headerlink" href="#timestamp" title="Permanent link">&para;</a></h3>
+<p>Unified time abstraction used across the engine. Avoids mixing wall-clock and monotonic times.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Timestamp()</code></td>
+<td>Construct epoch timestamp.</td>
+</tr>
+<tr>
+<td><code>Timestamp(microseconds)</code></td>
+<td>Construct from epoch microseconds.</td>
+</tr>
+<tr>
+<td><code>now()</code></td>
+<td>Current wall-clock timestamp.</td>
+</tr>
+<tr>
+<td><code>from_string(str, fmt)</code></td>
+<td>Parse from string with format.</td>
+</tr>
+<tr>
+<td><code>from_date(year, month, day)</code></td>
+<td>Construct from calendar date.</td>
+</tr>
+<tr>
+<td><code>microseconds()</code></td>
+<td>Microseconds since epoch.</td>
+</tr>
+<tr>
+<td><code>milliseconds()</code></td>
+<td>Milliseconds since epoch.</td>
+</tr>
+<tr>
+<td><code>seconds()</code></td>
+<td>Seconds since epoch.</td>
+</tr>
+<tr>
+<td><code>to_string(fmt)</code></td>
+<td>Format as string.</td>
+</tr>
+<tr>
+<td><code>operator+(duration)</code></td>
+<td>Add duration.</td>
+</tr>
+<tr>
+<td><code>operator-(duration)</code></td>
+<td>Subtract duration.</td>
+</tr>
+<tr>
+<td><code>operator-(timestamp)</code></td>
+<td>Difference as duration.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="timestamp_1"><code>Timestamp()</code><a class="headerlink" href="#timestamp_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="timestampmicroseconds"><code>Timestamp(microseconds)</code><a class="headerlink" href="#timestampmicroseconds" title="Permanent link">&para;</a></h4>
+<p>Parameters: microseconds since epoch.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="now"><code>now()</code><a class="headerlink" href="#now" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Current timestamp.
+Throws: None.</p>
+<h4 id="from_stringstr-fmt"><code>from_string(str, fmt)</code><a class="headerlink" href="#from_stringstr-fmt" title="Permanent link">&para;</a></h4>
+<p>Parameters: string and format.
+Returns: Parsed timestamp.
+Throws: <code>Error::ParseError</code> on invalid input.</p>
+<h4 id="from_dateyear-month-day"><code>from_date(year, month, day)</code><a class="headerlink" href="#from_dateyear-month-day" title="Permanent link">&para;</a></h4>
+<p>Parameters: date parts.
+Returns: Timestamp at midnight.
+Throws: None.</p>
+<h4 id="microseconds-milliseconds-seconds"><code>microseconds()</code> / <code>milliseconds()</code> / <code>seconds()</code><a class="headerlink" href="#microseconds-milliseconds-seconds" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Time in units.
+Throws: None.</p>
+<h4 id="to_stringfmt"><code>to_string(fmt)</code><a class="headerlink" href="#to_stringfmt" title="Permanent link">&para;</a></h4>
+<p>Parameters: format string.
+Returns: formatted time string.
+Throws: None.</p>
+<h4 id="operatorduration-operator-duration"><code>operator+(duration)</code> / <code>operator-(duration)</code><a class="headerlink" href="#operatorduration-operator-duration" title="Permanent link">&para;</a></h4>
+<p>Parameters: duration.
+Returns: New timestamp.
+Throws: None.</p>
+<h4 id="operator-timestamp"><code>operator-(timestamp)</code><a class="headerlink" href="#operator-timestamp" title="Permanent link">&para;</a></h4>
+<p>Parameters: timestamp.
+Returns: duration.
+Throws: None.</p>
+<h3 id="duration"><code>Duration</code><a class="headerlink" href="#duration" title="Permanent link">&para;</a></h3>
+<p>Duration wrapper stored in microseconds.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>microseconds(us)</code></td>
+<td>Construct duration from microseconds.</td>
+</tr>
+<tr>
+<td><code>milliseconds(ms)</code></td>
+<td>Construct duration from milliseconds.</td>
+</tr>
+<tr>
+<td><code>seconds(s)</code></td>
+<td>Construct duration from seconds.</td>
+</tr>
+<tr>
+<td><code>minutes(m)</code></td>
+<td>Construct duration from minutes.</td>
+</tr>
+<tr>
+<td><code>hours(h)</code></td>
+<td>Construct duration from hours.</td>
+</tr>
+<tr>
+<td><code>days(d)</code></td>
+<td>Construct duration from days.</td>
+</tr>
+<tr>
+<td><code>months(m)</code></td>
+<td>Construct duration from months (30-day).</td>
+</tr>
+<tr>
+<td><code>total_microseconds()</code></td>
+<td>Total microseconds.</td>
+</tr>
+<tr>
+<td><code>total_milliseconds()</code></td>
+<td>Total milliseconds.</td>
+</tr>
+<tr>
+<td><code>total_seconds()</code></td>
+<td>Total seconds.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="microsecondsmssecondsminuteshoursdaysmonths"><code>microseconds/ms/seconds/minutes/hours/days/months(...)</code><a class="headerlink" href="#microsecondsmssecondsminuteshoursdaysmonths" title="Permanent link">&para;</a></h4>
+<p>Parameters: numeric value.
+Returns: Duration.
+Throws: None.</p>
+<h4 id="total_microseconds-total_milliseconds-total_seconds"><code>total_microseconds()</code> / <code>total_milliseconds()</code> / <code>total_seconds()</code><a class="headerlink" href="#total_microseconds-total_milliseconds-total_seconds" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Total time in units.
+Throws: None.</p>
+<h3 id="timerange"><code>TimeRange</code><a class="headerlink" href="#timerange" title="Permanent link">&para;</a></h3>
+<p>Inclusive time range with convenience helpers.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>contains(t)</code></td>
+<td>True if timestamp in range.</td>
+</tr>
+<tr>
+<td><code>duration()</code></td>
+<td>Duration between end and start.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="containst"><code>contains(t)</code><a class="headerlink" href="#containst" title="Permanent link">&para;</a></h4>
+<p>Parameters: timestamp <code>t</code>.
+Returns: <code>bool</code>.
+Throws: None.</p>
+<h4 id="duration_1"><code>duration()</code><a class="headerlink" href="#duration_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>Duration</code>.
+Throws: None.</p>
+<h3 id="mpscqueue"><code>MpscQueue</code><a class="headerlink" href="#mpscqueue" title="Permanent link">&para;</a></h3>
+<p>Template alias: <code>MpscQueue&lt;T&gt;</code>.</p>
+<h3 id="spscqueue"><code>SpscQueue</code><a class="headerlink" href="#spscqueue" title="Permanent link">&para;</a></h3>
+<p>Template alias: <code>SpscQueue&lt;T, Capacity&gt;</code>.</p>
+<h3 id="mpscqueuet-spscqueuet"><code>MpscQueue&lt;T&gt;</code> / <code>SpscQueue&lt;T&gt;</code><a class="headerlink" href="#mpscqueuet-spscqueuet" title="Permanent link">&para;</a></h3>
+<p>Lock-free queues used in event dispatch and live adapters. Ensure producer/consumer topology matches the queue type.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MpscQueue()</code></td>
+<td>Construct with dummy node.</td>
+</tr>
+<tr>
+<td><code>push(value)</code></td>
+<td>Enqueue item (copy/move).</td>
+</tr>
+<tr>
+<td><code>pop(out)</code></td>
+<td>Dequeue item if available.</td>
+</tr>
+<tr>
+<td><code>empty()</code></td>
+<td>Check if empty.</td>
+</tr>
+<tr>
+<td><code>SpscQueue::push(value)</code></td>
+<td>Enqueue item (single producer).</td>
+</tr>
+<tr>
+<td><code>SpscQueue::pop(out)</code></td>
+<td>Dequeue item (single consumer).</td>
+</tr>
+<tr>
+<td><code>SpscQueue::empty()</code></td>
+<td>Check if empty.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="mpscqueue_1"><code>MpscQueue()</code><a class="headerlink" href="#mpscqueue_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="pushvalue-pushstdmovevalue"><code>push(value)</code> / <code>push(std::move(value))</code><a class="headerlink" href="#pushvalue-pushstdmovevalue" title="Permanent link">&para;</a></h4>
+<p>Parameters: value.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="popout"><code>pop(out)</code><a class="headerlink" href="#popout" title="Permanent link">&para;</a></h4>
+<p>Parameters: output reference.
+Returns: <code>bool</code>.
+Throws: None.</p>
+<h4 id="empty"><code>empty()</code><a class="headerlink" href="#empty" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>bool</code>.
+Throws: None.</p>
+<h4 id="spscqueuepushvalue"><code>SpscQueue::push(value)</code><a class="headerlink" href="#spscqueuepushvalue" title="Permanent link">&para;</a></h4>
+<p>Parameters: value.
+Returns: <code>bool</code> (false if full).
+Throws: None.</p>
+<h4 id="spscqueuepopout"><code>SpscQueue::pop(out)</code><a class="headerlink" href="#spscqueuepopout" title="Permanent link">&para;</a></h4>
+<p>Parameters: output reference.
+Returns: <code>bool</code> (false if empty).
+Throws: None.</p>
+<h4 id="spscqueueempty"><code>SpscQueue::empty()</code><a class="headerlink" href="#spscqueueempty" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>bool</code>.
+Throws: None.</p>
+<h3 id="lrucache"><code>LRUCache</code><a class="headerlink" href="#lrucache" title="Permanent link">&para;</a></h3>
+<p>Template alias: <code>LRUCache&lt;Key, Value&gt;</code>.</p>
+<h3 id="lrucachekey-value"><code>LruCache&lt;Key, Value&gt;</code><a class="headerlink" href="#lrucachekey-value" title="Permanent link">&para;</a></h3>
+<p>Bounded cache for hot-path data. Used by data sources and metadata fetches where repeated reads are common.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LRUCache(capacity)</code></td>
+<td>Construct cache.</td>
+</tr>
+<tr>
+<td><code>set_capacity(capacity)</code></td>
+<td>Update capacity.</td>
+</tr>
+<tr>
+<td><code>capacity()</code></td>
+<td>Current capacity.</td>
+</tr>
+<tr>
+<td><code>size()</code></td>
+<td>Current size.</td>
+</tr>
+<tr>
+<td><code>get(key)</code></td>
+<td>Fetch value and mark MRU.</td>
+</tr>
+<tr>
+<td><code>put(key, value)</code></td>
+<td>Insert/update value.</td>
+</tr>
+<tr>
+<td><code>clear()</code></td>
+<td>Clear cache.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="lrucachecapacity"><code>LRUCache(capacity)</code><a class="headerlink" href="#lrucachecapacity" title="Permanent link">&para;</a></h4>
+<p>Parameters: capacity.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="set_capacitycapacity"><code>set_capacity(capacity)</code><a class="headerlink" href="#set_capacitycapacity" title="Permanent link">&para;</a></h4>
+<p>Parameters: capacity.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="capacity-size"><code>capacity()</code> / <code>size()</code><a class="headerlink" href="#capacity-size" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>size_t</code>.
+Throws: None.</p>
+<h4 id="getkey_1"><code>get(key)</code><a class="headerlink" href="#getkey_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: key.
+Returns: Optional value.
+Throws: None.</p>
+<h4 id="putkey-value"><code>put(key, value)</code><a class="headerlink" href="#putkey-value" title="Permanent link">&para;</a></h4>
+<p>Parameters: key, value.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="clear"><code>clear()</code><a class="headerlink" href="#clear" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="yamlconfig"><code>YamlConfig</code><a class="headerlink" href="#yamlconfig" title="Permanent link">&para;</a></h3>
+<p>YAML-based configuration loader with overrides. This is the canonical config entrypoint for CLI and services.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>YamlConfigLoader::load_file(path)</code></td>
+<td>Load config from YAML.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="load_filepath"><code>load_file(path)</code><a class="headerlink" href="#load_filepath" title="Permanent link">&para;</a></h4>
+<p>Parameters: YAML path.
+Returns: <code>Config</code>.
+Throws: <code>Error::IoError</code>/<code>Error::ParseError</code>.</p>
+<h3 id="jsonvalue"><code>JsonValue</code><a class="headerlink" href="#jsonvalue" title="Permanent link">&para;</a></h3>
+<p>Lightweight JSON value representation.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>JsonValue()</code></td>
+<td>Construct null value.</td>
+</tr>
+<tr>
+<td><code>JsonValue(nullptr/bool/number/string/array/object)</code></td>
+<td>Construct typed JSON value.</td>
+</tr>
+<tr>
+<td><code>is_null()</code> / <code>is_bool()</code> / <code>is_number()</code> / <code>is_string()</code> / <code>is_array()</code> / <code>is_object()</code></td>
+<td>Type predicates.</td>
+</tr>
+<tr>
+<td><code>as_bool()</code> / <code>as_number()</code> / <code>as_string()</code> / <code>as_array()</code> / <code>as_object()</code></td>
+<td>Typed accessors.</td>
+</tr>
+</tbody>
+</table>
+<p>Functions:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>parse_json(input)</code></td>
+<td>Parse JSON text into <code>JsonValue</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="parse_jsoninput"><code>parse_json(input)</code><a class="headerlink" href="#parse_jsoninput" title="Permanent link">&para;</a></h4>
+<p>Parameters: JSON text.
+Returns: <code>Result&lt;JsonValue&gt;</code>.
+Throws: <code>Error::ParseError</code>.</p>
+<h3 id="sha256"><code>Sha256</code><a class="headerlink" href="#sha256" title="Permanent link">&para;</a></h3>
+<p>Streaming SHA-256 hash implementation.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Sha256()</code></td>
+<td>Construct hasher.</td>
+</tr>
+<tr>
+<td><code>update(data, len)</code></td>
+<td>Add bytes to hash.</td>
+</tr>
+<tr>
+<td><code>digest()</code></td>
+<td>Finalize and return digest.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="sha256_1"><code>Sha256()</code><a class="headerlink" href="#sha256_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="updatedata-len"><code>update(data, len)</code><a class="headerlink" href="#updatedata-len" title="Permanent link">&para;</a></h4>
+<p>Parameters: pointer and length.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="digest"><code>digest()</code><a class="headerlink" href="#digest" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: 32-byte digest.
+Throws: None.</p>
+<h3 id="symbolregistry"><code>SymbolRegistry</code><a class="headerlink" href="#symbolregistry" title="Permanent link">&para;</a></h3>
+<p>Thread-safe registry mapping symbols to compact IDs.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>instance()</code></td>
+<td>Access singleton registry.</td>
+</tr>
+<tr>
+<td><code>intern(symbol)</code></td>
+<td>Intern a symbol string.</td>
+</tr>
+<tr>
+<td><code>lookup(id)</code></td>
+<td>Lookup symbol string by ID.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="instance"><code>instance()</code><a class="headerlink" href="#instance" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Singleton reference.
+Throws: None.</p>
+<h4 id="internsymbol"><code>intern(symbol)</code><a class="headerlink" href="#internsymbol" title="Permanent link">&para;</a></h4>
+<p>Parameters: symbol string.
+Returns: <code>SymbolId</code>.
+Throws: None.</p>
+<h4 id="lookupid"><code>lookup(id)</code><a class="headerlink" href="#lookupid" title="Permanent link">&para;</a></h4>
+<p>Parameters: symbol ID.
+Returns: symbol string.
+Throws: <code>std::out_of_range</code> if ID invalid.</p>
+<h3 id="monotonicarena"><code>MonotonicArena</code><a class="headerlink" href="#monotonicarena" title="Permanent link">&para;</a></h3>
+<p>Simple monotonic arena allocator.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MonotonicArena(block_size)</code></td>
+<td>Construct with block size.</td>
+</tr>
+<tr>
+<td><code>allocate(bytes, alignment)</code></td>
+<td>Allocate bytes from arena.</td>
+</tr>
+<tr>
+<td><code>reset()</code></td>
+<td>Reset arena and free blocks.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="monotonicarenablock_size"><code>MonotonicArena(block_size)</code><a class="headerlink" href="#monotonicarenablock_size" title="Permanent link">&para;</a></h4>
+<p>Parameters: block size bytes.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="allocatebytes-alignment"><code>allocate(bytes, alignment)</code><a class="headerlink" href="#allocatebytes-alignment" title="Permanent link">&para;</a></h4>
+<p>Parameters: size and alignment.
+Returns: pointer.
+Throws: <code>std::bad_alloc</code> on allocation failure.</p>
+<h4 id="reset"><code>reset()</code><a class="headerlink" href="#reset" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="poolallocator"><code>PoolAllocator</code><a class="headerlink" href="#poolallocator" title="Permanent link">&para;</a></h3>
+<p>Template alias: <code>PoolAllocator&lt;T&gt;</code>.</p>
+<h3 id="poolallocatort"><code>PoolAllocator&lt;T&gt;</code><a class="headerlink" href="#poolallocatort" title="Permanent link">&para;</a></h3>
+<p>Thread-safe object pool allocator.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PoolAllocator(capacity)</code></td>
+<td>Construct with initial capacity.</td>
+</tr>
+<tr>
+<td><code>allocate()</code></td>
+<td>Allocate an object.</td>
+</tr>
+<tr>
+<td><code>deallocate(ptr)</code></td>
+<td>Return an object to pool.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="poolallocatorcapacity"><code>PoolAllocator(capacity)</code><a class="headerlink" href="#poolallocatorcapacity" title="Permanent link">&para;</a></h4>
+<p>Parameters: initial capacity.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="allocate"><code>allocate()</code><a class="headerlink" href="#allocate" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: pointer to object.
+Throws: <code>std::bad_alloc</code> on allocation failure.</p>
+<h4 id="deallocateptr"><code>deallocate(ptr)</code><a class="headerlink" href="#deallocateptr" title="Permanent link">&para;</a></h4>
+<p>Parameters: object pointer.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="assetclass"><code>AssetClass</code><a class="headerlink" href="#assetclass" title="Permanent link">&para;</a></h3>
+<p>Asset class enumeration used across data and risk.</p>
+<p>Values:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Equity</code></td>
+<td>Stocks and ETFs.</td>
+</tr>
+<tr>
+<td><code>Futures</code></td>
+<td>Futures contracts.</td>
+</tr>
+<tr>
+<td><code>Forex</code></td>
+<td>Foreign exchange.</td>
+</tr>
+<tr>
+<td><code>Crypto</code></td>
+<td>Digital assets.</td>
+</tr>
+<tr>
+<td><code>Options</code></td>
+<td>Options contracts.</td>
+</tr>
+<tr>
+<td><code>Other</code></td>
+<td>Other/unknown.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="yamlconfigloader"><code>YamlConfigLoader</code><a class="headerlink" href="#yamlconfigloader" title="Permanent link">&para;</a></h3>
+<p>YAML configuration loader.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>load_file(path)</code></td>
+<td>Load config from YAML file.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;regimeflow/common/config.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;regimeflow/common/yaml_config.h&quot;</span>
+
+<span class="n">regimeflow</span><span class="o">::</span><span class="n">Config</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">regimeflow</span><span class="o">::</span><span class="n">YamlConfigLoader</span><span class="o">::</span><span class="n">load_file</span><span class="p">(</span><span class="s">&quot;config.yml&quot;</span><span class="p">);</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">risk_limit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">get_as</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;risk.limits.max_drawdown&quot;</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">risk_limit</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// handle missing config</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../reference/configuration/">Configuration Reference</a></li>
+<li><a href="../../reference/data-validation/">Data Validation</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  <div class="rf-footer">
+    <div class="md-grid rf-footer__grid">
+      <div class="rf-footer__brand">
+        <div class="rf-logo rf-logo--footer" aria-label="RegimeFlow Docs">
+          <span class="rf-logo__mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" focusable="false">
+              <defs>
+                <linearGradient id="rf-logo-gradient-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#b8f0d0"></stop>
+                  <stop offset="100%" stop-color="#42ba8d"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)"></rect>
+              <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient-footer)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+              <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+            </svg>
+          </span>
+          <span class="rf-logo__text">
+            <strong>RegimeFlow</strong>
+            <small>Documentation</small>
+          </span>
+        </div>
+        <p>
+          C++ and Python quantitative trading infrastructure with regime-aware backtesting,
+          live execution boundaries, and code-aligned reference material.
+        </p>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Start</h4>
+        <a href="../../getting-started/quick-install/">Quick Install</a>
+        <a href="../../getting-started/quickstart/">Quickstart</a>
+        <a href="../../guide/backtesting/">Backtesting</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Reference</h4>
+        <a href="../../reference/configuration/">Configuration</a>
+        <a href="../index/">API Design</a>
+        <a href="../../live/brokers/">Broker Support</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Project</h4>
+        <a href="https://github.com/gregorian-09/regime-flow">GitHub</a>
+        <a href="../../live/production-readiness/">Production Readiness</a>
+        <a href="../../tutorials/examples/">Examples</a>
+      </div>
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.expand", "navigation.path", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../assets/mermaid-d733041c.js"></script>
+      
+        <script src="../../assets/mermaid-init.js"></script>
+      
+        <script src="../../assets/katex.min.js"></script>
+      
+        <script src="../../assets/auto-render.min.js"></script>
+      
+        <script src="../../assets/katex-init.js"></script>
+      
+    
+  </body>
+</html>

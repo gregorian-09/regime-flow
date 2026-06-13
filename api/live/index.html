@@ -1,0 +1,5500 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="RegimeFlow architecture, API design, and user guides">
+      
+      
+      
+        <link rel="canonical" href="https://gregorian-09.github.io/regime-flow/api/live/">
+      
+      
+        <link rel="prev" href="../execution/">
+      
+      
+        <link rel="next" href="../metrics/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Live - RegimeFlow Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/site-theme.css">
+    
+      <link rel="stylesheet" href="../../assets/katex.min.css">
+    
+      <link rel="stylesheet" href="../../assets/diagram-theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#package-regimeflowlive" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <div class="rf-announce">
+    <div class="rf-announce__inner md-grid">
+      <span class="rf-announce__eyebrow">RegimeFlow</span>
+      <span class="rf-announce__copy">
+        Quant documentation for developers who need exact execution, risk, and broker semantics.
+      </span>
+      <a class="rf-announce__link" href="../../getting-started/quickstart/">Start with the quickstart</a>
+    </div>
+  </div>
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="RegimeFlow Docs" class="md-header__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RegimeFlow Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Live
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="RegimeFlow Docs" class="md-nav__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    RegimeFlow Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart (Backtest)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/project-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quant Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/backtesting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtesting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/data-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/risk-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Trading
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Live Trading
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/brokers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brokers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/production-readiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Readiness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/environment-and-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment And Flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/data-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Cheat Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/broker-message-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Message Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/developer-quality-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Quality Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugin-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/transformer_regime_plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Plugin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Design
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Events
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#liveengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livetradingengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveTradingEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enginestatus-liveordersummary-dashboardsnapshot-systemhealth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EngineStatus / LiveOrderSummary / DashboardSnapshot / SystemHealth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brokeradapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BrokerAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executionreport-liveorderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionReport / LiveOrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveorderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveordermanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderManager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventbus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventBus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livetopic-livemessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveTopic / LiveMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livemessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mqadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MQAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messagequeueconfig-messagequeueadapter-livemessagecodec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageQueueConfig / MessageQueueAdapter / LiveMessageCodec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messagequeueadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageQueueAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livemessagecodec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveMessageCodec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accountinfo-marketdataupdate-trade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AccountInfo / MarketDataUpdate / Trade
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#marketdataupdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MarketDataUpdate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trade
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditEvent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secret-hygiene" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secret Hygiene
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alpacaadapter-ibadapter-binanceadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AlpacaAdapter / IBAdapter / BinanceAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ibadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IBAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#binanceadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BinanceAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboardsnapshot-liveordersummary-systemhealth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DashboardSnapshot / LiveOrderSummary / SystemHealth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveordersummary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderSummary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemhealth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SystemHealth
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#livetradingengine_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveTradingEngine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LiveTradingEngine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        start()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable_trading-disable_trading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enable_trading() / disable_trading()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#close_all_positions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        close_all_positions()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brokeradapter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BrokerAdapter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BrokerAdapter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connect-disconnect-is_connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        connect() / disconnect() / is_connected()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submit_orderorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        submit_order(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel_orderbroker_order_id-modify_orderbroker_order_id-mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel_order(broker_order_id) / modify_order(broker_order_id, mod)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveordermanager_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LiveOrderManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#submit_orderorder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        submit_order(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel_orderid-cancel_all_orders-cancel_orderssymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel_order(id) / cancel_all_orders() / cancel_orders(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reconcile_with_broker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reconcile_with_broker()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventbus_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventBus
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventBus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        start() / stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subscribetopic-cb-unsubscribeid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subscribe(topic, cb) / unsubscribe(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishmessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        publish(message)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../regime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-metrics-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Full File Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../public-symbol-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Symbol Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coverage-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coverage Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/python-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-custom-regime-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Regime Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/intraday_strategy_tradecheck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intraday Strategy Tradecheck
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/multi_intraday_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi Intraday Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/transformer_regime_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/event-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/order-state-machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order State Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-resiliency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Resiliency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-order-reconciliation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Order Reconciliation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/broker-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Streaming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-transitions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Transitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/hmm-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HMM Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/strategy-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-limits-deep/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Limits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Costs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/slippage-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slippage Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/portfolio-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Portfolio Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/performance-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/backtest-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/walk-forward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/message-bus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Message Bus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagrams
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diagrams
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/component-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/structural-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structural Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/uml-class-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UML Class Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-backtest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#liveengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livetradingengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveTradingEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enginestatus-liveordersummary-dashboardsnapshot-systemhealth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EngineStatus / LiveOrderSummary / DashboardSnapshot / SystemHealth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brokeradapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BrokerAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executionreport-liveorderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionReport / LiveOrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveorderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveordermanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderManager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventbus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventBus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livetopic-livemessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveTopic / LiveMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livemessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mqadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MQAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messagequeueconfig-messagequeueadapter-livemessagecodec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageQueueConfig / MessageQueueAdapter / LiveMessageCodec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messagequeueadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageQueueAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#livemessagecodec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveMessageCodec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accountinfo-marketdataupdate-trade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AccountInfo / MarketDataUpdate / Trade
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#marketdataupdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MarketDataUpdate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trade
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditEvent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secret-hygiene" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secret Hygiene
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alpacaadapter-ibadapter-binanceadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AlpacaAdapter / IBAdapter / BinanceAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ibadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IBAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#binanceadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BinanceAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboardsnapshot-liveordersummary-systemhealth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DashboardSnapshot / LiveOrderSummary / SystemHealth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveordersummary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderSummary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemhealth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SystemHealth
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#livetradingengine_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveTradingEngine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LiveTradingEngine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        start()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable_trading-disable_trading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enable_trading() / disable_trading()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#close_all_positions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        close_all_positions()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brokeradapter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BrokerAdapter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BrokerAdapter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connect-disconnect-is_connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        connect() / disconnect() / is_connected()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submit_orderorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        submit_order(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel_orderbroker_order_id-modify_orderbroker_order_id-mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel_order(broker_order_id) / modify_order(broker_order_id, mod)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liveordermanager_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiveOrderManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LiveOrderManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#submit_orderorder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        submit_order(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel_orderid-cancel_all_orders-cancel_orderssymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel_order(id) / cancel_all_orders() / cancel_orders(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reconcile_with_broker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reconcile_with_broker()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventbus_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventBus
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventBus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        start() / stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subscribetopic-cb-unsubscribeid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subscribe(topic, cb) / unsubscribe(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishmessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        publish(message)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../reference/configuration/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    API Design
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="package-regimeflowlive">Package: <code>regimeflow::live</code><a class="headerlink" href="#package-regimeflowlive" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Live trading layer. Adapters for broker APIs, live event bus, audit logging, order manager, and broker-specific codecs. Designed for resiliency, schema validation, and reconnection strategies.</p>
+<p>Related diagrams:
+- <a href="../../live/overview/">Live Overview</a>
+- <a href="../../explanation/live-resiliency/">Live Resiliency</a>
+- <a href="../../explanation/broker-streaming/">Broker Streaming</a></p>
+<h2 id="file-index">File Index<a class="headerlink" href="#file-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>regimeflow/live/alpaca_adapter.h</code></td>
+<td>Alpaca broker adapter.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/audit_log.h</code></td>
+<td>Live audit log interface.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/binance_adapter.h</code></td>
+<td>Binance adapter.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/broker_adapter.h</code></td>
+<td>Broker adapter base interface.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/event_bus.h</code></td>
+<td>Live event bus and topic routing.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/ib_adapter.h</code></td>
+<td>Interactive Brokers adapter.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/live_engine.h</code></td>
+<td>Live engine coordinator.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/live_order_manager.h</code></td>
+<td>Live order lifecycle management.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/mq_adapter.h</code></td>
+<td>Message bus adapter (Kafka/Redis Streams).</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/mq_codec.h</code></td>
+<td>Serialization/codec for MQ payloads.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/secret_hygiene.h</code></td>
+<td>Secret loading, secret-manager resolution, and redaction helpers.</td>
+</tr>
+<tr>
+<td><code>regimeflow/live/types.h</code></td>
+<td>Shared live types and enums.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="type-index">Type Index<a class="headerlink" href="#type-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BrokerAdapter</code></td>
+<td>Abstract broker integration interface.</td>
+</tr>
+<tr>
+<td><code>LiveEngine</code></td>
+<td>Live runtime orchestrator.</td>
+</tr>
+<tr>
+<td><code>LiveOrderManager</code></td>
+<td>Tracks broker order state.</td>
+</tr>
+<tr>
+<td><code>EventBus</code></td>
+<td>Pub/sub for live events.</td>
+</tr>
+<tr>
+<td><code>MQAdapter</code></td>
+<td>Message bus integration.</td>
+</tr>
+<tr>
+<td><code>Secret hygiene helpers</code></td>
+<td>Runtime secret loading, resolution, and log redaction.</td>
+</tr>
+<tr>
+<td><code>AlpacaAdapter</code>, <code>IbAdapter</code>, <code>BinanceAdapter</code></td>
+<td>Broker-specific adapters.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="lifecycle-usage-notes">Lifecycle &amp; Usage Notes<a class="headerlink" href="#lifecycle-usage-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>LiveEngine</code> uses <code>BrokerAdapter</code> and <code>LiveOrderManager</code> to ensure consistent lifecycle.</li>
+<li>The <code>MQAdapter</code> is designed for external durability and downstream analytics.</li>
+<li><code>secret_hygiene.h</code> is the runtime boundary for env, <code>*_FILE</code>, and secret-manager sourced credentials.</li>
+<li>Adapter implementations must honor the reconnection/backoff policies in <code>live-resiliency</code> docs.</li>
+</ul>
+<h2 id="type-details">Type Details<a class="headerlink" href="#type-details" title="Permanent link">&para;</a></h2>
+<h3 id="liveengine"><code>LiveEngine</code><a class="headerlink" href="#liveengine" title="Permanent link">&para;</a></h3>
+<p>Coordinates live data ingestion, order routing, risk checks, and audit logging.</p>
+<h3 id="livetradingengine"><code>LiveTradingEngine</code><a class="headerlink" href="#livetradingengine" title="Permanent link">&para;</a></h3>
+<p>Primary live engine class (alias of <code>LiveEngine</code> in docs).</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LiveTradingEngine(config)</code></td>
+<td>Construct live engine.</td>
+</tr>
+<tr>
+<td><code>LiveTradingEngine(config, broker)</code></td>
+<td>Construct with injected broker.</td>
+</tr>
+<tr>
+<td><code>~LiveTradingEngine()</code></td>
+<td>Stop engine and join threads.</td>
+</tr>
+<tr>
+<td><code>start()</code></td>
+<td>Start engine.</td>
+</tr>
+<tr>
+<td><code>stop()</code></td>
+<td>Stop engine.</td>
+</tr>
+<tr>
+<td><code>is_running()</code></td>
+<td>Check running status.</td>
+</tr>
+<tr>
+<td><code>get_status()</code></td>
+<td>Get engine status snapshot.</td>
+</tr>
+<tr>
+<td><code>get_dashboard_snapshot()</code></td>
+<td>Get dashboard snapshot.</td>
+</tr>
+<tr>
+<td><code>get_system_health()</code></td>
+<td>Get system health snapshot.</td>
+</tr>
+<tr>
+<td><code>enable_trading()</code></td>
+<td>Enable live trading.</td>
+</tr>
+<tr>
+<td><code>disable_trading()</code></td>
+<td>Disable live trading.</td>
+</tr>
+<tr>
+<td><code>close_all_positions()</code></td>
+<td>Close all open positions.</td>
+</tr>
+<tr>
+<td><code>on_trade(cb)</code></td>
+<td>Register trade callback.</td>
+</tr>
+<tr>
+<td><code>on_regime_change(cb)</code></td>
+<td>Register regime change callback.</td>
+</tr>
+<tr>
+<td><code>on_error(cb)</code></td>
+<td>Register error callback.</td>
+</tr>
+<tr>
+<td><code>on_dashboard_update(cb)</code></td>
+<td>Register dashboard callback.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="liveconfig"><code>LiveConfig</code><a class="headerlink" href="#liveconfig" title="Permanent link">&para;</a></h3>
+<p>Configuration for live trading engine.</p>
+<h3 id="enginestatus-liveordersummary-dashboardsnapshot-systemhealth"><code>EngineStatus</code> / <code>LiveOrderSummary</code> / <code>DashboardSnapshot</code> / <code>SystemHealth</code><a class="headerlink" href="#enginestatus-liveordersummary-dashboardsnapshot-systemhealth" title="Permanent link">&para;</a></h3>
+<p>Runtime snapshots for monitoring and dashboards.</p>
+<h3 id="brokeradapter"><code>BrokerAdapter</code><a class="headerlink" href="#brokeradapter" title="Permanent link">&para;</a></h3>
+<p>Abstract interface for broker connectivity, order placement, and streaming updates.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>connect()</code></td>
+<td>Connect to broker.</td>
+</tr>
+<tr>
+<td><code>disconnect()</code></td>
+<td>Disconnect from broker.</td>
+</tr>
+<tr>
+<td><code>is_connected()</code></td>
+<td>Connection status.</td>
+</tr>
+<tr>
+<td><code>subscribe_market_data(symbols)</code></td>
+<td>Subscribe to market data.</td>
+</tr>
+<tr>
+<td><code>unsubscribe_market_data(symbols)</code></td>
+<td>Unsubscribe from market data.</td>
+</tr>
+<tr>
+<td><code>submit_order(order)</code></td>
+<td>Submit an order.</td>
+</tr>
+<tr>
+<td><code>cancel_order(broker_order_id)</code></td>
+<td>Cancel a broker order.</td>
+</tr>
+<tr>
+<td><code>modify_order(broker_order_id, mod)</code></td>
+<td>Modify an order.</td>
+</tr>
+<tr>
+<td><code>get_account_info()</code></td>
+<td>Retrieve account info.</td>
+</tr>
+<tr>
+<td><code>get_positions()</code></td>
+<td>Retrieve positions.</td>
+</tr>
+<tr>
+<td><code>get_open_orders()</code></td>
+<td>Retrieve open orders.</td>
+</tr>
+<tr>
+<td><code>on_market_data(cb)</code></td>
+<td>Register market data callback.</td>
+</tr>
+<tr>
+<td><code>on_execution_report(cb)</code></td>
+<td>Register execution report callback.</td>
+</tr>
+<tr>
+<td><code>on_position_update(cb)</code></td>
+<td>Register position update callback.</td>
+</tr>
+<tr>
+<td><code>max_orders_per_second()</code></td>
+<td>Broker order rate limit.</td>
+</tr>
+<tr>
+<td><code>max_messages_per_second()</code></td>
+<td>Broker message rate limit.</td>
+</tr>
+<tr>
+<td><code>poll()</code></td>
+<td>Poll for updates if required.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="executionreport-liveorderstatus"><code>ExecutionReport</code> / <code>LiveOrderStatus</code><a class="headerlink" href="#executionreport-liveorderstatus" title="Permanent link">&para;</a></h3>
+<p>Broker execution report payloads and status enums.</p>
+<h3 id="liveorderstatus"><code>LiveOrderStatus</code><a class="headerlink" href="#liveorderstatus" title="Permanent link">&para;</a></h3>
+<p>Live order status enum as reported by brokers.</p>
+<h3 id="liveordermanager"><code>LiveOrderManager</code><a class="headerlink" href="#liveordermanager" title="Permanent link">&para;</a></h3>
+<p>Tracks broker order state and reconciles against local state.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LiveOrderManager(broker)</code></td>
+<td>Construct with broker adapter.</td>
+</tr>
+<tr>
+<td><code>submit_order(order)</code></td>
+<td>Submit live order.</td>
+</tr>
+<tr>
+<td><code>cancel_order(id)</code></td>
+<td>Cancel live order by internal ID.</td>
+</tr>
+<tr>
+<td><code>cancel_all_orders()</code></td>
+<td>Cancel all open orders.</td>
+</tr>
+<tr>
+<td><code>cancel_orders(symbol)</code></td>
+<td>Cancel all orders for symbol.</td>
+</tr>
+<tr>
+<td><code>modify_order(id, mod)</code></td>
+<td>Modify live order.</td>
+</tr>
+<tr>
+<td><code>get_order(id)</code></td>
+<td>Get live order by internal ID.</td>
+</tr>
+<tr>
+<td><code>get_open_orders()</code></td>
+<td>Get all open live orders.</td>
+</tr>
+<tr>
+<td><code>get_orders_by_status(status)</code></td>
+<td>Get orders filtered by status.</td>
+</tr>
+<tr>
+<td><code>on_execution_report(cb)</code></td>
+<td>Register execution report callback.</td>
+</tr>
+<tr>
+<td><code>on_order_update(cb)</code></td>
+<td>Register order update callback.</td>
+</tr>
+<tr>
+<td><code>handle_execution_report(report)</code></td>
+<td>Apply broker execution report.</td>
+</tr>
+<tr>
+<td><code>reconcile_with_broker()</code></td>
+<td>Reconcile internal state with broker.</td>
+</tr>
+<tr>
+<td><code>validate_order(order)</code></td>
+<td>Validate live order parameters.</td>
+</tr>
+<tr>
+<td><code>find_order_id_by_broker_id(id)</code></td>
+<td>Lookup internal ID by broker ID.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="liveorder"><code>LiveOrder</code><a class="headerlink" href="#liveorder" title="Permanent link">&para;</a></h3>
+<p>Internal tracking representation for live orders.</p>
+<h3 id="eventbus"><code>EventBus</code><a class="headerlink" href="#eventbus" title="Permanent link">&para;</a></h3>
+<p>Pub/sub routing for live events and system control messages.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EventBus()</code></td>
+<td>Construct event bus.</td>
+</tr>
+<tr>
+<td><code>~EventBus()</code></td>
+<td>Stop bus on destruction.</td>
+</tr>
+<tr>
+<td><code>start()</code></td>
+<td>Start dispatch loop.</td>
+</tr>
+<tr>
+<td><code>stop()</code></td>
+<td>Stop dispatch loop.</td>
+</tr>
+<tr>
+<td><code>subscribe(topic, cb)</code></td>
+<td>Subscribe to topic.</td>
+</tr>
+<tr>
+<td><code>unsubscribe(id)</code></td>
+<td>Unsubscribe by ID.</td>
+</tr>
+<tr>
+<td><code>publish(message)</code></td>
+<td>Publish a message.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="livetopic-livemessage"><code>LiveTopic</code> / <code>LiveMessage</code><a class="headerlink" href="#livetopic-livemessage" title="Permanent link">&para;</a></h3>
+<p>Live event bus topics and message envelope.</p>
+<h3 id="livemessage"><code>LiveMessage</code><a class="headerlink" href="#livemessage" title="Permanent link">&para;</a></h3>
+<p>Event bus message wrapper.</p>
+<h3 id="mqadapter"><code>MQAdapter</code><a class="headerlink" href="#mqadapter" title="Permanent link">&para;</a></h3>
+<p>Integration layer for Kafka/Redis Streams durability and downstream analytics.</p>
+<h3 id="messagequeueconfig-messagequeueadapter-livemessagecodec"><code>MessageQueueConfig</code> / <code>MessageQueueAdapter</code> / <code>LiveMessageCodec</code><a class="headerlink" href="#messagequeueconfig-messagequeueadapter-livemessagecodec" title="Permanent link">&para;</a></h3>
+<p>Message queue configuration, adapter, and codec for streaming.</p>
+<h3 id="messagequeueadapter"><code>MessageQueueAdapter</code><a class="headerlink" href="#messagequeueadapter" title="Permanent link">&para;</a></h3>
+<p>MQ adapter interface for Kafka/Redis Streams.</p>
+<h3 id="livemessagecodec"><code>LiveMessageCodec</code><a class="headerlink" href="#livemessagecodec" title="Permanent link">&para;</a></h3>
+<p>Codec for live messages on the MQ.</p>
+<h3 id="accountinfo-marketdataupdate-trade"><code>AccountInfo</code> / <code>MarketDataUpdate</code> / <code>Trade</code><a class="headerlink" href="#accountinfo-marketdataupdate-trade" title="Permanent link">&para;</a></h3>
+<p>Core live types for account state and data updates.</p>
+<h3 id="marketdataupdate"><code>MarketDataUpdate</code><a class="headerlink" href="#marketdataupdate" title="Permanent link">&para;</a></h3>
+<p>Market data update payload.</p>
+<h3 id="trade"><code>Trade</code><a class="headerlink" href="#trade" title="Permanent link">&para;</a></h3>
+<p>Trade execution payload.</p>
+<h3 id="auditevent"><code>AuditEvent</code><a class="headerlink" href="#auditevent" title="Permanent link">&para;</a></h3>
+<p>Live audit log event payload for compliance logging.</p>
+<h3 id="secret-hygiene"><code>Secret Hygiene</code><a class="headerlink" href="#secret-hygiene" title="Permanent link">&para;</a></h3>
+<p>Helper layer for runtime secret loading and redaction in live tooling.</p>
+<p>Key APIs:</p>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>read_secret_env(key)</code></td>
+<td>Read <code>KEY</code> or <code>KEY_FILE</code>.</td>
+</tr>
+<tr>
+<td><code>is_secret_reference(value)</code></td>
+<td>Detect <code>vault://</code>, <code>aws-sm://</code>, <code>gcp-sm://</code>, or <code>azure-kv://</code> references.</td>
+</tr>
+<tr>
+<td><code>resolve_secret_reference(value)</code></td>
+<td>Resolve a single secret-manager reference.</td>
+</tr>
+<tr>
+<td><code>resolve_secret_config(values)</code></td>
+<td>Resolve secret references inside a broker config map.</td>
+</tr>
+<tr>
+<td><code>is_sensitive_secret_key(key)</code></td>
+<td>Classify config keys that should be treated as sensitive.</td>
+</tr>
+<tr>
+<td><code>register_sensitive_value(value)</code></td>
+<td>Register one secret for later redaction.</td>
+</tr>
+<tr>
+<td><code>register_sensitive_config(values)</code></td>
+<td>Register all sensitive values from a config map.</td>
+</tr>
+<tr>
+<td><code>redact_sensitive_values(message)</code></td>
+<td>Replace registered secrets with <code>***</code> in logs and errors.</td>
+</tr>
+<tr>
+<td><code>reset_sensitive_values_for_tests()</code></td>
+<td>Clear the redaction registry for tests.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="alpacaadapter-ibadapter-binanceadapter"><code>AlpacaAdapter</code> / <code>IBAdapter</code> / <code>BinanceAdapter</code><a class="headerlink" href="#alpacaadapter-ibadapter-binanceadapter" title="Permanent link">&para;</a></h3>
+<p>Broker-specific implementations of <code>BrokerAdapter</code> with streaming and order lifecycle handling.</p>
+<h3 id="ibadapter"><code>IBAdapter</code><a class="headerlink" href="#ibadapter" title="Permanent link">&para;</a></h3>
+<p>Interactive Brokers adapter.</p>
+<h3 id="binanceadapter"><code>BinanceAdapter</code><a class="headerlink" href="#binanceadapter" title="Permanent link">&para;</a></h3>
+<p>Binance adapter.</p>
+<h3 id="dashboardsnapshot-liveordersummary-systemhealth"><code>DashboardSnapshot</code> / <code>LiveOrderSummary</code> / <code>SystemHealth</code><a class="headerlink" href="#dashboardsnapshot-liveordersummary-systemhealth" title="Permanent link">&para;</a></h3>
+<p>Dashboard and health snapshot payloads.</p>
+<h3 id="liveordersummary"><code>LiveOrderSummary</code><a class="headerlink" href="#liveordersummary" title="Permanent link">&para;</a></h3>
+<p>Summary of open live orders for dashboards.</p>
+<h3 id="systemhealth"><code>SystemHealth</code><a class="headerlink" href="#systemhealth" title="Permanent link">&para;</a></h3>
+<p>System health telemetry snapshot.</p>
+<h2 id="method-details">Method Details<a class="headerlink" href="#method-details" title="Permanent link">&para;</a></h2>
+<p>Type Hints:</p>
+<ul>
+<li><code>order</code> → <code>engine::Order</code></li>
+<li><code>mod</code> → <code>engine::OrderModification</code></li>
+<li><code>topic</code> → <code>LiveTopic</code></li>
+<li><code>message</code> → <code>LiveMessage</code></li>
+<li><code>config</code> → <code>LiveConfig</code></li>
+</ul>
+<h3 id="livetradingengine_1"><code>LiveTradingEngine</code><a class="headerlink" href="#livetradingengine_1" title="Permanent link">&para;</a></h3>
+<h4 id="start"><code>start()</code><a class="headerlink" href="#start" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::BrokerError</code>/<code>Error::NetworkError</code> on start failure.</p>
+<h4 id="stop"><code>stop()</code><a class="headerlink" href="#stop" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="enable_trading-disable_trading"><code>enable_trading()</code> / <code>disable_trading()</code><a class="headerlink" href="#enable_trading-disable_trading" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="close_all_positions"><code>close_all_positions()</code><a class="headerlink" href="#close_all_positions" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="brokeradapter_1"><code>BrokerAdapter</code><a class="headerlink" href="#brokeradapter_1" title="Permanent link">&para;</a></h3>
+<h4 id="connect-disconnect-is_connected"><code>connect()</code> / <code>disconnect()</code> / <code>is_connected()</code><a class="headerlink" href="#connect-disconnect-is_connected" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>Result&lt;void&gt;</code> or <code>bool</code>.
+Throws: <code>Error::NetworkError</code> on failure.</p>
+<h4 id="submit_orderorder"><code>submit_order(order)</code><a class="headerlink" href="#submit_orderorder" title="Permanent link">&para;</a></h4>
+<p>Parameters: order.
+Returns: Broker order ID.
+Throws: <code>Error::BrokerError</code>.</p>
+<h4 id="cancel_orderbroker_order_id-modify_orderbroker_order_id-mod"><code>cancel_order(broker_order_id)</code> / <code>modify_order(broker_order_id, mod)</code><a class="headerlink" href="#cancel_orderbroker_order_id-modify_orderbroker_order_id-mod" title="Permanent link">&para;</a></h4>
+<p>Parameters: broker order ID, modification.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::BrokerError</code>.</p>
+<h3 id="liveordermanager_1"><code>LiveOrderManager</code><a class="headerlink" href="#liveordermanager_1" title="Permanent link">&para;</a></h3>
+<h4 id="submit_orderorder_1"><code>submit_order(order)</code><a class="headerlink" href="#submit_orderorder_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: order.
+Returns: <code>Result&lt;OrderId&gt;</code>.
+Throws: <code>Error::InvalidState</code> when broker adapter is missing, <code>Error::InvalidArgument</code> on invalid params, broker-specific errors from <code>BrokerAdapter::submit_order()</code>.</p>
+<h4 id="cancel_orderid-cancel_all_orders-cancel_orderssymbol"><code>cancel_order(id)</code> / <code>cancel_all_orders()</code> / <code>cancel_orders(symbol)</code><a class="headerlink" href="#cancel_orderid-cancel_all_orders-cancel_orderssymbol" title="Permanent link">&para;</a></h4>
+<p>Parameters: internal ID or symbol.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidState</code> when broker adapter is missing, <code>Error::NotFound</code> for missing orders, <code>Error::BrokerError</code> from the broker adapter.</p>
+<h4 id="reconcile_with_broker"><code>reconcile_with_broker()</code><a class="headerlink" href="#reconcile_with_broker" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidState</code> when broker adapter is missing, <code>Error::BrokerError</code> from the broker adapter.</p>
+<h3 id="eventbus_1"><code>EventBus</code><a class="headerlink" href="#eventbus_1" title="Permanent link">&para;</a></h3>
+<h4 id="start-stop"><code>start()</code> / <code>stop()</code><a class="headerlink" href="#start-stop" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="subscribetopic-cb-unsubscribeid"><code>subscribe(topic, cb)</code> / <code>unsubscribe(id)</code><a class="headerlink" href="#subscribetopic-cb-unsubscribeid" title="Permanent link">&para;</a></h4>
+<p>Parameters: topic/callback or subscription ID.
+Returns: subscription ID / <code>void</code>.
+Throws: None.</p>
+<h4 id="publishmessage"><code>publish(message)</code><a class="headerlink" href="#publishmessage" title="Permanent link">&para;</a></h4>
+<p>Parameters: message.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;regimeflow/live/live_engine.h&quot;</span>
+
+<span class="n">regimeflow</span><span class="o">::</span><span class="n">live</span><span class="o">::</span><span class="n">LiveConfig</span><span class="w"> </span><span class="n">cfg</span><span class="p">;</span>
+<span class="n">cfg</span><span class="p">.</span><span class="n">broker_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ib&quot;</span><span class="p">;</span>
+<span class="n">cfg</span><span class="p">.</span><span class="n">symbols</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;AAPL&quot;</span><span class="p">};</span>
+<span class="n">regimeflow</span><span class="o">::</span><span class="n">live</span><span class="o">::</span><span class="n">LiveTradingEngine</span><span class="w"> </span><span class="nf">engine</span><span class="p">(</span><span class="n">cfg</span><span class="p">);</span>
+<span class="n">engine</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
+</code></pre></div>
+<p>The <code>regimeflow_live</code> CLI prints connect/disconnect events and heartbeat status to stdout.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../live/overview/">Live Overview</a></li>
+<li><a href="../../explanation/live-resiliency/">Live Resiliency</a></li>
+<li><a href="../../explanation/broker-streaming/">Broker Streaming</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  <div class="rf-footer">
+    <div class="md-grid rf-footer__grid">
+      <div class="rf-footer__brand">
+        <div class="rf-logo rf-logo--footer" aria-label="RegimeFlow Docs">
+          <span class="rf-logo__mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" focusable="false">
+              <defs>
+                <linearGradient id="rf-logo-gradient-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#b8f0d0"></stop>
+                  <stop offset="100%" stop-color="#42ba8d"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)"></rect>
+              <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient-footer)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+              <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+            </svg>
+          </span>
+          <span class="rf-logo__text">
+            <strong>RegimeFlow</strong>
+            <small>Documentation</small>
+          </span>
+        </div>
+        <p>
+          C++ and Python quantitative trading infrastructure with regime-aware backtesting,
+          live execution boundaries, and code-aligned reference material.
+        </p>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Start</h4>
+        <a href="../../getting-started/quick-install/">Quick Install</a>
+        <a href="../../getting-started/quickstart/">Quickstart</a>
+        <a href="../../guide/backtesting/">Backtesting</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Reference</h4>
+        <a href="../../reference/configuration/">Configuration</a>
+        <a href="../index/">API Design</a>
+        <a href="../../live/brokers/">Broker Support</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Project</h4>
+        <a href="https://github.com/gregorian-09/regime-flow">GitHub</a>
+        <a href="../../live/production-readiness/">Production Readiness</a>
+        <a href="../../tutorials/examples/">Examples</a>
+      </div>
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.expand", "navigation.path", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../assets/mermaid-d733041c.js"></script>
+      
+        <script src="../../assets/mermaid-init.js"></script>
+      
+        <script src="../../assets/katex.min.js"></script>
+      
+        <script src="../../assets/auto-render.min.js"></script>
+      
+        <script src="../../assets/katex-init.js"></script>
+      
+    
+  </body>
+</html>

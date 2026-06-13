@@ -1,0 +1,8817 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="RegimeFlow architecture, API design, and user guides">
+      
+      
+      
+        <link rel="canonical" href="https://gregorian-09.github.io/regime-flow/api/engine/">
+      
+      
+        <link rel="prev" href="../data/">
+      
+      
+        <link rel="next" href="../events/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Engine - RegimeFlow Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/site-theme.css">
+    
+      <link rel="stylesheet" href="../../assets/katex.min.css">
+    
+      <link rel="stylesheet" href="../../assets/diagram-theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#package-regimeflowengine" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <div class="rf-announce">
+    <div class="rf-announce__inner md-grid">
+      <span class="rf-announce__eyebrow">RegimeFlow</span>
+      <span class="rf-announce__copy">
+        Quant documentation for developers who need exact execution, risk, and broker semantics.
+      </span>
+      <a class="rf-announce__link" href="../../getting-started/quickstart/">Start with the quickstart</a>
+    </div>
+  </div>
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="RegimeFlow Docs" class="md-header__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RegimeFlow Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Engine
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="RegimeFlow Docs" class="md-nav__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    RegimeFlow Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart (Backtest)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/project-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quant Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/backtesting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtesting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/data-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/risk-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Trading
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Live Trading
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/brokers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brokers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/production-readiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Readiness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/environment-and-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment And Flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/data-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Cheat Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/broker-message-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Message Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/developer-quality-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Quality Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugin-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/transformer_regime_plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Plugin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Design
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backtestengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestEngine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BacktestEngine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backtestengineinitial_capital-currency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestEngine(initial_capital, currency)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event_queue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        event_queue()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dispatcher()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event_loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        event_loop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        order_manager()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        portfolio()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#market_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        market_data()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enqueueevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enqueue(event)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load_dataiterator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_data(iterator)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load_databar_iterator-tick_iterator-book_iterator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_data(bar_iterator, tick_iterator, book_iterator)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_strategystrategy-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_strategy(strategy, config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_strategystrategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_strategy(strategy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_execution_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_execution_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_commission_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_commission_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_transaction_cost_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_transaction_cost_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_market_impact_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_market_impact_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_latency_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_latency_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_regime_detectordetector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_regime_detector(detector)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#risk_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        risk_manager()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metrics()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_regime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_regime()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_time()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hook_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hook_manager()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure_executionconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure_execution(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure_riskconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure_risk(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure_regimeconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure_regime(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_parallel_contextcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_parallel_context(context)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_parallelparam_sets-factory-num_threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_parallel(param_sets, factory, num_threads)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register_hooktype-hook-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        register_hook(type, hook, priority)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_progresscallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_progress(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_audit_log_pathpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_audit_log_path(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        results()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        step()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_untilend_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_until(end_time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboardsnapshot-dashboardsetup-dashboardvenuesummary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DashboardSnapshot / DashboardSetup / DashboardVenueSummary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routingconfig-routingcontext-routingplan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RoutingConfig / RoutingContext / RoutingPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderrouter-smartorderrouter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderRouter / SmartOrderRouter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#paritychecker-parityreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ParityChecker / ParityReport
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backtestrunner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestRunner
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BacktestRunner">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backtestrunnerengine-data_source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestRunner(engine, data_source)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runstrategy-range-symbols-bar_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run(strategy, range, symbols, bar_type)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_parallelruns-num_threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_parallel(runs, num_threads)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventloop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventLoop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventLoop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eventloopqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventLoop(queue)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_dispatcherdispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_dispatcher(dispatcher)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_pre_hookhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_pre_hook(hook)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_post_hookhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_post_hook(hook)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_progress_callbackcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_progress_callback(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_untilend_time_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_until(end_time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        step()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_time_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_time()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventgenerator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventGenerator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventGenerator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eventgeneratoriterator-queue-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventGenerator(iterator, queue[, config])
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventgeneratorbar-tick-book-queue-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventGenerator(bar, tick, book, queue[, config])
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enqueue_all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enqueue_all()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executionpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionPipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ExecutionPipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#executionpipelinemarket_data-order_books-event_queue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionPipeline(market_data, order_books, event_queue)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_execution_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_execution_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_commission_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_commission_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_transaction_cost_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_transaction_cost_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_market_impact_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_market_impact_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_latency_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_latency_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_order_submittedorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_order_submitted(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordermanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OrderManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#submit_orderorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        submit_order(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel_orderid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel_order(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify_orderid-mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        modify_order(id, mod)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_orderid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_order(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_open_orders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_open_orders()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_open_orderssymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_open_orders(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_orders_by_strategystrategy_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_orders_by_strategy(strategy_id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_fillsorder_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_fills(order_id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_fillssymbol-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_fills(symbol, range)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_order_updatecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_order_update(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_fillcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_fill(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_pre_submitcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_pre_submit(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process_fillfill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        process_fill(fill)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_order_statusid-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_order_status(id, status)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#portfolio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Portfolio
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Portfolio">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#portfolioinitial_capital-currency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Portfolio(initial_capital, currency)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_positionfill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_position(fill)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mark_to_marketsymbol-price-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mark_to_market(symbol, price, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mark_to_marketprices-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mark_to_market(prices, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_cashcash-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_cash(cash, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_positionsymbol-quantity-avg_cost-price-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_position(symbol, quantity, avg_cost, price, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replace_positionspositions-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        replace_positions(positions, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_positionsymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_position(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_all_positions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_all_positions()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_held_symbols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_held_symbols()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cash-initial_capital-currency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cash() / initial_capital() / currency()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equity-gross_exposure-net_exposure-leverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        equity() / gross_exposure() / net_exposure() / leverage()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#total_unrealized_pnl-total_realized_pnl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        total_unrealized_pnl() / total_realized_pnl()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        snapshot()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equity_curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        equity_curve()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record_snapshottimestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        record_snapshot(timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_fills-get_fillssymbol-get_fillsrange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_fills() / get_fills(symbol) / get_fills(range)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_position_changecallback-on_equity_changecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_position_change(callback) / on_equity_change(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#marketdatacache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MarketDataCache
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MarketDataCache">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#updatebartickquote" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update(bar/tick/quote)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latest_barsymbol-latest_ticksymbol-latest_quotesymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        latest_bar(symbol) / latest_tick(symbol) / latest_quote(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recent_barssymbol-count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recent_bars(symbol, count)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderbookcache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderBookCache
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OrderBookCache">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#updatebook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update(book)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latestsymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        latest(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regimetracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegimeTracker
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RegimeTracker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regimetrackerdetector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegimeTracker(detector)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_barbar-on_ticktick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_bar(bar) / on_tick(tick)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_state-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_state() / history()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_history_sizesize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_history_size(size)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register_transition_callbackcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        register_transition_callback(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timerservice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimerService
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TimerService">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timerservicequeue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimerService(queue)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduleid-interval-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        schedule(id, interval, start)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancelid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_time_advancenow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_time_advance(now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditlogger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditLogger
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AuditLogger">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#auditloggerpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditLogger(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log(event)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log_errorerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log_error(error)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log_regime_changetransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log_regime_change(transition)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backtestresults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestResults
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order-fill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order / Fill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderside-ordertype-timeinforce-orderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderSide / OrderType / TimeInForce / OrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordertype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timeinforce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimeInForce
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordermodification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderModification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#portfoliosnapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PortfolioSnapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backtestrunspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestRunSpec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parallelcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ParallelContext
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditEvent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditeventtype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditEvent::Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enginefactory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EngineFactory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EngineFactory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#createconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Events
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../regime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-metrics-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Full File Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../public-symbol-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Symbol Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coverage-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coverage Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/python-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-custom-regime-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Regime Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/intraday_strategy_tradecheck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intraday Strategy Tradecheck
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/multi_intraday_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi Intraday Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/transformer_regime_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/event-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/order-state-machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order State Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-resiliency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Resiliency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-order-reconciliation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Order Reconciliation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/broker-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Streaming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-transitions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Transitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/hmm-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HMM Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/strategy-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-limits-deep/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Limits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Costs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/slippage-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slippage Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/portfolio-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Portfolio Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/performance-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/backtest-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/walk-forward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/message-bus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Message Bus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagrams
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diagrams
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/component-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/structural-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structural Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/uml-class-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UML Class Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-backtest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backtestengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestEngine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BacktestEngine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backtestengineinitial_capital-currency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestEngine(initial_capital, currency)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event_queue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        event_queue()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dispatcher()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event_loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        event_loop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        order_manager()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        portfolio()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#market_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        market_data()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enqueueevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enqueue(event)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load_dataiterator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_data(iterator)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load_databar_iterator-tick_iterator-book_iterator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_data(bar_iterator, tick_iterator, book_iterator)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_strategystrategy-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_strategy(strategy, config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_strategystrategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_strategy(strategy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_execution_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_execution_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_commission_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_commission_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_transaction_cost_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_transaction_cost_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_market_impact_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_market_impact_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_latency_modelmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_latency_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_regime_detectordetector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_regime_detector(detector)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#risk_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        risk_manager()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metrics()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_regime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_regime()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_time()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hook_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hook_manager()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure_executionconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure_execution(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure_riskconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure_risk(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure_regimeconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure_regime(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_parallel_contextcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_parallel_context(context)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_parallelparam_sets-factory-num_threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_parallel(param_sets, factory, num_threads)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register_hooktype-hook-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        register_hook(type, hook, priority)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_progresscallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_progress(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_audit_log_pathpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_audit_log_path(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        results()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        step()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_untilend_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_until(end_time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboardsnapshot-dashboardsetup-dashboardvenuesummary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DashboardSnapshot / DashboardSetup / DashboardVenueSummary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routingconfig-routingcontext-routingplan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RoutingConfig / RoutingContext / RoutingPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderrouter-smartorderrouter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderRouter / SmartOrderRouter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#paritychecker-parityreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ParityChecker / ParityReport
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backtestrunner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestRunner
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BacktestRunner">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backtestrunnerengine-data_source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestRunner(engine, data_source)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runstrategy-range-symbols-bar_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run(strategy, range, symbols, bar_type)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_parallelruns-num_threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_parallel(runs, num_threads)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventloop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventLoop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventLoop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eventloopqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventLoop(queue)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_dispatcherdispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_dispatcher(dispatcher)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_pre_hookhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_pre_hook(hook)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_post_hookhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_post_hook(hook)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_progress_callbackcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_progress_callback(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_untilend_time_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_until(end_time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        step()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_time_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_time()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventgenerator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventGenerator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventGenerator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eventgeneratoriterator-queue-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventGenerator(iterator, queue[, config])
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventgeneratorbar-tick-book-queue-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventGenerator(bar, tick, book, queue[, config])
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enqueue_all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enqueue_all()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executionpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionPipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ExecutionPipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#executionpipelinemarket_data-order_books-event_queue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionPipeline(market_data, order_books, event_queue)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_execution_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_execution_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_commission_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_commission_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_transaction_cost_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_transaction_cost_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_market_impact_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_market_impact_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_latency_modelmodel_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_latency_model(model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_order_submittedorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_order_submitted(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordermanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OrderManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#submit_orderorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        submit_order(order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel_orderid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel_order(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify_orderid-mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        modify_order(id, mod)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_orderid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_order(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_open_orders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_open_orders()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_open_orderssymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_open_orders(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_orders_by_strategystrategy_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_orders_by_strategy(strategy_id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_fillsorder_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_fills(order_id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_fillssymbol-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_fills(symbol, range)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_order_updatecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_order_update(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_fillcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_fill(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_pre_submitcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_pre_submit(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process_fillfill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        process_fill(fill)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_order_statusid-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_order_status(id, status)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#portfolio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Portfolio
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Portfolio">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#portfolioinitial_capital-currency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Portfolio(initial_capital, currency)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_positionfill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_position(fill)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mark_to_marketsymbol-price-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mark_to_market(symbol, price, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mark_to_marketprices-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mark_to_market(prices, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_cashcash-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_cash(cash, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_positionsymbol-quantity-avg_cost-price-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_position(symbol, quantity, avg_cost, price, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replace_positionspositions-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        replace_positions(positions, timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_positionsymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_position(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_all_positions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_all_positions()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_held_symbols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_held_symbols()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cash-initial_capital-currency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cash() / initial_capital() / currency()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equity-gross_exposure-net_exposure-leverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        equity() / gross_exposure() / net_exposure() / leverage()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#total_unrealized_pnl-total_realized_pnl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        total_unrealized_pnl() / total_realized_pnl()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        snapshot()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equity_curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        equity_curve()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record_snapshottimestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        record_snapshot(timestamp)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_fills-get_fillssymbol-get_fillsrange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_fills() / get_fills(symbol) / get_fills(range)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_position_changecallback-on_equity_changecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_position_change(callback) / on_equity_change(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#marketdatacache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MarketDataCache
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MarketDataCache">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#updatebartickquote" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update(bar/tick/quote)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latest_barsymbol-latest_ticksymbol-latest_quotesymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        latest_bar(symbol) / latest_tick(symbol) / latest_quote(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recent_barssymbol-count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recent_bars(symbol, count)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderbookcache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderBookCache
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OrderBookCache">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#updatebook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update(book)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latestsymbol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        latest(symbol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regimetracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegimeTracker
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RegimeTracker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regimetrackerdetector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegimeTracker(detector)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_barbar-on_ticktick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_bar(bar) / on_tick(tick)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current_state-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        current_state() / history()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_history_sizesize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_history_size(size)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register_transition_callbackcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        register_transition_callback(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timerservice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimerService
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TimerService">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timerservicequeue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimerService(queue)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduleid-interval-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        schedule(id, interval, start)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancelid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel(id)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_time_advancenow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_time_advance(now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditlogger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditLogger
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AuditLogger">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#auditloggerpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditLogger(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log(event)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log_errorerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log_error(error)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log_regime_changetransition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log_regime_change(transition)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backtestresults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestResults
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order-fill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order / Fill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderside-ordertype-timeinforce-orderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderSide / OrderType / TimeInForce / OrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordertype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timeinforce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimeInForce
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordermodification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OrderModification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#portfoliosnapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PortfolioSnapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backtestrunspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BacktestRunSpec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parallelcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ParallelContext
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditEvent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditeventtype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuditEvent::Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enginefactory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EngineFactory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EngineFactory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#createconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../reference/configuration/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    API Design
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="package-regimeflowengine">Package: <code>regimeflow::engine</code><a class="headerlink" href="#package-regimeflowengine" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Backtest and live engine core. Orchestrates event generation, event loop processing, execution pipelines, order management, portfolio state, and regime tracking. This package is the central runtime for both historical and live trading modes.</p>
+<p>Related diagrams:
+- <a href="../../explanation/execution-flow/">Execution Flow</a>
+- <a href="../../diagrams/sequence-backtest/">Backtest Sequence</a>
+- <a href="../../diagrams/sequence-live/">Live Sequence</a></p>
+<h2 id="file-index">File Index<a class="headerlink" href="#file-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>regimeflow/engine/audit_log.h</code></td>
+<td>Audit log interface for backtest and live runs.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/backtest_engine.h</code></td>
+<td>Backtest engine coordinator.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/backtest_results.h</code></td>
+<td>Backtest result container and summaries.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/backtest_runner.h</code></td>
+<td>High-level runner for repeated backtests.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/dashboard_snapshot.h</code></td>
+<td>Shared dashboard snapshot types and rendering helpers.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/engine_factory.h</code></td>
+<td>Engine factory and dependency wiring.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/event_generator.h</code></td>
+<td>Generates events from data sources.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/event_loop.h</code></td>
+<td>Main event loop and dispatch.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/execution_pipeline.h</code></td>
+<td>Execution pipeline orchestration.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/market_data_cache.h</code></td>
+<td>Cache for recent market data.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/order.h</code></td>
+<td>Order model and helpers.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/order_book_cache.h</code></td>
+<td>In-memory order book cache.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/order_manager.h</code></td>
+<td>Order lifecycle management.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/order_routing.h</code></td>
+<td>Smart routing config, routing plans, and router interfaces.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/parity_checker.h</code></td>
+<td>Backtest/live configuration parity checks.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/parity_report.h</code></td>
+<td>Structured parity-check results and status enums.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/portfolio.h</code></td>
+<td>Portfolio state and accounting.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/regime_tracker.h</code></td>
+<td>Regime state tracking and transitions.</td>
+</tr>
+<tr>
+<td><code>regimeflow/engine/timer_service.h</code></td>
+<td>Scheduled callbacks and timers.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="type-index">Type Index<a class="headerlink" href="#type-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BacktestEngine</code></td>
+<td>Orchestrates backtest data ingestion and strategy execution.</td>
+</tr>
+<tr>
+<td><code>BacktestRunner</code></td>
+<td>Repeats backtests for parameter sweeps.</td>
+</tr>
+<tr>
+<td><code>DashboardSnapshot</code></td>
+<td>Shared snapshot contract for terminal and browser dashboards.</td>
+</tr>
+<tr>
+<td><code>EventLoop</code></td>
+<td>Single-threaded event processing pipeline.</td>
+</tr>
+<tr>
+<td><code>ExecutionPipeline</code></td>
+<td>Bridges strategies to execution models.</td>
+</tr>
+<tr>
+<td><code>OrderManager</code></td>
+<td>Validates, routes, and tracks orders.</td>
+</tr>
+<tr>
+<td><code>RoutingConfig</code> / <code>OrderRouter</code> / <code>SmartOrderRouter</code></td>
+<td>Smart order routing configuration and planning.</td>
+</tr>
+<tr>
+<td><code>ParityChecker</code> / <code>ParityReport</code></td>
+<td>Compare backtest and live config parity before deployment.</td>
+</tr>
+<tr>
+<td><code>Portfolio</code></td>
+<td>PnL, positions, and cash accounting.</td>
+</tr>
+<tr>
+<td><code>RegimeTracker</code></td>
+<td>Tracks regime signals and transition stats.</td>
+</tr>
+<tr>
+<td><code>TimerService</code></td>
+<td>Timers for heartbeat, sampling, and periodic tasks.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="lifecycle-usage-notes">Lifecycle &amp; Usage Notes<a class="headerlink" href="#lifecycle-usage-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>EngineFactory</code> should be the only constructor of <code>BacktestEngine</code> or <code>LiveEngine</code> to ensure consistent wiring.</li>
+<li><code>EventGenerator</code> drives the <code>EventLoop</code> with market data events.</li>
+<li>The <code>ExecutionPipeline</code> is the hand-off between strategy decisions and execution models.</li>
+<li><code>DashboardSnapshot</code> is the shared payload contract for the strategy tester and dashboard exporters.</li>
+<li><code>ParityChecker</code> is the pre-deployment guard for backtest/live configuration drift.</li>
+<li><code>AuditLog</code> is used for both live and backtest runs to guarantee traceability.</li>
+</ul>
+<h2 id="type-details">Type Details<a class="headerlink" href="#type-details" title="Permanent link">&para;</a></h2>
+<h3 id="backtestengine"><code>BacktestEngine</code><a class="headerlink" href="#backtestengine" title="Permanent link">&para;</a></h3>
+<p>Coordinates historical data playback, strategy execution, and metric collection for backtests.</p>
+<p>Key APIs:
+- <code>run()</code> to execute a full backtest
+- accessors for <code>Portfolio</code>, <code>MetricsTracker</code>, and <code>AuditLog</code></p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BacktestEngine(initial_capital, currency)</code></td>
+<td>Construct the engine with starting capital and base currency.</td>
+</tr>
+<tr>
+<td><code>event_queue()</code></td>
+<td>Access the internal event queue.</td>
+</tr>
+<tr>
+<td><code>dispatcher()</code></td>
+<td>Access the event dispatcher.</td>
+</tr>
+<tr>
+<td><code>event_loop()</code></td>
+<td>Access the event loop.</td>
+</tr>
+<tr>
+<td><code>order_manager()</code></td>
+<td>Access the order manager.</td>
+</tr>
+<tr>
+<td><code>portfolio()</code></td>
+<td>Access the portfolio.</td>
+</tr>
+<tr>
+<td><code>market_data()</code></td>
+<td>Access the market data cache.</td>
+</tr>
+<tr>
+<td><code>enqueue(event)</code></td>
+<td>Enqueue a raw event.</td>
+</tr>
+<tr>
+<td><code>load_data(iterator)</code></td>
+<td>Load a single data iterator.</td>
+</tr>
+<tr>
+<td><code>load_data(bar, tick, book)</code></td>
+<td>Load bar, tick, and order book iterators.</td>
+</tr>
+<tr>
+<td><code>set_strategy(strategy, config)</code></td>
+<td>Set primary strategy with config.</td>
+</tr>
+<tr>
+<td><code>add_strategy(strategy)</code></td>
+<td>Add an additional strategy.</td>
+</tr>
+<tr>
+<td><code>set_execution_model(model)</code></td>
+<td>Set execution model.</td>
+</tr>
+<tr>
+<td><code>set_commission_model(model)</code></td>
+<td>Set commission model.</td>
+</tr>
+<tr>
+<td><code>set_transaction_cost_model(model)</code></td>
+<td>Set transaction cost model.</td>
+</tr>
+<tr>
+<td><code>set_market_impact_model(model)</code></td>
+<td>Set market impact model.</td>
+</tr>
+<tr>
+<td><code>set_latency_model(model)</code></td>
+<td>Set latency model.</td>
+</tr>
+<tr>
+<td><code>set_regime_detector(detector)</code></td>
+<td>Set regime detector implementation.</td>
+</tr>
+<tr>
+<td><code>risk_manager()</code></td>
+<td>Access risk manager.</td>
+</tr>
+<tr>
+<td><code>metrics()</code></td>
+<td>Access metrics tracker.</td>
+</tr>
+<tr>
+<td><code>current_regime()</code></td>
+<td>Access current regime state.</td>
+</tr>
+<tr>
+<td><code>current_time()</code></td>
+<td>Access current simulated time.</td>
+</tr>
+<tr>
+<td><code>hooks()</code></td>
+<td>Access hook system.</td>
+</tr>
+<tr>
+<td><code>hook_manager()</code></td>
+<td>Access hook manager.</td>
+</tr>
+<tr>
+<td><code>configure_execution(config)</code></td>
+<td>Configure execution models from config.</td>
+</tr>
+<tr>
+<td><code>configure_risk(config)</code></td>
+<td>Configure risk controls from config.</td>
+</tr>
+<tr>
+<td><code>configure_regime(config)</code></td>
+<td>Configure regime detection from config.</td>
+</tr>
+<tr>
+<td><code>set_parallel_context(context)</code></td>
+<td>Configure parallel run context.</td>
+</tr>
+<tr>
+<td><code>run_parallel(param_sets, factory, num_threads)</code></td>
+<td>Run parameter sweeps in parallel.</td>
+</tr>
+<tr>
+<td><code>register_hook(type, hook, priority)</code></td>
+<td>Register hook callback with priority.</td>
+</tr>
+<tr>
+<td><code>on_progress(callback)</code></td>
+<td>Register progress callback.</td>
+</tr>
+<tr>
+<td><code>set_audit_log_path(path)</code></td>
+<td>Enable audit logging to file.</td>
+</tr>
+<tr>
+<td><code>results()</code></td>
+<td>Return results after run completion.</td>
+</tr>
+<tr>
+<td><code>step()</code></td>
+<td>Advance event loop by one event.</td>
+</tr>
+<tr>
+<td><code>run_until(end_time)</code></td>
+<td>Run until a stop time.</td>
+</tr>
+<tr>
+<td><code>run()</code></td>
+<td>Run until exhaustion.</td>
+</tr>
+<tr>
+<td><code>stop()</code></td>
+<td>Stop the engine.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<p>Type Hints:</p>
+<ul>
+<li><code>event</code> → <code>events::Event</code></li>
+<li><code>iterator</code> → <code>std::unique_ptr&lt;data::DataIterator&gt;</code></li>
+<li><code>bar_iterator</code> → <code>std::unique_ptr&lt;data::DataIterator&gt;</code></li>
+<li><code>tick_iterator</code> → <code>std::unique_ptr&lt;data::TickIterator&gt;</code></li>
+<li><code>book_iterator</code> → <code>std::unique_ptr&lt;data::OrderBookIterator&gt;</code></li>
+<li><code>strategy</code> → <code>std::unique_ptr&lt;strategy::Strategy&gt;</code></li>
+<li><code>model</code> → <code>std::unique_ptr&lt;execution::ExecutionModel&gt;</code> (or related model type)</li>
+<li><code>detector</code> → <code>std::unique_ptr&lt;regime::RegimeDetector&gt;</code></li>
+<li><code>config</code> → <code>Config</code></li>
+<li><code>context</code> → <code>ParallelContext</code></li>
+<li><code>end_time</code> → <code>Timestamp</code></li>
+</ul>
+<h4 id="backtestengineinitial_capital-currency"><code>BacktestEngine(initial_capital, currency)</code><a class="headerlink" href="#backtestengineinitial_capital-currency" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>initial_capital</code> starting cash; <code>currency</code> base currency code.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="event_queue"><code>event_queue()</code><a class="headerlink" href="#event_queue" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to internal event queue.
+Throws: None.</p>
+<h4 id="dispatcher"><code>dispatcher()</code><a class="headerlink" href="#dispatcher" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to event dispatcher.
+Throws: None.</p>
+<h4 id="event_loop"><code>event_loop()</code><a class="headerlink" href="#event_loop" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to event loop.
+Throws: None.</p>
+<h4 id="order_manager"><code>order_manager()</code><a class="headerlink" href="#order_manager" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to order manager.
+Throws: None.</p>
+<h4 id="portfolio"><code>portfolio()</code><a class="headerlink" href="#portfolio" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to portfolio.
+Throws: None.</p>
+<h4 id="market_data"><code>market_data()</code><a class="headerlink" href="#market_data" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to market data cache.
+Throws: None.</p>
+<h4 id="enqueueevent"><code>enqueue(event)</code><a class="headerlink" href="#enqueueevent" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>event</code> raw event to enqueue.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="load_dataiterator"><code>load_data(iterator)</code><a class="headerlink" href="#load_dataiterator" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>iterator</code> bar or tick iterator.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="load_databar_iterator-tick_iterator-book_iterator"><code>load_data(bar_iterator, tick_iterator, book_iterator)</code><a class="headerlink" href="#load_databar_iterator-tick_iterator-book_iterator" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>bar_iterator</code> bar iterator; <code>tick_iterator</code> tick iterator; <code>book_iterator</code> order book iterator.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_strategystrategy-config"><code>set_strategy(strategy, config)</code><a class="headerlink" href="#set_strategystrategy-config" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>strategy</code> primary strategy instance; <code>config</code> strategy config.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="add_strategystrategy"><code>add_strategy(strategy)</code><a class="headerlink" href="#add_strategystrategy" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>strategy</code> additional strategy instance.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_execution_modelmodel"><code>set_execution_model(model)</code><a class="headerlink" href="#set_execution_modelmodel" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> execution model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_commission_modelmodel"><code>set_commission_model(model)</code><a class="headerlink" href="#set_commission_modelmodel" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> commission model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_transaction_cost_modelmodel"><code>set_transaction_cost_model(model)</code><a class="headerlink" href="#set_transaction_cost_modelmodel" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> transaction cost model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_market_impact_modelmodel"><code>set_market_impact_model(model)</code><a class="headerlink" href="#set_market_impact_modelmodel" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> market impact model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_latency_modelmodel"><code>set_latency_model(model)</code><a class="headerlink" href="#set_latency_modelmodel" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> latency model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_regime_detectordetector"><code>set_regime_detector(detector)</code><a class="headerlink" href="#set_regime_detectordetector" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>detector</code> regime detector implementation.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="risk_manager"><code>risk_manager()</code><a class="headerlink" href="#risk_manager" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to risk manager.
+Throws: None.</p>
+<h4 id="metrics"><code>metrics()</code><a class="headerlink" href="#metrics" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to metrics tracker.
+Throws: None.</p>
+<h4 id="current_regime"><code>current_regime()</code><a class="headerlink" href="#current_regime" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Current regime state.
+Throws: None.</p>
+<h4 id="current_time"><code>current_time()</code><a class="headerlink" href="#current_time" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Current simulated time.
+Throws: None.</p>
+<h4 id="hooks"><code>hooks()</code><a class="headerlink" href="#hooks" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to hook system.
+Throws: None.</p>
+<h4 id="hook_manager"><code>hook_manager()</code><a class="headerlink" href="#hook_manager" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Reference to hook manager.
+Throws: None.</p>
+<h4 id="configure_executionconfig"><code>configure_execution(config)</code><a class="headerlink" href="#configure_executionconfig" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>config</code> execution configuration.
+Returns: <code>void</code>.
+Throws: <code>Error::ConfigError</code> on invalid config.</p>
+<h4 id="configure_riskconfig"><code>configure_risk(config)</code><a class="headerlink" href="#configure_riskconfig" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>config</code> risk configuration.
+Returns: <code>void</code>.
+Throws: <code>Error::ConfigError</code> on invalid config.</p>
+<h4 id="configure_regimeconfig"><code>configure_regime(config)</code><a class="headerlink" href="#configure_regimeconfig" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>config</code> regime configuration.
+Returns: <code>void</code>.
+Throws: <code>Error::ConfigError</code> on invalid config.</p>
+<h4 id="set_parallel_contextcontext"><code>set_parallel_context(context)</code><a class="headerlink" href="#set_parallel_contextcontext" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>context</code> parallel run context.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="run_parallelparam_sets-factory-num_threads"><code>run_parallel(param_sets, factory, num_threads)</code><a class="headerlink" href="#run_parallelparam_sets-factory-num_threads" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>param_sets</code> parameter maps; <code>factory</code> strategy factory; <code>num_threads</code> worker count.
+Returns: Vector of <code>BacktestResults</code>.
+Throws: None.</p>
+<h4 id="register_hooktype-hook-priority"><code>register_hook(type, hook, priority)</code><a class="headerlink" href="#register_hooktype-hook-priority" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>type</code> hook type; <code>hook</code> callback; <code>priority</code> ordering priority.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="on_progresscallback"><code>on_progress(callback)</code><a class="headerlink" href="#on_progresscallback" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>callback</code> progress callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_audit_log_pathpath"><code>set_audit_log_path(path)</code><a class="headerlink" href="#set_audit_log_pathpath" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>path</code> output file path.
+Returns: <code>void</code>.
+Throws: <code>Error::IoError</code> on open failure (deferred).</p>
+<h4 id="results"><code>results()</code><a class="headerlink" href="#results" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Snapshot <code>BacktestResults</code>.
+Throws: None.</p>
+<h4 id="step"><code>step()</code><a class="headerlink" href="#step" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>bool</code> indicating more events remain.
+Throws: None.</p>
+<h4 id="run_untilend_time"><code>run_until(end_time)</code><a class="headerlink" href="#run_untilend_time" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>end_time</code> stop timestamp.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="run"><code>run()</code><a class="headerlink" href="#run" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="stop"><code>stop()</code><a class="headerlink" href="#stop" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="dashboardsnapshot-dashboardsetup-dashboardvenuesummary"><code>DashboardSnapshot</code> / <code>DashboardSetup</code> / <code>DashboardVenueSummary</code><a class="headerlink" href="#dashboardsnapshot-dashboardsetup-dashboardvenuesummary" title="Permanent link">&para;</a></h3>
+<p>Shared dashboard payloads used by terminal and browser-facing strategy tester views.</p>
+<p>Key helpers:</p>
+<table>
+<thead>
+<tr>
+<th>Helper</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>summarize_dashboard_venues(fills)</code></td>
+<td>Aggregate venue rows from fills.</td>
+</tr>
+<tr>
+<td><code>make_dashboard_snapshot(results)</code></td>
+<td>Build a shared snapshot from backtest results.</td>
+</tr>
+<tr>
+<td><code>dashboard_snapshot_to_json(snapshot)</code></td>
+<td>Serialize snapshot for UI consumers.</td>
+</tr>
+<tr>
+<td><code>render_dashboard_terminal(snapshot, options)</code></td>
+<td>Render a terminal-style dashboard.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="routingconfig-routingcontext-routingplan"><code>RoutingConfig</code> / <code>RoutingContext</code> / <code>RoutingPlan</code><a class="headerlink" href="#routingconfig-routingcontext-routingplan" title="Permanent link">&para;</a></h3>
+<p>Smart-routing configuration and plan payloads used by the execution pipeline.</p>
+<p>Key fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RoutingConfig::mode</code></td>
+<td>Routing mode (<code>none</code> or <code>smart</code>).</td>
+</tr>
+<tr>
+<td><code>RoutingConfig::split_mode</code></td>
+<td>Child-order split behavior.</td>
+</tr>
+<tr>
+<td><code>RoutingConfig::parent_aggregation</code></td>
+<td>Parent-fill aggregation behavior.</td>
+</tr>
+<tr>
+<td><code>RoutingConfig::venues</code></td>
+<td>Venue weights and venue-level overrides.</td>
+</tr>
+<tr>
+<td><code>RoutingContext::bid/ask/last</code></td>
+<td>Market snapshot used for routing decisions.</td>
+</tr>
+<tr>
+<td><code>RoutingPlan::children</code></td>
+<td>Child orders produced by routing or splitting.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="orderrouter-smartorderrouter"><code>OrderRouter</code> / <code>SmartOrderRouter</code><a class="headerlink" href="#orderrouter-smartorderrouter" title="Permanent link">&para;</a></h3>
+<p>Router interfaces that transform an input order plus market context into a routing plan.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>route(order, ctx)</code></td>
+<td>Return the routed parent order and optional child orders.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="paritychecker-parityreport"><code>ParityChecker</code> / <code>ParityReport</code><a class="headerlink" href="#paritychecker-parityreport" title="Permanent link">&para;</a></h3>
+<p>Utilities for validating whether a live config remains operationally aligned with a backtest config.</p>
+<p>Key APIs:</p>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ParityChecker::check(backtest, live)</code></td>
+<td>Compare in-memory configs.</td>
+</tr>
+<tr>
+<td><code>ParityChecker::check_files(backtest_path, live_path)</code></td>
+<td>Compare YAML files directly.</td>
+</tr>
+<tr>
+<td><code>ParityReport::status_name()</code></td>
+<td>Return <code>pass</code>, <code>warn</code>, or <code>fail</code>.</td>
+</tr>
+<tr>
+<td><code>ParityReport::ok()</code></td>
+<td>True only when parity status is <code>Pass</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="backtestrunner"><code>BacktestRunner</code><a class="headerlink" href="#backtestrunner" title="Permanent link">&para;</a></h3>
+<p>Executes multiple backtests (parameter sweeps, walk-forward trials) and aggregates results.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BacktestRunner(engine, data_source)</code></td>
+<td>Construct a runner bound to engine and data source.</td>
+</tr>
+<tr>
+<td><code>run(strategy, range, symbols, bar_type)</code></td>
+<td>Execute a single backtest.</td>
+</tr>
+<tr>
+<td><code>run_parallel(runs, num_threads)</code></td>
+<td>Execute multiple runs in parallel.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="backtestrunnerengine-data_source"><code>BacktestRunner(engine, data_source)</code><a class="headerlink" href="#backtestrunnerengine-data_source" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>engine</code> backtest engine; <code>data_source</code> data source.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="runstrategy-range-symbols-bar_type"><code>run(strategy, range, symbols, bar_type)</code><a class="headerlink" href="#runstrategy-range-symbols-bar_type" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>strategy</code> strategy instance; <code>range</code> time range; <code>symbols</code> to trade; <code>bar_type</code> aggregation.
+Returns: <code>BacktestResults</code>.
+Throws: None.</p>
+<h4 id="run_parallelruns-num_threads"><code>run_parallel(runs, num_threads)</code><a class="headerlink" href="#run_parallelruns-num_threads" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>runs</code> run specs; <code>num_threads</code> worker count.
+Returns: Vector of <code>BacktestResults</code>.
+Throws: None.</p>
+<h3 id="eventloop"><code>EventLoop</code><a class="headerlink" href="#eventloop" title="Permanent link">&para;</a></h3>
+<p>Single-threaded event processing core. Dispatches market, order, and system events.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EventLoop(queue)</code></td>
+<td>Construct with an event queue.</td>
+</tr>
+<tr>
+<td><code>set_dispatcher(dispatcher)</code></td>
+<td>Set the event dispatcher.</td>
+</tr>
+<tr>
+<td><code>add_pre_hook(hook)</code></td>
+<td>Register pre-dispatch hook.</td>
+</tr>
+<tr>
+<td><code>add_post_hook(hook)</code></td>
+<td>Register post-dispatch hook.</td>
+</tr>
+<tr>
+<td><code>set_progress_callback(callback)</code></td>
+<td>Register progress callback.</td>
+</tr>
+<tr>
+<td><code>run()</code></td>
+<td>Run until queue exhaustion or stop.</td>
+</tr>
+<tr>
+<td><code>run_until(end_time)</code></td>
+<td>Run until a target time.</td>
+</tr>
+<tr>
+<td><code>step()</code></td>
+<td>Process a single event.</td>
+</tr>
+<tr>
+<td><code>stop()</code></td>
+<td>Request loop stop.</td>
+</tr>
+<tr>
+<td><code>current_time()</code></td>
+<td>Get time of last processed event.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="eventloopqueue"><code>EventLoop(queue)</code><a class="headerlink" href="#eventloopqueue" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>queue</code> event queue.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="set_dispatcherdispatcher"><code>set_dispatcher(dispatcher)</code><a class="headerlink" href="#set_dispatcherdispatcher" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>dispatcher</code> event dispatcher.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="add_pre_hookhook"><code>add_pre_hook(hook)</code><a class="headerlink" href="#add_pre_hookhook" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>hook</code> callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="add_post_hookhook"><code>add_post_hook(hook)</code><a class="headerlink" href="#add_post_hookhook" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>hook</code> callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_progress_callbackcallback"><code>set_progress_callback(callback)</code><a class="headerlink" href="#set_progress_callbackcallback" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>callback</code> progress callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="run_1"><code>run()</code><a class="headerlink" href="#run_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="run_untilend_time_1"><code>run_until(end_time)</code><a class="headerlink" href="#run_untilend_time_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>end_time</code> stop time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="step_1"><code>step()</code><a class="headerlink" href="#step_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>bool</code> indicating whether an event was processed.
+Throws: None.</p>
+<h4 id="stop_1"><code>stop()</code><a class="headerlink" href="#stop_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="current_time_1"><code>current_time()</code><a class="headerlink" href="#current_time_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>Timestamp</code> of last processed event.
+Throws: None.</p>
+<h3 id="eventgenerator"><code>EventGenerator</code><a class="headerlink" href="#eventgenerator" title="Permanent link">&para;</a></h3>
+<p>Turns data iterators into engine events.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EventGenerator(iterator, queue[, config])</code></td>
+<td>Construct from a single data iterator.</td>
+</tr>
+<tr>
+<td><code>EventGenerator(bar, tick, book, queue[, config])</code></td>
+<td>Construct from multiple iterators.</td>
+</tr>
+<tr>
+<td><code>enqueue_all()</code></td>
+<td>Enqueue all events from iterators.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="eventgeneratoriterator-queue-config"><code>EventGenerator(iterator, queue[, config])</code><a class="headerlink" href="#eventgeneratoriterator-queue-config" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>iterator</code> data iterator; <code>queue</code> destination queue; <code>config</code> generator config (optional).
+Returns: Instance.
+Throws: None.</p>
+<h4 id="eventgeneratorbar-tick-book-queue-config"><code>EventGenerator(bar, tick, book, queue[, config])</code><a class="headerlink" href="#eventgeneratorbar-tick-book-queue-config" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>bar</code> bar iterator; <code>tick</code> tick iterator; <code>book</code> order book iterator; <code>queue</code> destination queue; <code>config</code> optional config.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="enqueue_all"><code>enqueue_all()</code><a class="headerlink" href="#enqueue_all" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="executionpipeline"><code>ExecutionPipeline</code><a class="headerlink" href="#executionpipeline" title="Permanent link">&para;</a></h3>
+<p>Routes orders through the execution model, applying latency, slippage, and commissions.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExecutionPipeline(market_data, order_books, event_queue)</code></td>
+<td>Construct pipeline.</td>
+</tr>
+<tr>
+<td><code>set_execution_model(model)</code></td>
+<td>Set execution model.</td>
+</tr>
+<tr>
+<td><code>set_commission_model(model)</code></td>
+<td>Set commission model.</td>
+</tr>
+<tr>
+<td><code>set_transaction_cost_model(model)</code></td>
+<td>Set transaction cost model.</td>
+</tr>
+<tr>
+<td><code>set_market_impact_model(model)</code></td>
+<td>Set market impact model.</td>
+</tr>
+<tr>
+<td><code>set_latency_model(model)</code></td>
+<td>Set latency model.</td>
+</tr>
+<tr>
+<td><code>on_order_submitted(order)</code></td>
+<td>Handle order submission and emit fills.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="executionpipelinemarket_data-order_books-event_queue"><code>ExecutionPipeline(market_data, order_books, event_queue)</code><a class="headerlink" href="#executionpipelinemarket_data-order_books-event_queue" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>market_data</code> cache; <code>order_books</code> cache; <code>event_queue</code> event queue.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="set_execution_modelmodel_1"><code>set_execution_model(model)</code><a class="headerlink" href="#set_execution_modelmodel_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> execution model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_commission_modelmodel_1"><code>set_commission_model(model)</code><a class="headerlink" href="#set_commission_modelmodel_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> commission model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_transaction_cost_modelmodel_1"><code>set_transaction_cost_model(model)</code><a class="headerlink" href="#set_transaction_cost_modelmodel_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> transaction cost model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_market_impact_modelmodel_1"><code>set_market_impact_model(model)</code><a class="headerlink" href="#set_market_impact_modelmodel_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> market impact model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_latency_modelmodel_1"><code>set_latency_model(model)</code><a class="headerlink" href="#set_latency_modelmodel_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>model</code> latency model.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="on_order_submittedorder"><code>on_order_submitted(order)</code><a class="headerlink" href="#on_order_submittedorder" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>order</code> submitted order.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="ordermanager"><code>OrderManager</code><a class="headerlink" href="#ordermanager" title="Permanent link">&para;</a></h3>
+<p>Validates, submits, and tracks orders and their lifecycle transitions.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>submit_order(order)</code></td>
+<td>Submit a new order.</td>
+</tr>
+<tr>
+<td><code>cancel_order(id)</code></td>
+<td>Cancel an order by ID.</td>
+</tr>
+<tr>
+<td><code>modify_order(id, mod)</code></td>
+<td>Modify an existing order.</td>
+</tr>
+<tr>
+<td><code>get_order(id)</code></td>
+<td>Fetch an order by ID.</td>
+</tr>
+<tr>
+<td><code>get_open_orders()</code></td>
+<td>Fetch all open orders.</td>
+</tr>
+<tr>
+<td><code>get_open_orders(symbol)</code></td>
+<td>Fetch open orders for a symbol.</td>
+</tr>
+<tr>
+<td><code>get_orders_by_strategy(strategy_id)</code></td>
+<td>Fetch orders by strategy.</td>
+</tr>
+<tr>
+<td><code>get_fills(order_id)</code></td>
+<td>Fetch fills for an order.</td>
+</tr>
+<tr>
+<td><code>get_fills(symbol, range)</code></td>
+<td>Fetch fills for a symbol in a range.</td>
+</tr>
+<tr>
+<td><code>on_order_update(callback)</code></td>
+<td>Register order update callback.</td>
+</tr>
+<tr>
+<td><code>on_fill(callback)</code></td>
+<td>Register fill callback.</td>
+</tr>
+<tr>
+<td><code>on_pre_submit(callback)</code></td>
+<td>Register pre-submit validation callback.</td>
+</tr>
+<tr>
+<td><code>process_fill(fill)</code></td>
+<td>Apply a fill to an order.</td>
+</tr>
+<tr>
+<td><code>update_order_status(id, status)</code></td>
+<td>Update order status.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="submit_orderorder"><code>submit_order(order)</code><a class="headerlink" href="#submit_orderorder" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>order</code> order to submit.
+Returns: <code>Result&lt;OrderId&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> on invalid order, plus any error returned by pre-submit hooks.</p>
+<h4 id="cancel_orderid"><code>cancel_order(id)</code><a class="headerlink" href="#cancel_orderid" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>id</code> order ID.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::NotFound</code> if ID unknown, <code>Error::InvalidState</code> if the order is not open.</p>
+<h4 id="modify_orderid-mod"><code>modify_order(id, mod)</code><a class="headerlink" href="#modify_orderid-mod" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>id</code> order ID; <code>mod</code> modification fields.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::NotFound</code> if ID unknown, <code>Error::InvalidState</code> if the order is not open, <code>Error::InvalidArgument</code> if the modified order is invalid.</p>
+<h4 id="get_orderid"><code>get_order(id)</code><a class="headerlink" href="#get_orderid" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>id</code> order ID.
+Returns: Optional <code>Order</code>.
+Throws: None.</p>
+<h4 id="get_open_orders"><code>get_open_orders()</code><a class="headerlink" href="#get_open_orders" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Vector of open orders.
+Throws: None.</p>
+<h4 id="get_open_orderssymbol"><code>get_open_orders(symbol)</code><a class="headerlink" href="#get_open_orderssymbol" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID.
+Returns: Vector of open orders.
+Throws: None.</p>
+<h4 id="get_orders_by_strategystrategy_id"><code>get_orders_by_strategy(strategy_id)</code><a class="headerlink" href="#get_orders_by_strategystrategy_id" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>strategy_id</code> strategy identifier.
+Returns: Vector of orders.
+Throws: None.</p>
+<h4 id="get_fillsorder_id"><code>get_fills(order_id)</code><a class="headerlink" href="#get_fillsorder_id" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>order_id</code> order ID.
+Returns: Vector of fills.
+Throws: None.</p>
+<h4 id="get_fillssymbol-range"><code>get_fills(symbol, range)</code><a class="headerlink" href="#get_fillssymbol-range" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID; <code>range</code> time range.
+Returns: Vector of fills.
+Throws: None.</p>
+<h4 id="on_order_updatecallback"><code>on_order_update(callback)</code><a class="headerlink" href="#on_order_updatecallback" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>callback</code> order update callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="on_fillcallback"><code>on_fill(callback)</code><a class="headerlink" href="#on_fillcallback" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>callback</code> fill callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="on_pre_submitcallback"><code>on_pre_submit(callback)</code><a class="headerlink" href="#on_pre_submitcallback" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>callback</code> pre-submit validator.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="process_fillfill"><code>process_fill(fill)</code><a class="headerlink" href="#process_fillfill" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>fill</code> fill record.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="update_order_statusid-status"><code>update_order_status(id, status)</code><a class="headerlink" href="#update_order_statusid-status" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>id</code> order ID; <code>status</code> new status.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::NotFound</code> if ID unknown.</p>
+<h3 id="portfolio_1"><code>Portfolio</code><a class="headerlink" href="#portfolio_1" title="Permanent link">&para;</a></h3>
+<p>Tracks positions, cash, PnL, and exposure. Used by strategies and risk checks.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Portfolio(initial_capital, currency)</code></td>
+<td>Construct a portfolio.</td>
+</tr>
+<tr>
+<td><code>update_position(fill)</code></td>
+<td>Apply a fill to positions.</td>
+</tr>
+<tr>
+<td><code>mark_to_market(symbol, price, timestamp)</code></td>
+<td>Mark a symbol to market.</td>
+</tr>
+<tr>
+<td><code>mark_to_market(prices, timestamp)</code></td>
+<td>Mark multiple symbols.</td>
+</tr>
+<tr>
+<td><code>set_cash(cash, timestamp)</code></td>
+<td>Set cash balance.</td>
+</tr>
+<tr>
+<td><code>set_position(symbol, quantity, avg_cost, price, timestamp)</code></td>
+<td>Set a position explicitly.</td>
+</tr>
+<tr>
+<td><code>replace_positions(positions, timestamp)</code></td>
+<td>Replace all positions.</td>
+</tr>
+<tr>
+<td><code>get_position(symbol)</code></td>
+<td>Fetch a position for a symbol.</td>
+</tr>
+<tr>
+<td><code>get_all_positions()</code></td>
+<td>Fetch all positions.</td>
+</tr>
+<tr>
+<td><code>get_held_symbols()</code></td>
+<td>Get symbols currently held.</td>
+</tr>
+<tr>
+<td><code>cash()</code></td>
+<td>Current cash balance.</td>
+</tr>
+<tr>
+<td><code>initial_capital()</code></td>
+<td>Initial capital.</td>
+</tr>
+<tr>
+<td><code>currency()</code></td>
+<td>Base currency code.</td>
+</tr>
+<tr>
+<td><code>equity()</code></td>
+<td>Total equity.</td>
+</tr>
+<tr>
+<td><code>gross_exposure()</code></td>
+<td>Gross exposure.</td>
+</tr>
+<tr>
+<td><code>net_exposure()</code></td>
+<td>Net exposure.</td>
+</tr>
+<tr>
+<td><code>leverage()</code></td>
+<td>Portfolio leverage.</td>
+</tr>
+<tr>
+<td><code>total_unrealized_pnl()</code></td>
+<td>Total unrealized PnL.</td>
+</tr>
+<tr>
+<td><code>total_realized_pnl()</code></td>
+<td>Total realized PnL.</td>
+</tr>
+<tr>
+<td><code>snapshot()</code></td>
+<td>Snapshot current state.</td>
+</tr>
+<tr>
+<td><code>equity_curve()</code></td>
+<td>Get equity curve history.</td>
+</tr>
+<tr>
+<td><code>record_snapshot(timestamp)</code></td>
+<td>Record a snapshot.</td>
+</tr>
+<tr>
+<td><code>get_fills()</code></td>
+<td>Get all fills.</td>
+</tr>
+<tr>
+<td><code>get_fills(symbol)</code></td>
+<td>Get fills for a symbol.</td>
+</tr>
+<tr>
+<td><code>get_fills(range)</code></td>
+<td>Get fills in a time range.</td>
+</tr>
+<tr>
+<td><code>on_position_change(callback)</code></td>
+<td>Register position update callback.</td>
+</tr>
+<tr>
+<td><code>on_equity_change(callback)</code></td>
+<td>Register equity change callback.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="portfolioinitial_capital-currency"><code>Portfolio(initial_capital, currency)</code><a class="headerlink" href="#portfolioinitial_capital-currency" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>initial_capital</code> starting cash; <code>currency</code> base currency.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="update_positionfill"><code>update_position(fill)</code><a class="headerlink" href="#update_positionfill" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>fill</code> execution fill.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="mark_to_marketsymbol-price-timestamp"><code>mark_to_market(symbol, price, timestamp)</code><a class="headerlink" href="#mark_to_marketsymbol-price-timestamp" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID; <code>price</code> latest price; <code>timestamp</code> valuation time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="mark_to_marketprices-timestamp"><code>mark_to_market(prices, timestamp)</code><a class="headerlink" href="#mark_to_marketprices-timestamp" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>prices</code> symbol-price map; <code>timestamp</code> valuation time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_cashcash-timestamp"><code>set_cash(cash, timestamp)</code><a class="headerlink" href="#set_cashcash-timestamp" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>cash</code> new balance; <code>timestamp</code> update time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="set_positionsymbol-quantity-avg_cost-price-timestamp"><code>set_position(symbol, quantity, avg_cost, price, timestamp)</code><a class="headerlink" href="#set_positionsymbol-quantity-avg_cost-price-timestamp" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID; <code>quantity</code> position; <code>avg_cost</code> cost basis; <code>price</code> price; <code>timestamp</code> update time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="replace_positionspositions-timestamp"><code>replace_positions(positions, timestamp)</code><a class="headerlink" href="#replace_positionspositions-timestamp" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>positions</code> position map; <code>timestamp</code> update time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="get_positionsymbol"><code>get_position(symbol)</code><a class="headerlink" href="#get_positionsymbol" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID.
+Returns: Optional <code>Position</code>.
+Throws: None.</p>
+<h4 id="get_all_positions"><code>get_all_positions()</code><a class="headerlink" href="#get_all_positions" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Vector of positions.
+Throws: None.</p>
+<h4 id="get_held_symbols"><code>get_held_symbols()</code><a class="headerlink" href="#get_held_symbols" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Vector of symbol IDs.
+Throws: None.</p>
+<h4 id="cash-initial_capital-currency"><code>cash()</code> / <code>initial_capital()</code> / <code>currency()</code><a class="headerlink" href="#cash-initial_capital-currency" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Cash, initial capital, or currency.
+Throws: None.</p>
+<h4 id="equity-gross_exposure-net_exposure-leverage"><code>equity()</code> / <code>gross_exposure()</code> / <code>net_exposure()</code> / <code>leverage()</code><a class="headerlink" href="#equity-gross_exposure-net_exposure-leverage" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Equity/exposure/leverage values.
+Throws: None.</p>
+<h4 id="total_unrealized_pnl-total_realized_pnl"><code>total_unrealized_pnl()</code> / <code>total_realized_pnl()</code><a class="headerlink" href="#total_unrealized_pnl-total_realized_pnl" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: PnL values.
+Throws: None.</p>
+<h4 id="snapshot"><code>snapshot()</code><a class="headerlink" href="#snapshot" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: <code>PortfolioSnapshot</code>.
+Throws: None.</p>
+<h4 id="equity_curve"><code>equity_curve()</code><a class="headerlink" href="#equity_curve" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Vector of snapshots.
+Throws: None.</p>
+<h4 id="record_snapshottimestamp"><code>record_snapshot(timestamp)</code><a class="headerlink" href="#record_snapshottimestamp" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>timestamp</code> snapshot time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="get_fills-get_fillssymbol-get_fillsrange"><code>get_fills()</code> / <code>get_fills(symbol)</code> / <code>get_fills(range)</code><a class="headerlink" href="#get_fills-get_fillssymbol-get_fillsrange" title="Permanent link">&para;</a></h4>
+<p>Parameters: Optional <code>symbol</code> or <code>range</code>.
+Returns: Vector of fills.
+Throws: None.</p>
+<h4 id="on_position_changecallback-on_equity_changecallback"><code>on_position_change(callback)</code> / <code>on_equity_change(callback)</code><a class="headerlink" href="#on_position_changecallback-on_equity_changecallback" title="Permanent link">&para;</a></h4>
+<p>Parameters: callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="marketdatacache"><code>MarketDataCache</code><a class="headerlink" href="#marketdatacache" title="Permanent link">&para;</a></h3>
+<p>In-memory cache of latest market data and short history.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>update(bar)</code></td>
+<td>Update cache with a bar.</td>
+</tr>
+<tr>
+<td><code>update(tick)</code></td>
+<td>Update cache with a tick.</td>
+</tr>
+<tr>
+<td><code>update(quote)</code></td>
+<td>Update cache with a quote.</td>
+</tr>
+<tr>
+<td><code>latest_bar(symbol)</code></td>
+<td>Get latest bar for symbol.</td>
+</tr>
+<tr>
+<td><code>latest_tick(symbol)</code></td>
+<td>Get latest tick for symbol.</td>
+</tr>
+<tr>
+<td><code>latest_quote(symbol)</code></td>
+<td>Get latest quote for symbol.</td>
+</tr>
+<tr>
+<td><code>recent_bars(symbol, count)</code></td>
+<td>Get recent bars for symbol.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="updatebartickquote"><code>update(bar/tick/quote)</code><a class="headerlink" href="#updatebartickquote" title="Permanent link">&para;</a></h4>
+<p>Parameters: data object.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="latest_barsymbol-latest_ticksymbol-latest_quotesymbol"><code>latest_bar(symbol)</code> / <code>latest_tick(symbol)</code> / <code>latest_quote(symbol)</code><a class="headerlink" href="#latest_barsymbol-latest_ticksymbol-latest_quotesymbol" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID.
+Returns: Optional data.
+Throws: None.</p>
+<h4 id="recent_barssymbol-count"><code>recent_bars(symbol, count)</code><a class="headerlink" href="#recent_barssymbol-count" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID; <code>count</code> number of bars.
+Returns: Vector of bars.
+Throws: None.</p>
+<h3 id="orderbookcache"><code>OrderBookCache</code><a class="headerlink" href="#orderbookcache" title="Permanent link">&para;</a></h3>
+<p>In-memory cache of latest order book snapshots.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>update(book)</code></td>
+<td>Update cache with a snapshot.</td>
+</tr>
+<tr>
+<td><code>latest(symbol)</code></td>
+<td>Get latest order book for symbol.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="updatebook"><code>update(book)</code><a class="headerlink" href="#updatebook" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>book</code> order book snapshot.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="latestsymbol"><code>latest(symbol)</code><a class="headerlink" href="#latestsymbol" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>symbol</code> symbol ID.
+Returns: Optional <code>OrderBook</code>.
+Throws: None.</p>
+<h3 id="regimetracker"><code>RegimeTracker</code><a class="headerlink" href="#regimetracker" title="Permanent link">&para;</a></h3>
+<p>Maintains current regime state and transition statistics used by regime-aware strategies.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RegimeTracker(detector)</code></td>
+<td>Construct with a detector.</td>
+</tr>
+<tr>
+<td><code>on_bar(bar)</code></td>
+<td>Process bar and emit transition.</td>
+</tr>
+<tr>
+<td><code>on_tick(tick)</code></td>
+<td>Process tick and emit transition.</td>
+</tr>
+<tr>
+<td><code>current_state()</code></td>
+<td>Access current regime state.</td>
+</tr>
+<tr>
+<td><code>history()</code></td>
+<td>Access regime history.</td>
+</tr>
+<tr>
+<td><code>set_history_size(size)</code></td>
+<td>Set history size limit.</td>
+</tr>
+<tr>
+<td><code>register_transition_callback(callback)</code></td>
+<td>Register transition callback.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="regimetrackerdetector"><code>RegimeTracker(detector)</code><a class="headerlink" href="#regimetrackerdetector" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>detector</code> regime detector.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="on_barbar-on_ticktick"><code>on_bar(bar)</code> / <code>on_tick(tick)</code><a class="headerlink" href="#on_barbar-on_ticktick" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>bar</code> or <code>tick</code>.
+Returns: Optional <code>RegimeTransition</code>.
+Throws: None.</p>
+<h4 id="current_state-history"><code>current_state()</code> / <code>history()</code><a class="headerlink" href="#current_state-history" title="Permanent link">&para;</a></h4>
+<p>Parameters: None.
+Returns: Current state or history deque.
+Throws: None.</p>
+<h4 id="set_history_sizesize"><code>set_history_size(size)</code><a class="headerlink" href="#set_history_sizesize" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>size</code> max history size.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="register_transition_callbackcallback"><code>register_transition_callback(callback)</code><a class="headerlink" href="#register_transition_callbackcallback" title="Permanent link">&para;</a></h4>
+<p>Parameters: callback.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="timerservice"><code>TimerService</code><a class="headerlink" href="#timerservice" title="Permanent link">&para;</a></h3>
+<p>Scheduling utility for periodic tasks such as heartbeat, metrics snapshots, and alerts.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TimerService(queue)</code></td>
+<td>Construct with an event queue.</td>
+</tr>
+<tr>
+<td><code>schedule(id, interval, start)</code></td>
+<td>Schedule recurring timer.</td>
+</tr>
+<tr>
+<td><code>cancel(id)</code></td>
+<td>Cancel a timer.</td>
+</tr>
+<tr>
+<td><code>on_time_advance(now)</code></td>
+<td>Advance timer state.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="timerservicequeue"><code>TimerService(queue)</code><a class="headerlink" href="#timerservicequeue" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>queue</code> event queue.
+Returns: Instance.
+Throws: None.</p>
+<h4 id="scheduleid-interval-start"><code>schedule(id, interval, start)</code><a class="headerlink" href="#scheduleid-interval-start" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>id</code> timer ID; <code>interval</code> duration; <code>start</code> first fire time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="cancelid"><code>cancel(id)</code><a class="headerlink" href="#cancelid" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>id</code> timer ID.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="on_time_advancenow"><code>on_time_advance(now)</code><a class="headerlink" href="#on_time_advancenow" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>now</code> current time.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="auditlogger"><code>AuditLogger</code><a class="headerlink" href="#auditlogger" title="Permanent link">&para;</a></h3>
+<p>Structured audit logger for backtest and live runs.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AuditLogger(path)</code></td>
+<td>Construct logger with output path.</td>
+</tr>
+<tr>
+<td><code>log(event)</code></td>
+<td>Write an audit event.</td>
+</tr>
+<tr>
+<td><code>log_error(error)</code></td>
+<td>Write an error event.</td>
+</tr>
+<tr>
+<td><code>log_regime_change(transition)</code></td>
+<td>Write a regime transition event.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="auditloggerpath"><code>AuditLogger(path)</code><a class="headerlink" href="#auditloggerpath" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>path</code> output file path.
+Returns: Instance.
+Throws: <code>Error::IoError</code> on open failure.</p>
+<h4 id="logevent"><code>log(event)</code><a class="headerlink" href="#logevent" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>event</code> audit event.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::IoError</code> on write failure.</p>
+<h4 id="log_errorerror"><code>log_error(error)</code><a class="headerlink" href="#log_errorerror" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>error</code> error message.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::IoError</code> on write failure.</p>
+<h4 id="log_regime_changetransition"><code>log_regime_change(transition)</code><a class="headerlink" href="#log_regime_changetransition" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>transition</code> regime transition.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::IoError</code> on write failure.</p>
+<h3 id="backtestresults"><code>BacktestResults</code><a class="headerlink" href="#backtestresults" title="Permanent link">&para;</a></h3>
+<p>Aggregated outputs from a backtest run.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>total_return</code></td>
+<td>Total return as a fraction.</td>
+</tr>
+<tr>
+<td><code>max_drawdown</code></td>
+<td>Maximum drawdown as a fraction.</td>
+</tr>
+<tr>
+<td><code>metrics</code></td>
+<td>Detailed metrics tracker output.</td>
+</tr>
+<tr>
+<td><code>fills</code></td>
+<td>Fills captured during the run.</td>
+</tr>
+<tr>
+<td><code>regime_history</code></td>
+<td>Regime states observed during the run (full timeline).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="order-fill"><code>Order</code> / <code>Fill</code><a class="headerlink" href="#order-fill" title="Permanent link">&para;</a></h3>
+<p>Order and fill structures used across execution and portfolio.</p>
+<p>Methods and Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Order::market(symbol, side, qty)</code></td>
+<td>Factory for market order.</td>
+</tr>
+<tr>
+<td><code>Order::limit(symbol, side, qty, price)</code></td>
+<td>Factory for limit order.</td>
+</tr>
+<tr>
+<td><code>Order::stop(symbol, side, qty, stop)</code></td>
+<td>Factory for stop order.</td>
+</tr>
+<tr>
+<td><code>Order</code> fields</td>
+<td>Order identifiers, sizing, prices, status, timestamps.</td>
+</tr>
+<tr>
+<td><code>Fill</code> fields</td>
+<td>Fill identifiers, price, quantity, timestamps, costs.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="orderside-ordertype-timeinforce-orderstatus"><code>OrderSide</code> / <code>OrderType</code> / <code>TimeInForce</code> / <code>OrderStatus</code><a class="headerlink" href="#orderside-ordertype-timeinforce-orderstatus" title="Permanent link">&para;</a></h3>
+<p>Order enums used across engine and execution.</p>
+<h3 id="ordertype"><code>OrderType</code><a class="headerlink" href="#ordertype" title="Permanent link">&para;</a></h3>
+<p>Order type enum.</p>
+<h3 id="timeinforce"><code>TimeInForce</code><a class="headerlink" href="#timeinforce" title="Permanent link">&para;</a></h3>
+<p>Time-in-force enum.</p>
+<h3 id="orderstatus"><code>OrderStatus</code><a class="headerlink" href="#orderstatus" title="Permanent link">&para;</a></h3>
+<p>Order status enum.</p>
+<h3 id="fill"><code>Fill</code><a class="headerlink" href="#fill" title="Permanent link">&para;</a></h3>
+<p>Fill structure used for execution updates.</p>
+<h3 id="ordermodification"><code>OrderModification</code><a class="headerlink" href="#ordermodification" title="Permanent link">&para;</a></h3>
+<p>Mutable fields for order modification.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quantity</code></td>
+<td>New quantity (optional).</td>
+</tr>
+<tr>
+<td><code>limit_price</code></td>
+<td>New limit price (optional).</td>
+</tr>
+<tr>
+<td><code>stop_price</code></td>
+<td>New stop price (optional).</td>
+</tr>
+<tr>
+<td><code>tif</code></td>
+<td>New time-in-force (optional).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="portfoliosnapshot"><code>PortfolioSnapshot</code><a class="headerlink" href="#portfoliosnapshot" title="Permanent link">&para;</a></h3>
+<p>Snapshot of portfolio state.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>timestamp</code></td>
+<td>Snapshot time.</td>
+</tr>
+<tr>
+<td><code>cash</code> / <code>equity</code></td>
+<td>Cash and total equity.</td>
+</tr>
+<tr>
+<td><code>gross_exposure</code> / <code>net_exposure</code></td>
+<td>Exposure measures.</td>
+</tr>
+<tr>
+<td><code>leverage</code></td>
+<td>Portfolio leverage.</td>
+</tr>
+<tr>
+<td><code>positions</code></td>
+<td>Position map.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="backtestrunspec"><code>BacktestRunSpec</code><a class="headerlink" href="#backtestrunspec" title="Permanent link">&para;</a></h3>
+<p>Specification for a single backtest run.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>engine_config</code></td>
+<td>Engine configuration.</td>
+</tr>
+<tr>
+<td><code>data_config</code></td>
+<td>Data source configuration.</td>
+</tr>
+<tr>
+<td><code>strategy_config</code></td>
+<td>Strategy configuration.</td>
+</tr>
+<tr>
+<td><code>range</code></td>
+<td>Backtest range.</td>
+</tr>
+<tr>
+<td><code>symbols</code></td>
+<td>Symbols to trade.</td>
+</tr>
+<tr>
+<td><code>bar_type</code></td>
+<td>Bar aggregation type.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="parallelcontext"><code>ParallelContext</code><a class="headerlink" href="#parallelcontext" title="Permanent link">&para;</a></h3>
+<p>Context parameters for parallel backtest execution.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data_config</code></td>
+<td>Data source configuration.</td>
+</tr>
+<tr>
+<td><code>range</code></td>
+<td>Backtest range.</td>
+</tr>
+<tr>
+<td><code>symbols</code></td>
+<td>Symbols to trade.</td>
+</tr>
+<tr>
+<td><code>bar_type</code></td>
+<td>Bar aggregation type.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auditevent"><code>AuditEvent</code><a class="headerlink" href="#auditevent" title="Permanent link">&para;</a></h3>
+<p>Structured audit log event.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>timestamp</code></td>
+<td>Event timestamp.</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>Audit event type.</td>
+</tr>
+<tr>
+<td><code>details</code></td>
+<td>Event details.</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>Key-value metadata.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auditeventtype"><code>AuditEvent::Type</code><a class="headerlink" href="#auditeventtype" title="Permanent link">&para;</a></h3>
+<p>Audit event categories (order, regime, system, error).</p>
+<h3 id="enginefactory"><code>EngineFactory</code><a class="headerlink" href="#enginefactory" title="Permanent link">&para;</a></h3>
+<p>Builds engines with consistent dependencies (data sources, execution models, risk policies).</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>create(config)</code></td>
+<td>Create a configured <code>BacktestEngine</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Method Details:</p>
+<h4 id="createconfig"><code>create(config)</code><a class="headerlink" href="#createconfig" title="Permanent link">&para;</a></h4>
+<p>Parameters: <code>config</code> root configuration.
+Returns: <code>unique_ptr&lt;BacktestEngine&gt;</code>.
+Throws: <code>Error::ConfigError</code> on invalid configuration.</p>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;regimeflow/engine/backtest_engine.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;regimeflow/strategy/strategies/buy_and_hold.h&quot;</span>
+
+<span class="n">regimeflow</span><span class="o">::</span><span class="n">engine</span><span class="o">::</span><span class="n">BacktestEngine</span><span class="w"> </span><span class="n">engine</span><span class="p">(</span><span class="mf">1&#39;000&#39;000.0</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;USD&quot;</span><span class="p">);</span>
+<span class="n">engine</span><span class="p">.</span><span class="n">set_strategy</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">regimeflow</span><span class="o">::</span><span class="n">strategy</span><span class="o">::</span><span class="n">BuyAndHoldStrategy</span><span class="o">&gt;</span><span class="p">());</span>
+<span class="n">engine</span><span class="p">.</span><span class="n">run</span><span class="p">();</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">engine</span><span class="p">.</span><span class="n">results</span><span class="p">();</span>
+</code></pre></div>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../explanation/execution-flow/">Execution Flow</a></li>
+<li><a href="../../explanation/order-state-machine/">Order State Machine</a></li>
+<li><a href="../../explanation/backtest-methodology/">Backtest Methodology</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  <div class="rf-footer">
+    <div class="md-grid rf-footer__grid">
+      <div class="rf-footer__brand">
+        <div class="rf-logo rf-logo--footer" aria-label="RegimeFlow Docs">
+          <span class="rf-logo__mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" focusable="false">
+              <defs>
+                <linearGradient id="rf-logo-gradient-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#b8f0d0"></stop>
+                  <stop offset="100%" stop-color="#42ba8d"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)"></rect>
+              <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient-footer)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+              <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+            </svg>
+          </span>
+          <span class="rf-logo__text">
+            <strong>RegimeFlow</strong>
+            <small>Documentation</small>
+          </span>
+        </div>
+        <p>
+          C++ and Python quantitative trading infrastructure with regime-aware backtesting,
+          live execution boundaries, and code-aligned reference material.
+        </p>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Start</h4>
+        <a href="../../getting-started/quick-install/">Quick Install</a>
+        <a href="../../getting-started/quickstart/">Quickstart</a>
+        <a href="../../guide/backtesting/">Backtesting</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Reference</h4>
+        <a href="../../reference/configuration/">Configuration</a>
+        <a href="../index/">API Design</a>
+        <a href="../../live/brokers/">Broker Support</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Project</h4>
+        <a href="https://github.com/gregorian-09/regime-flow">GitHub</a>
+        <a href="../../live/production-readiness/">Production Readiness</a>
+        <a href="../../tutorials/examples/">Examples</a>
+      </div>
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.expand", "navigation.path", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../assets/mermaid-d733041c.js"></script>
+      
+        <script src="../../assets/mermaid-init.js"></script>
+      
+        <script src="../../assets/katex.min.js"></script>
+      
+        <script src="../../assets/auto-render.min.js"></script>
+      
+        <script src="../../assets/katex-init.js"></script>
+      
+    
+  </body>
+</html>

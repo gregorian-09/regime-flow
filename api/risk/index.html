@@ -1,0 +1,5957 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="RegimeFlow architecture, API design, and user guides">
+      
+      
+      
+        <link rel="canonical" href="https://gregorian-09.github.io/regime-flow/api/risk/">
+      
+      
+        <link rel="prev" href="../regime/">
+      
+      
+        <link rel="next" href="../strategy/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Risk - RegimeFlow Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/site-theme.css">
+    
+      <link rel="stylesheet" href="../../assets/katex.min.css">
+    
+      <link rel="stylesheet" href="../../assets/diagram-theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#package-regimeflowrisk" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <div class="rf-announce">
+    <div class="rf-announce__inner md-grid">
+      <span class="rf-announce__eyebrow">RegimeFlow</span>
+      <span class="rf-announce__copy">
+        Quant documentation for developers who need exact execution, risk, and broker semantics.
+      </span>
+      <a class="rf-announce__link" href="../../getting-started/quickstart/">Start with the quickstart</a>
+    </div>
+  </div>
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="RegimeFlow Docs" class="md-header__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RegimeFlow Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Risk
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="RegimeFlow Docs" class="md-nav__button md-logo" aria-label="RegimeFlow Docs" data-md-component="logo">
+      <div class="rf-logo" aria-label="RegimeFlow Docs">
+  <span class="rf-logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" focusable="false">
+      <defs>
+        <linearGradient id="rf-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8f0d0"></stop>
+          <stop offset="100%" stop-color="#42ba8d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"></rect>
+      <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+      <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+    </svg>
+  </span>
+  <span class="rf-logo__text">
+    <strong>RegimeFlow</strong>
+    <small>Quant Docs</small>
+  </span>
+</div>
+    </a>
+    RegimeFlow Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gregorian-09/regime-flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    RegimeFlow
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart (Backtest)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/project-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quant Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/backtesting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtesting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/data-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/risk-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Trading
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Live Trading
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/brokers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brokers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/production-readiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Readiness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../live/resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/environment-and-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment And Flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/data-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Cheat Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/broker-message-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Message Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/developer-quality-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Quality Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugin-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/transformer_regime_plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Plugin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Design
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Events
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../regime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#risklimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positionsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PositionSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoploss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLoss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoplossmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLossManager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stopstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#riskfactory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskFactory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#riskmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskManager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limit-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limit Classes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnotionallimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNotionalLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionpctlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionPctLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxdrawdownlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxDrawdownLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxleveragelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxLeverageLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxgrossexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxGrossExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnetexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNetExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxsectorexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxSectorExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxindustryexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxIndustryExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxcorrelationexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxCorrelationExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoplossconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLossConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positionsizingcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PositionSizingContext
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#position-sizer-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Position Sizer Classes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixedfractionalsizer-volatilitytargetsizer-kellysizer-regimescaledsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FixedFractionalSizer / VolatilityTargetSizer / KellySizer / RegimeScaledSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#volatilitytargetsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VolatilityTargetSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kellysizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KellySizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regimescaledsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegimeScaledSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#risklimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RiskLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnotionallimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNotionalLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxNotionalLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionlimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxPositionLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionpctlimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionPctLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxPositionPctLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxdrawdownlimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxDrawdownLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxDrawdownLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxgrossexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxGrossExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxGrossExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxleveragelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxLeverageLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxLeverageLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnetexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNetExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxNetExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxsectorexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxSectorExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxSectorExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxindustryexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxIndustryExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxIndustryExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxcorrelationexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxCorrelationExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxCorrelationExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#riskmanager_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RiskManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add_limitlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_limit(limit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio-validate_portfolioportfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio) / validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoplossmanager_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLossManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StopLossManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configureconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_barbar-order_manager-on_ticktick-order_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_bar(bar, order_manager) / on_tick(tick, order_manager)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positionsizer_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PositionSizer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PositionSizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sizectx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        size(ctx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../walkforward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-metrics-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Full File Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../public-symbol-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Symbol Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coverage-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coverage Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/python-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quant Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quant-custom-regime-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Regime Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/intraday_strategy_tradecheck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intraday Strategy Tradecheck
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/multi_intraday_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi Intraday Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/transformer_regime_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Regime Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/event-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/order-state-machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order State Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-resiliency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Resiliency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/live-order-reconciliation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Order Reconciliation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/broker-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Broker Streaming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-transitions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Transitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/regime-features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regime Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/hmm-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HMM Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/strategy-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategy Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/risk-limits-deep/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Limits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/execution-costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Costs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/slippage-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slippage Math
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/portfolio-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Portfolio Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/performance-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/backtest-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/walk-forward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Walk-Forward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/message-bus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Message Bus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagrams
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diagrams
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/component-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/structural-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structural Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/uml-class-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UML Class Diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-backtest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backtest Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagrams/sequence-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-usage-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Usage Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#risklimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positionsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PositionSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoploss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLoss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoplossmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLossManager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stopstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#riskfactory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskFactory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#riskmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskManager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limit-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limit Classes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnotionallimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNotionalLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionpctlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionPctLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxdrawdownlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxDrawdownLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxleveragelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxLeverageLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxgrossexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxGrossExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnetexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNetExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxsectorexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxSectorExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxindustryexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxIndustryExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxcorrelationexposurelimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxCorrelationExposureLimit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoplossconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLossConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positionsizingcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PositionSizingContext
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#position-sizer-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Position Sizer Classes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixedfractionalsizer-volatilitytargetsizer-kellysizer-regimescaledsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FixedFractionalSizer / VolatilityTargetSizer / KellySizer / RegimeScaledSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#volatilitytargetsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VolatilityTargetSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kellysizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KellySizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regimescaledsizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegimeScaledSizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#risklimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RiskLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnotionallimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNotionalLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxNotionalLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionlimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxPositionLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxpositionpctlimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxPositionPctLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxPositionPctLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxdrawdownlimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxDrawdownLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxDrawdownLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxgrossexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxGrossExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxGrossExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxleveragelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxLeverageLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxLeverageLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxnetexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxNetExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxNetExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxsectorexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxSectorExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxSectorExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxindustryexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxIndustryExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxIndustryExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxcorrelationexposurelimit_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MaxCorrelationExposureLimit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MaxCorrelationExposureLimit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_portfolioportfolio_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#riskmanager_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RiskManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RiskManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add_limitlimit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_limit(limit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validateorder-portfolio-validate_portfolioportfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate(order, portfolio) / validate_portfolio(portfolio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stoplossmanager_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StopLossManager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StopLossManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configureconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        configure(config)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_barbar-order_manager-on_ticktick-order_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on_bar(bar, order_manager) / on_tick(tick, order_manager)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positionsizer_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PositionSizer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PositionSizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sizectx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        size(ctx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../reference/configuration/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    API Design
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="package-regimeflowrisk">Package: <code>regimeflow::risk</code><a class="headerlink" href="#package-regimeflowrisk" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Risk controls and position sizing. Provides centralized risk limits, stop-loss models, and policy factories used by both backtest and live engines.</p>
+<p>Related diagrams:
+- <a href="../../explanation/risk-controls/">Risk Controls</a>
+- <a href="../../explanation/risk-limits-deep/">Risk Limits</a></p>
+<h2 id="file-index">File Index<a class="headerlink" href="#file-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>regimeflow/risk/position_sizer.h</code></td>
+<td>Position sizing strategies.</td>
+</tr>
+<tr>
+<td><code>regimeflow/risk/risk_factory.h</code></td>
+<td>Factory for risk policies.</td>
+</tr>
+<tr>
+<td><code>regimeflow/risk/risk_limits.h</code></td>
+<td>Risk limits and configuration.</td>
+</tr>
+<tr>
+<td><code>regimeflow/risk/stop_loss.h</code></td>
+<td>Stop-loss policy.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="type-index">Type Index<a class="headerlink" href="#type-index" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RiskLimit</code></td>
+<td>Account-level and symbol-level constraints.</td>
+</tr>
+<tr>
+<td><code>PositionSizer</code></td>
+<td>Computes position sizes from config and regime.</td>
+</tr>
+<tr>
+<td><code>StopLoss</code></td>
+<td>Stop-loss policies and state.</td>
+</tr>
+<tr>
+<td><code>RiskFactory</code></td>
+<td>Creates risk policies by name.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="lifecycle-usage-notes">Lifecycle &amp; Usage Notes<a class="headerlink" href="#lifecycle-usage-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>RiskLimits</code> are enforced at order creation and pre-trade checks.</li>
+<li><code>StopLoss</code> can be evaluated per-tick or per-bar depending on configuration.</li>
+</ul>
+<h2 id="type-details">Type Details<a class="headerlink" href="#type-details" title="Permanent link">&para;</a></h2>
+<h3 id="risklimit"><code>RiskLimit</code><a class="headerlink" href="#risklimit" title="Permanent link">&para;</a></h3>
+<p>Configurable account, symbol, and portfolio-level constraints enforced before order submission.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>validate(order, portfolio)</code></td>
+<td>Validate an order.</td>
+</tr>
+<tr>
+<td><code>validate_portfolio(portfolio)</code></td>
+<td>Validate portfolio state.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="positionsizer"><code>PositionSizer</code><a class="headerlink" href="#positionsizer" title="Permanent link">&para;</a></h3>
+<p>Computes position sizes from config, portfolio state, and regime context.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>size(ctx)</code></td>
+<td>Compute position size from context.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="stoploss"><code>StopLoss</code><a class="headerlink" href="#stoploss" title="Permanent link">&para;</a></h3>
+<p>Implements stop-loss policies and tracks their state for open positions.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>configure(config)</code></td>
+<td>Configure stop-loss settings.</td>
+</tr>
+<tr>
+<td><code>on_position_update(position)</code></td>
+<td>Update state for position.</td>
+</tr>
+<tr>
+<td><code>on_bar(bar, order_manager)</code></td>
+<td>Process bar for stops.</td>
+</tr>
+<tr>
+<td><code>on_tick(tick, order_manager)</code></td>
+<td>Process tick for stops.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="stoplossmanager"><code>StopLossManager</code><a class="headerlink" href="#stoplossmanager" title="Permanent link">&para;</a></h3>
+<p>Manager for stop-loss policies (implementation class).</p>
+<h3 id="stopstate"><code>StopState</code><a class="headerlink" href="#stopstate" title="Permanent link">&para;</a></h3>
+<p>Internal per-symbol stop-loss state.</p>
+<h3 id="riskfactory"><code>RiskFactory</code><a class="headerlink" href="#riskfactory" title="Permanent link">&para;</a></h3>
+<p>Factory for constructing risk policies based on configuration names.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>create_risk_manager(config)</code></td>
+<td>Build a risk manager from config.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="riskmanager"><code>RiskManager</code><a class="headerlink" href="#riskmanager" title="Permanent link">&para;</a></h3>
+<p>Aggregates multiple risk limits and validates orders/portfolio.</p>
+<p>Methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add_limit(limit)</code></td>
+<td>Add a risk limit.</td>
+</tr>
+<tr>
+<td><code>validate(order, portfolio)</code></td>
+<td>Validate order against limits.</td>
+</tr>
+<tr>
+<td><code>validate_portfolio(portfolio)</code></td>
+<td>Validate portfolio state.</td>
+</tr>
+<tr>
+<td><code>set_regime_limits(limits)</code></td>
+<td>Set regime-specific limit sets.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="limit-classes"><code>Limit Classes</code><a class="headerlink" href="#limit-classes" title="Permanent link">&para;</a></h3>
+<p>Concrete limit classes implement <code>validate()</code> and <code>validate_portfolio()</code> from <code>RiskLimit</code>. See <a href="../../explanation/risk-limits-deep/">Risk Limits</a> for details on each limit type.</p>
+<p>Classes:</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MaxNotionalLimit</code></td>
+<td>Max notional per order.</td>
+</tr>
+<tr>
+<td><code>MaxPositionLimit</code></td>
+<td>Max absolute position size.</td>
+</tr>
+<tr>
+<td><code>MaxPositionPctLimit</code></td>
+<td>Max position as % equity.</td>
+</tr>
+<tr>
+<td><code>MaxDrawdownLimit</code></td>
+<td>Max drawdown limit.</td>
+</tr>
+<tr>
+<td><code>MaxLeverageLimit</code></td>
+<td>Max leverage limit.</td>
+</tr>
+<tr>
+<td><code>MaxGrossExposureLimit</code></td>
+<td>Max gross exposure.</td>
+</tr>
+<tr>
+<td><code>MaxNetExposureLimit</code></td>
+<td>Max net exposure.</td>
+</tr>
+<tr>
+<td><code>MaxSectorExposureLimit</code></td>
+<td>Max sector exposure.</td>
+</tr>
+<tr>
+<td><code>MaxIndustryExposureLimit</code></td>
+<td>Max industry exposure.</td>
+</tr>
+<tr>
+<td><code>MaxCorrelationExposureLimit</code></td>
+<td>Max correlation exposure.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="maxnotionallimit"><code>MaxNotionalLimit</code><a class="headerlink" href="#maxnotionallimit" title="Permanent link">&para;</a></h3>
+<p>Maximum notional per order.</p>
+<h3 id="maxpositionlimit"><code>MaxPositionLimit</code><a class="headerlink" href="#maxpositionlimit" title="Permanent link">&para;</a></h3>
+<p>Maximum absolute position size.</p>
+<h3 id="maxpositionpctlimit"><code>MaxPositionPctLimit</code><a class="headerlink" href="#maxpositionpctlimit" title="Permanent link">&para;</a></h3>
+<p>Maximum position as percent of equity.</p>
+<h3 id="maxdrawdownlimit"><code>MaxDrawdownLimit</code><a class="headerlink" href="#maxdrawdownlimit" title="Permanent link">&para;</a></h3>
+<p>Maximum drawdown limit.</p>
+<h3 id="maxleveragelimit"><code>MaxLeverageLimit</code><a class="headerlink" href="#maxleveragelimit" title="Permanent link">&para;</a></h3>
+<p>Maximum leverage limit.</p>
+<h3 id="maxgrossexposurelimit"><code>MaxGrossExposureLimit</code><a class="headerlink" href="#maxgrossexposurelimit" title="Permanent link">&para;</a></h3>
+<p>Maximum gross exposure limit.</p>
+<h3 id="maxnetexposurelimit"><code>MaxNetExposureLimit</code><a class="headerlink" href="#maxnetexposurelimit" title="Permanent link">&para;</a></h3>
+<p>Maximum net exposure limit.</p>
+<h3 id="maxsectorexposurelimit"><code>MaxSectorExposureLimit</code><a class="headerlink" href="#maxsectorexposurelimit" title="Permanent link">&para;</a></h3>
+<p>Maximum sector exposure limit.</p>
+<h3 id="maxindustryexposurelimit"><code>MaxIndustryExposureLimit</code><a class="headerlink" href="#maxindustryexposurelimit" title="Permanent link">&para;</a></h3>
+<p>Maximum industry exposure limit.</p>
+<h3 id="maxcorrelationexposurelimit"><code>MaxCorrelationExposureLimit</code><a class="headerlink" href="#maxcorrelationexposurelimit" title="Permanent link">&para;</a></h3>
+<p>Maximum correlation exposure limit.</p>
+<h3 id="stoplossconfig"><code>StopLossConfig</code><a class="headerlink" href="#stoplossconfig" title="Permanent link">&para;</a></h3>
+<p>Stop-loss configuration settings.</p>
+<h3 id="positionsizingcontext"><code>PositionSizingContext</code><a class="headerlink" href="#positionsizingcontext" title="Permanent link">&para;</a></h3>
+<p>Inputs used for position sizing.</p>
+<h3 id="position-sizer-classes"><code>Position Sizer Classes</code><a class="headerlink" href="#position-sizer-classes" title="Permanent link">&para;</a></h3>
+<p>Concrete sizers implement <code>size(ctx)</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FixedFractionalSizer</code></td>
+<td>Fixed-fractional sizing.</td>
+</tr>
+<tr>
+<td><code>VolatilityTargetSizer</code></td>
+<td>Volatility-target sizing.</td>
+</tr>
+<tr>
+<td><code>KellySizer</code></td>
+<td>Kelly criterion sizing.</td>
+</tr>
+<tr>
+<td><code>RegimeScaledSizer</code></td>
+<td>Regime-scaled wrapper.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fixedfractionalsizer-volatilitytargetsizer-kellysizer-regimescaledsizer"><code>FixedFractionalSizer</code> / <code>VolatilityTargetSizer</code> / <code>KellySizer</code> / <code>RegimeScaledSizer</code><a class="headerlink" href="#fixedfractionalsizer-volatilitytargetsizer-kellysizer-regimescaledsizer" title="Permanent link">&para;</a></h3>
+<p>Concrete position sizing models.</p>
+<h3 id="volatilitytargetsizer"><code>VolatilityTargetSizer</code><a class="headerlink" href="#volatilitytargetsizer" title="Permanent link">&para;</a></h3>
+<p>Volatility targeting position sizing model.</p>
+<h3 id="kellysizer"><code>KellySizer</code><a class="headerlink" href="#kellysizer" title="Permanent link">&para;</a></h3>
+<p>Kelly criterion position sizing model.</p>
+<h3 id="regimescaledsizer"><code>RegimeScaledSizer</code><a class="headerlink" href="#regimescaledsizer" title="Permanent link">&para;</a></h3>
+<p>Regime-scaled position sizing wrapper.</p>
+<h2 id="method-details">Method Details<a class="headerlink" href="#method-details" title="Permanent link">&para;</a></h2>
+<p>Type Hints:</p>
+<ul>
+<li><code>order</code> → <code>engine::Order</code></li>
+<li><code>portfolio</code> → <code>engine::Portfolio</code></li>
+<li><code>bar</code> → <code>data::Bar</code></li>
+<li><code>tick</code> → <code>data::Tick</code></li>
+<li><code>ctx</code> → <code>PositionSizingContext</code></li>
+</ul>
+<h3 id="risklimit_1"><code>RiskLimit</code><a class="headerlink" href="#risklimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code>/<code>Error::InvalidArgument</code>.</p>
+<h4 id="validate_portfolioportfolio"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code>.</p>
+<h3 id="maxnotionallimit_1"><code>MaxNotionalLimit</code><a class="headerlink" href="#maxnotionallimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_1"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> when a limit order is missing a price, <code>Error::OutOfRange</code> when order notional exceeds the configured limit or portfolio equity.</p>
+<h3 id="maxpositionlimit_1"><code>MaxPositionLimit</code><a class="headerlink" href="#maxpositionlimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_2"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_2" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when projected absolute quantity exceeds the limit.</p>
+<h4 id="validate_portfolioportfolio_1"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_1" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when any existing position exceeds the limit.</p>
+<h3 id="maxpositionpctlimit_1"><code>MaxPositionPctLimit</code><a class="headerlink" href="#maxpositionpctlimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_3"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_3" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> when a limit order is missing a price, <code>Error::OutOfRange</code> when projected notional exceeds the configured equity percentage.</p>
+<h4 id="validate_portfolioportfolio_2"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_2" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when any existing position exceeds the configured equity percentage.</p>
+<h3 id="maxdrawdownlimit_1"><code>MaxDrawdownLimit</code><a class="headerlink" href="#maxdrawdownlimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_4"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_4" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when drawdown exceeds the configured maximum.</p>
+<h4 id="validate_portfolioportfolio_3"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_3" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when drawdown exceeds the configured maximum.</p>
+<h3 id="maxgrossexposurelimit_1"><code>MaxGrossExposureLimit</code><a class="headerlink" href="#maxgrossexposurelimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_5"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_5" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> when a limit order is missing a price, <code>Error::OutOfRange</code> when projected gross exposure exceeds the limit.</p>
+<h4 id="validate_portfolioportfolio_4"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_4" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when gross exposure exceeds the limit.</p>
+<h3 id="maxleveragelimit_1"><code>MaxLeverageLimit</code><a class="headerlink" href="#maxleveragelimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_6"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_6" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> when a limit order is missing a price, <code>Error::OutOfRange</code> when projected leverage exceeds the limit.</p>
+<h4 id="validate_portfolioportfolio_5"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_5" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when leverage exceeds the limit.</p>
+<h3 id="maxnetexposurelimit_1"><code>MaxNetExposureLimit</code><a class="headerlink" href="#maxnetexposurelimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_7"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_7" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> when a limit order is missing a price, <code>Error::OutOfRange</code> when projected net exposure exceeds the limit.</p>
+<h4 id="validate_portfolioportfolio_6"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_6" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when net exposure exceeds the limit.</p>
+<h3 id="maxsectorexposurelimit_1"><code>MaxSectorExposureLimit</code><a class="headerlink" href="#maxsectorexposurelimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_8"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_8" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> when a limit order is missing a price, <code>Error::OutOfRange</code> when projected sector exposure exceeds the limit.</p>
+<h4 id="validate_portfolioportfolio_7"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_7" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when sector exposure exceeds the limit.</p>
+<h3 id="maxindustryexposurelimit_1"><code>MaxIndustryExposureLimit</code><a class="headerlink" href="#maxindustryexposurelimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_9"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_9" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::InvalidArgument</code> when a limit order is missing a price, <code>Error::OutOfRange</code> when projected industry exposure exceeds the limit.</p>
+<h4 id="validate_portfolioportfolio_8"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_8" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when industry exposure exceeds the limit.</p>
+<h3 id="maxcorrelationexposurelimit_1"><code>MaxCorrelationExposureLimit</code><a class="headerlink" href="#maxcorrelationexposurelimit_1" title="Permanent link">&para;</a></h3>
+<h4 id="validateorder-portfolio_10"><code>validate(order, portfolio)</code><a class="headerlink" href="#validateorder-portfolio_10" title="Permanent link">&para;</a></h4>
+<p>Parameters: order, portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when pair exposure exceeds correlation limits.</p>
+<h4 id="validate_portfolioportfolio_9"><code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validate_portfolioportfolio_9" title="Permanent link">&para;</a></h4>
+<p>Parameters: portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: <code>Error::OutOfRange</code> when pair exposure exceeds correlation limits.</p>
+<h3 id="riskmanager_1"><code>RiskManager</code><a class="headerlink" href="#riskmanager_1" title="Permanent link">&para;</a></h3>
+<h4 id="add_limitlimit"><code>add_limit(limit)</code><a class="headerlink" href="#add_limitlimit" title="Permanent link">&para;</a></h4>
+<p>Parameters: risk limit.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="validateorder-portfolio-validate_portfolioportfolio"><code>validate(order, portfolio)</code> / <code>validate_portfolio(portfolio)</code><a class="headerlink" href="#validateorder-portfolio-validate_portfolioportfolio" title="Permanent link">&para;</a></h4>
+<p>Parameters: order/portfolio.
+Returns: <code>Result&lt;void&gt;</code>.
+Throws: limit-specific errors.</p>
+<h3 id="stoplossmanager_1"><code>StopLossManager</code><a class="headerlink" href="#stoplossmanager_1" title="Permanent link">&para;</a></h3>
+<h4 id="configureconfig"><code>configure(config)</code><a class="headerlink" href="#configureconfig" title="Permanent link">&para;</a></h4>
+<p>Parameters: stop-loss config.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h4 id="on_barbar-order_manager-on_ticktick-order_manager"><code>on_bar(bar, order_manager)</code> / <code>on_tick(tick, order_manager)</code><a class="headerlink" href="#on_barbar-order_manager-on_ticktick-order_manager" title="Permanent link">&para;</a></h4>
+<p>Parameters: market data and order manager.
+Returns: <code>void</code>.
+Throws: None.</p>
+<h3 id="positionsizer_1"><code>PositionSizer</code><a class="headerlink" href="#positionsizer_1" title="Permanent link">&para;</a></h3>
+<h4 id="sizectx"><code>size(ctx)</code><a class="headerlink" href="#sizectx" title="Permanent link">&para;</a></h4>
+<p>Parameters: sizing context.
+Returns: <code>Quantity</code>.
+Throws: None.</p>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;regimeflow/risk/risk_limits.h&quot;</span>
+
+<span class="n">regimeflow</span><span class="o">::</span><span class="n">risk</span><span class="o">::</span><span class="n">RiskManager</span><span class="w"> </span><span class="n">manager</span><span class="p">;</span>
+<span class="n">manager</span><span class="p">.</span><span class="n">add_limit</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">regimeflow</span><span class="o">::</span><span class="n">risk</span><span class="o">::</span><span class="n">MaxNotionalLimit</span><span class="o">&gt;</span><span class="p">(</span><span class="mf">1&#39;000&#39;000.0</span><span class="p">));</span>
+</code></pre></div>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../explanation/risk-controls/">Risk Controls</a></li>
+<li><a href="../../explanation/risk-limits-deep/">Risk Limits</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  <div class="rf-footer">
+    <div class="md-grid rf-footer__grid">
+      <div class="rf-footer__brand">
+        <div class="rf-logo rf-logo--footer" aria-label="RegimeFlow Docs">
+          <span class="rf-logo__mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" focusable="false">
+              <defs>
+                <linearGradient id="rf-logo-gradient-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#b8f0d0"></stop>
+                  <stop offset="100%" stop-color="#42ba8d"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)"></rect>
+              <path d="M18 41.5h6.5l6-16 7 12 5.5-8.5H46" fill="none" stroke="url(#rf-logo-gradient-footer)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="24.5" cy="25.5" r="3" fill="#f5c35d"></circle>
+              <circle cx="43" cy="29" r="2.8" fill="#91e2c0"></circle>
+            </svg>
+          </span>
+          <span class="rf-logo__text">
+            <strong>RegimeFlow</strong>
+            <small>Documentation</small>
+          </span>
+        </div>
+        <p>
+          C++ and Python quantitative trading infrastructure with regime-aware backtesting,
+          live execution boundaries, and code-aligned reference material.
+        </p>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Start</h4>
+        <a href="../../getting-started/quick-install/">Quick Install</a>
+        <a href="../../getting-started/quickstart/">Quickstart</a>
+        <a href="../../guide/backtesting/">Backtesting</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Reference</h4>
+        <a href="../../reference/configuration/">Configuration</a>
+        <a href="../index/">API Design</a>
+        <a href="../../live/brokers/">Broker Support</a>
+      </div>
+
+      <div class="rf-footer__col">
+        <h4>Project</h4>
+        <a href="https://github.com/gregorian-09/regime-flow">GitHub</a>
+        <a href="../../live/production-readiness/">Production Readiness</a>
+        <a href="../../tutorials/examples/">Examples</a>
+      </div>
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.expand", "navigation.path", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../assets/mermaid-d733041c.js"></script>
+      
+        <script src="../../assets/mermaid-init.js"></script>
+      
+        <script src="../../assets/katex.min.js"></script>
+      
+        <script src="../../assets/auto-render.min.js"></script>
+      
+        <script src="../../assets/katex-init.js"></script>
+      
+    
+  </body>
+</html>

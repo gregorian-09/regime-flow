@@ -1,0 +1,87 @@
+{
+  "performance": {
+    "total_return": -2.25272,
+    "cagr": null,
+    "volatility": 2.42796,
+    "sharpe": -0.0450693,
+    "sortino": -0.0293984,
+    "calmar": null,
+    "var_95": 0.00653426,
+    "cvar_95": 0.03526,
+    "best_return": 6.62971,
+    "worst_return": -44.0874
+  },
+  "performance_summary": {
+    "total_return": -2.25272,
+    "cagr": null,
+    "avg_daily_return": 0.0311509,
+    "avg_monthly_return": -2.25272,
+    "best_day": 0.480951,
+    "worst_day": -1.25754,
+    "best_day_date": "2024-01-14",
+    "worst_day_date": "2024-01-12",
+    "best_month": -2.25272,
+    "worst_month": -2.25272,
+    "best_month_date": "2024-01-01",
+    "worst_month_date": "2024-01-01",
+    "volatility": 156.869,
+    "downside_deviation": 153.871,
+    "max_drawdown": 1.8555,
+    "var_95": 0.00653426,
+    "var_99": 0.0246159,
+    "cvar_95": 0.03526,
+    "sharpe_ratio": -2.91189,
+    "sortino_ratio": -2.96862,
+    "calmar_ratio": null,
+    "omega_ratio": 0.806175,
+    "ulcer_index": 1.25585,
+    "information_ratio": 0,
+    "treynor_ratio": 0,
+    "tail_ratio": 1.01776,
+    "total_trades": 37558,
+    "winning_trades": 17884,
+    "losing_trades": 19674,
+    "open_trades": 2,
+    "closed_trades": 37558,
+    "open_trades_unrealized_pnl": -81.5208,
+    "open_trades_snapshot_date": "2024-01-31",
+    "win_rate": 0.47617,
+    "profit_factor": 0.863079,
+    "avg_win": 79.372,
+    "avg_loss": -83.5966,
+    "win_loss_ratio": 0.949465,
+    "expectancy": -5.99581,
+    "avg_trade_duration_days": 0.0159684,
+    "annual_turnover": 0
+  },
+  "max_drawdown": 1.8555,
+  "regime_performance": [
+    {
+      "regime": "bull",
+      "return": 3.99425,
+      "avg_return": 4.4739e-05,
+      "sharpe": 0.0014355,
+      "max_drawdown": 1.00133,
+      "time_pct": 0.999989,
+      "observations": 89279
+    },
+    {
+      "regime": "neutral",
+      "return": 0,
+      "avg_return": 0,
+      "sharpe": 0,
+      "max_drawdown": 0,
+      "time_pct": 1.12007e-05,
+      "observations": 1
+    }
+  ],
+  "transitions": [
+    {
+      "from": "neutral",
+      "to": "bull",
+      "avg_return": 0,
+      "volatility": 0,
+      "observations": 1
+    }
+  ]
+}
