@@ -34,7 +34,9 @@ namespace regimeflow::data
             lock.unlock();
             return create_connection();
         }
-        cv_.wait(lock, [this] { return !pool_.empty(); });
+        while (pool_.empty()) {
+            cv_.wait(lock);
+        }
         auto* conn = pool_.front();
         pool_.pop();
         return conn;

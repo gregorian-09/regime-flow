@@ -1039,7 +1039,8 @@ namespace regimeflow::live
         last_retrain_ = Timestamp::now();
         while (running_) {
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            if (!config_.enable_regime_updates || !regime_detector_) {
+            auto* detector = regime_detector_.get();
+            if (!config_.enable_regime_updates || detector == nullptr) {
                 continue;
             }
             Timestamp now = Timestamp::now();
@@ -1049,7 +1050,7 @@ namespace regimeflow::live
             if ((now - last_retrain_).total_microseconds()
                 < config_.regime_retrain_interval.total_microseconds()) {
                 continue;
-                }
+            }
             std::deque<regime::FeatureVector> snapshot;
             {
                 std::lock_guard<std::mutex> lock(feature_mutex_);
@@ -1059,16 +1060,14 @@ namespace regimeflow::live
                 continue;
             }
             std::vector<regime::FeatureVector> features(snapshot.begin(), snapshot.end());
-            regime_detector_->train(features);
+            detector->train(features);
             last_retrain_ = now;
             if (audit_logger_) {
                 AuditEvent event;
                 event.timestamp = now;
                 event.type = AuditEvent::Type::RegimeChange;
                 event.details = "Regime model retrained";
-                if (regime_detector_) {
-                    event.metadata = model_metadata_to_audit(regime_detector_->model_metadata());
-                }
+                event.metadata = model_metadata_to_audit(detector->model_metadata());
                 audit_logger_->log(event);
             }
         }
