@@ -10,8 +10,18 @@ permissions:
 
 
 jobs:
+  validate_release:
+    name: Validate release metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+
+      - name: Check tag and package versions
+        run: python3 tools/check_versions.py "${GITHUB_REF_NAME}"
+
   build_wheels:
     name: Build wheels (${{ matrix.label }})
+    needs: validate_release
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -55,7 +65,7 @@ jobs:
           package-dir: .
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_SKIP: "pp* *-musllinux_*"
           CIBW_ARCHS_LINUX: "${{ matrix.cibw_archs_linux }}"
           CIBW_ARCHS_MACOS: "${{ matrix.cibw_archs_macos }}"
@@ -81,6 +91,7 @@ jobs:
 
   build_sdist:
     name: Build sdist
+    needs: validate_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
@@ -105,6 +116,10 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
 
@@ -143,15 +158,26 @@ jobs:
           name: python-artifact-checksums
           path: artifact-verification/*
 
+      - name: Validate Python distributions
+        run: |
+          python -m pip install --upgrade pip twine
+          twine check publish-dist/*
+
+      - name: Upload Python distributions to release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
+        with:
+          files: |
+            publish-dist/*
+            artifact-verification/*
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3
         with:
           packages-dir: publish-dist
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
 
   build_linux_packages:
     name: Build Linux packages (deb + rpm)
+    needs: [validate_release, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -304,3 +330,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: repo
+          destination_dir: packages
+          keep_files: true
