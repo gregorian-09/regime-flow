@@ -46,7 +46,7 @@ Status:
 - Added unit coverage in `tests/unit/test_broker_adapter_capabilities.cpp`.
 - Documented the capability matrix in `docs/live/production-readiness.md`.
 
-2. Replay-to-live parity -- PARTIALLY IMPLEMENTED
+2. Replay-to-live parity -- IMPLEMENTED
 
 Use the same strategy code, event model, risk checks, and order manager in both backtest and live execution.
 
@@ -60,10 +60,8 @@ Status:
 - Added integration coverage in `tests/unit/test_live_engine_integration.cpp`.
 - Extended live replay capture to order-manager status updates and risk/safety gate outcomes as system events.
 - Documented replay journals in `docs/guide/backtesting.md` and `docs/live/overview.md`.
-
-Remaining:
-
-- Add first-class CLI commands to replay a captured journal through `BacktestEngine`.
+- Added `regimeflow_replay_journal`, a first-class CLI that loads captured JSONL journals,
+  enqueues events into `BacktestEngine`, runs the event loop, and prints parity diagnostics.
 
 3. Regime-aware risk engine -- IMPLEMENTED
 
@@ -96,7 +94,7 @@ Status:
 - Added queue-model attribution for orders carrying `queue_position` and `expected_queue_delay_ms` metadata.
 - Prometheus export now includes effective-spread and queue-attribution metrics.
 
-5. Operational safety layer
+5. Operational safety layer -- IMPLEMENTED
 
 Provide kill switch, stale data detector, duplicate order detector, reconciliation journal, credential hygiene, and audit trails.
 
@@ -114,8 +112,11 @@ Status:
 - Added fail-closed order reconciliation error handling through `live.reconciliation.disable_trading_on_error`.
 - Reconciliation failures now disable trading, cancel open orders, alert, and write structured audit metadata by default.
 - Added unit coverage in `tests/unit/test_live_order_reconcile.cpp`.
+- Unknown broker order states now map to `LiveOrderStatus::Error` instead of silently falling
+  through to `New`; the live engine alerts, calls the error callback, and audits the event.
+- Added reconnect coverage verifying live gateway reconnects resubscribe symbols after a transport drop.
 
-6. Plugin SDK -- PARTIALLY IMPLEMENTED
+6. Plugin SDK -- IMPLEMENTED
 
 Create clean plugin templates for strategies, regime detectors, risk modules, broker adapters, data sources, and metrics.
 
@@ -126,13 +127,11 @@ Status:
 - Added `examples/plugins/risk_manager_template` as a minimal dynamic risk-manager plugin template.
 - Added `examples/plugins/data_source_template` as a minimal dynamic data-source plugin template.
 - Added `examples/plugins/metrics_template` as a minimal dynamic performance-metric plugin template.
+- Added `BrokerAdapterPlugin` as a first-class broker adapter extension point.
+- Added `examples/plugins/broker_adapter_template` as a minimal dynamic broker-adapter plugin template.
 - Templates include standalone CMake, lifecycle hooks, required C ABI exports, and runtime config guidance.
 - Added `tools/plugins/check_plugin_template.py` to guard required export references across all template types.
 - Linked the templates from `docs/reference/plugin-api.md` and `examples/README.md`.
-
-Remaining:
-
-- Add a dedicated broker-adapter template after the broker plugin interface is promoted to a first-class extension point.
 
 7. Live dry-run / shadow mode -- IMPLEMENTED
 
@@ -178,7 +177,7 @@ Status:
 - Added configurable live audit encoding with `live.audit.format: jsonl` for structured-log pipelines.
 - Added `PrometheusScrapeEndpoint` and `metrics.prometheus.*` live-engine config for a built-in HTTP scrape endpoint.
 
-10. Security / supply-chain posture -- PARTIALLY IMPLEMENTED
+10. Security / supply-chain posture -- IMPLEMENTED
 
 Generate SBOMs, scan dependencies, audit vendored dependencies, and sign release artifacts.
 
@@ -189,10 +188,13 @@ Status:
 - CI supply-chain gate now generates `build/sbom/regimeflow.spdx.json`.
 - `tools/security/check_supply_chain.py` now requires the SBOM generator to remain present.
 - Documented SBOM generation in `SECURITY.md`.
-
-Remaining:
-
-- Add vulnerability scanning (`osv-scanner`, `pip-audit`, or equivalent) and artifact signing.
+- Added `tools/security/run_vulnerability_scan.py` as an explicit wrapper for `pip-audit`
+  and `osv-scanner`, with fail-closed `--require-tools` mode for hardened jobs and
+  `--allow-missing-tools` for local maintainer smoke checks.
+- Added `tools/security/generate_artifact_manifest.py` to generate release artifact SHA256
+  manifests and optional HMAC-SHA256 signatures without adding release-time dependencies.
+- Publish workflow now emits Python artifact checksum manifests before PyPI upload.
+- CI supply-chain gate now runs the vulnerability scan wrapper in non-brittle optional mode.
 
 ## Interactive Brokers API Update Policy
 
@@ -267,7 +269,7 @@ IB API updates can affect:
 
 Use dependency bots for notification if possible, but require manual review before merging.
 
-5. Add compatibility tests -- PARTIALLY IMPLEMENTED
+5. Add compatibility tests -- IMPLEMENTED
 
 Add tests around:
 
@@ -284,10 +286,8 @@ Status:
 - Coverage now verifies concrete IB contract mapping for option overrides.
 - Coverage now verifies stop-limit, GTD, MarketOnClose, MarketOnOpen, and Decimal quantity mapping.
 - Fixed IB MarketOnClose/MarketOnOpen order mapping so they no longer fall through as generic market orders.
-
-Remaining:
-
-- Add reconnect behavior tests around reader lifecycle and live gateway state transitions.
+- Added live gateway reconnect behavior coverage that verifies reconnect attempts restore
+  subscriptions after transport loss.
 
 ## Third-Party Security Gating
 
