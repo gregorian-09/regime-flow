@@ -122,8 +122,12 @@ These are used by plugin and example builds launched from a source checkout:
 
 ## Workflow Trigger Mode
 
-Repository workflows are currently configured for:
+Repository workflows intentionally separate validation from publication:
 
-- `workflow_dispatch`
+- `ci.yml`: manual `workflow_dispatch` validation for C++, Python, static analysis, sanitizers, and package consumer checks.
+- `wheels.yml`: manual `workflow_dispatch` wheel-building preflight.
+- `docs.yml`: manual `workflow_dispatch` documentation build/deploy.
+- `publish.yml`: automatic on `v*` tag pushes. This is the only workflow that publishes public release artifacts.
+- `codeql.yml`: manual `workflow_dispatch` and scheduled weekly analysis.
 
-That means CI, docs, wheels, and publish workflows are manual-trigger only from GitHub Actions.
+Release publishing is tag-based. Run `python3 tools/check_versions.py vX.Y.Z` before pushing a release tag.

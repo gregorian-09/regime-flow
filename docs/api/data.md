@@ -68,6 +68,7 @@ Related diagrams:
 ## Lifecycle & Usage Notes
 
 - Backtests typically use `MmapDataSource` + `MergedTickIterator` for deterministic playback.
+- Mmap writers compute and persist header checksums after writing payload data; readers can use the persisted checksum to detect truncated or corrupted files.
 - Live trading uses `LiveFeed` implementations and `WebSocketFeed` schema validation.
 - Data validation is designed to run pre-ingest and at runtime for backtest integrity.
 - `SymbolMetadata` should be loaded before portfolio and risk checks to ensure sizing is correct.
@@ -159,6 +160,10 @@ Throws: None.
 Parameters: None.
 Returns: Vector of bars.
 Throws: None.
+
+### Mmap Integrity
+
+`MmapWriter::write_bars` writes the data payload first, computes the SHA-256 checksum, updates the in-memory header, seeks back to the file start, and rewrites the header. This means the checksum stored on disk reflects the bytes that were actually written. Treat direct mutation of mmap files outside the writer APIs as unsupported.
 
 ### `DataSource`
 

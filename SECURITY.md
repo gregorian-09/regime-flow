@@ -89,3 +89,9 @@ python3 tools/security/check_supply_chain.py
 
 These gates verify project and vendored dependency license metadata, scan the checkout for
 obvious committed secrets, enforce vendored IB checksums, and require pinned GitHub Actions.
+
+## Native-Code Safety Gates
+
+CI includes C++ static analysis on Linux, macOS, and Windows, plus Linux ASAN/UBSAN and targeted Valgrind checks for allocator, mmap, replay journal, event bus, live order manager, and plugin-loading paths. These gates are intended to catch memory-safety regressions before release artifacts are produced.
+
+Release publication is also gated by `tools/check_versions.py`, which ensures tag, package, and changelog versions are consistent before publishing to PyPI or Linux package repositories.

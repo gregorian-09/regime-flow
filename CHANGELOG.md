@@ -8,6 +8,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Changed
+- Documented the native-code quality gates, concurrency hardening, mmap checksum persistence, live thread-safety boundaries, and tag-based publishing workflow.
 - Added a release metadata validation gate so tag-based publishing fails when package versions drift.
 - Standardized publishing ownership around `.github/workflows/publish.yml` and removed stale release logic from CI.
 - Expanded wheel publishing to include Python 3.13 and 3.14.

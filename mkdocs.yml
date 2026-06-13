@@ -85,6 +85,7 @@ nav:
     - Data Validation: reference/data-validation.md
     - Config Cheat Sheet: reference/config-cheatsheet.md
     - Broker Message Types: reference/broker-message-types.md
+    - Developer Quality Gates: reference/developer-quality-gates.md
     - Plugin API: reference/plugin-api.md
     - Plugins: reference/plugins.md
     - Transformer Regime Plugin: reference/transformer_regime_plugin.md
