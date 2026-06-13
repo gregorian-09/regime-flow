@@ -159,7 +159,7 @@ namespace regimeflow::live
             if (value == "FILLED") return LiveOrderStatus::Filled;
             if (value == "CANCELED" || value == "CANCELLED") return LiveOrderStatus::Cancelled;
             if (value == "REJECTED" || value == "EXPIRED") return LiveOrderStatus::Rejected;
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
 #ifdef REGIMEFLOW_USE_OPENSSL
@@ -514,7 +514,8 @@ namespace regimeflow::live
             get_number(*obj, "price", price);
             report.quantity = qty;
             report.price = price;
-            report.status = map_order_status(get_string(*obj, "status"));
+            report.text = get_string(*obj, "status");
+            report.status = map_order_status(report.text);
             report.timestamp = Timestamp::now();
             if (!report.broker_order_id.empty()) {
                 std::lock_guard<std::mutex> lock(mutex_);

@@ -1220,6 +1220,14 @@ namespace regimeflow::live
 
     void LiveTradingEngine::handle_execution_report(const ExecutionReport& report) {
         order_manager_->handle_execution_report(report);
+        if (report.status == LiveOrderStatus::Error) {
+            const std::string message = "Unknown or invalid broker order state"
+                + (report.text.empty() ? std::string() : ": " + report.text);
+            add_alert(message);
+            if (error_cb_) {
+                error_cb_(message);
+            }
+        }
         if (audit_logger_) {
             if (report.status == LiveOrderStatus::New) {
                 AuditEvent event;
@@ -1244,7 +1252,8 @@ namespace regimeflow::live
                 event.metadata["broker_order_id"] = report.broker_order_id;
                 audit_logger_->log(event);
             } else if (report.status == LiveOrderStatus::Rejected ||
-                       report.status == LiveOrderStatus::Inactive) {
+                       report.status == LiveOrderStatus::Inactive ||
+                       report.status == LiveOrderStatus::Error) {
                 AuditEvent event;
                 event.timestamp = report.timestamp;
                 event.type = AuditEvent::Type::OrderRejected;

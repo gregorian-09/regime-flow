@@ -184,7 +184,7 @@ namespace regimeflow::live
             if (value == "rejected") {
                 return LiveOrderStatus::Rejected;
             }
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
         LiveOrderStatus parse_trade_update_status_local(const std::string& value) {
@@ -207,7 +207,7 @@ namespace regimeflow::live
             if (v == "new" || v == "accepted") {
                 return LiveOrderStatus::New;
             }
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
         const common::JsonValue::Object* as_object(const common::JsonValue& value) {
@@ -351,12 +351,14 @@ namespace regimeflow::live
             }
             if (status.empty()) {
                 if (auto event = optional_string(*payload, "event"); event.is_ok()) {
-                    report.status = parse_trade_update_status_local(event.value());
+                    report.text = event.value();
+                    report.status = parse_trade_update_status_local(report.text);
                 } else {
                     return Result<ExecutionReport>(Error(Error::Code::ParseError, "Missing status/event"));
                 }
             } else {
-                report.status = parse_order_status(status);
+                report.text = status;
+                report.status = parse_order_status(report.text);
             }
             report.timestamp = Timestamp::now();
             return Result<ExecutionReport>(report);
@@ -642,7 +644,8 @@ namespace regimeflow::live
             report.side = side.value() == "sell" ? engine::OrderSide::Sell : engine::OrderSide::Buy;
             report.quantity = qty.value();
             if (avg_price.is_ok()) report.price = avg_price.value();
-            report.status = parse_order_status(status.value());
+            report.text = status.value();
+            report.status = parse_order_status(report.text);
             report.timestamp = Timestamp::now();
             out.push_back(report);
         }

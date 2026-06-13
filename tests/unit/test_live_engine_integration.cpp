@@ -43,7 +43,12 @@ namespace regimeflow::test
     class MockBrokerAdapter final : public live::BrokerAdapter {
     public:
         Result<void> connect() override {
+            connect_count_.fetch_add(1);
+            if (!connect_ok_.load()) {
+                return Result<void>(Error(Error::Code::NetworkError, "mock reconnect failure"));
+            }
             connected_ = true;
+            cv_.notify_all();
             return Ok();
         }
 
@@ -238,6 +243,28 @@ namespace regimeflow::test
             cv_.notify_all();
         }
 
+        void force_disconnect() {
+            connected_ = false;
+            cv_.notify_all();
+        }
+
+        void set_connect_ok(const bool value) {
+            connect_ok_ = value;
+            cv_.notify_all();
+        }
+
+        bool wait_for_connect_count(const int expected,
+                                    const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) const {
+            std::unique_lock<std::mutex> lock(mutex_);
+            return cv_.wait_for(lock, timeout, [&] { return connect_count_.load() >= expected; });
+        }
+
+        bool wait_for_subscription_count(const std::size_t expected,
+                                         const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) const {
+            std::unique_lock<std::mutex> lock(mutex_);
+            return cv_.wait_for(lock, timeout, [&] { return subscribed_.size() >= expected; });
+        }
+
         void emit_execution_report(const live::ExecutionReport& report) {
             std::function<void(const live::ExecutionReport&)> exec_cb;
             {
@@ -281,6 +308,8 @@ namespace regimeflow::test
 
     private:
         std::atomic<bool> connected_{false};
+        std::atomic<bool> connect_ok_{true};
+        std::atomic<int> connect_count_{0};
         std::vector<std::string> subscribed_;
         std::function<void(const live::MarketDataUpdate&)> market_cb_;
         std::function<void(const live::ExecutionReport&)> exec_cb_;
@@ -467,6 +496,50 @@ namespace regimeflow::test
                    && payload->id.rfind("dry_run:", 0) == 0;
         });
         EXPECT_TRUE(found_risk_or_dry_run);
+    }
+
+    TEST(LiveEngineIntegration, AlertsOnUnknownBrokerOrderState) {
+        strategy::StrategyFactory::instance().register_creator(
+            "unknown_state_noop", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
+
+        auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "mock";
+        cfg.strategy_name = "unknown_state_noop";
+        cfg.strategy_config.set("type", "unknown_state_noop");
+        cfg.symbols = {"UNKNOWNSTATE"};
+        cfg.log_dir = fresh_log_dir("regimeflow_unknown_state_test");
+
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        std::mutex mutex;
+        std::condition_variable cv;
+        std::vector<std::string> errors;
+        engine->on_error([&](const std::string& message) {
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                errors.push_back(message);
+            }
+            cv.notify_all();
+        });
+
+        ASSERT_TRUE(engine->start().is_ok());
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
+
+        live::ExecutionReport report;
+        report.broker_order_id = "BROKER-UNKNOWN";
+        report.symbol = "UNKNOWNSTATE";
+        report.status = live::LiveOrderStatus::Error;
+        report.text = "BROKER_SUPERPOSITION";
+        report.timestamp = fixed_timestamp(999);
+        broker_ptr->emit_execution_report(report);
+
+        std::unique_lock<std::mutex> lock(mutex);
+        ASSERT_TRUE(cv.wait_for(lock, std::chrono::milliseconds(500), [&] { return !errors.empty(); }));
+        EXPECT_NE(errors.back().find("BROKER_SUPERPOSITION"), std::string::npos);
+
+        engine->stop();
     }
 
     TEST(LiveEngineIntegration, DryRunOrdersAreAuditedWithoutBrokerSubmit) {
@@ -775,6 +848,37 @@ namespace regimeflow::test
             return std::ranges::find(errors, "Heartbeat timeout: no market data") != errors.end()
                    && std::ranges::find(errors, "Trading disabled because market data is stale") != errors.end();
         }, std::chrono::milliseconds(500)));
+
+        engine->stop();
+    }
+
+    TEST(LiveEngineIntegration, ReconnectResubscribesSymbolsAfterTransportDrop) {
+        strategy::StrategyFactory::instance().register_creator(
+            "noop_reconnect", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
+        auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
+
+        live::LiveConfig cfg;
+        cfg.broker_type = "mock";
+        cfg.strategy_name = "noop_reconnect";
+        cfg.strategy_config.set("type", "noop_reconnect");
+        cfg.symbols = {"RECON1", "RECON2"};
+        cfg.log_dir = fresh_log_dir("regimeflow_reconnect_test");
+        cfg.enable_auto_reconnect = true;
+        cfg.reconnect_initial = Duration::milliseconds(1);
+        cfg.reconnect_max = Duration::milliseconds(2);
+        cfg.heartbeat_timeout = Duration::seconds(60);
+
+        auto engine = std::make_unique<live::LiveTradingEngine>(cfg, std::move(broker));
+        ASSERT_TRUE(engine->start().is_ok());
+        ASSERT_TRUE(broker_ptr->wait_for_callbacks());
+        ASSERT_TRUE(broker_ptr->wait_for_connect_count(1));
+
+        broker_ptr->force_disconnect();
+
+        EXPECT_TRUE(broker_ptr->wait_for_connect_count(2));
+        EXPECT_TRUE(broker_ptr->wait_for_subscription_count(2));
+        EXPECT_TRUE(engine->get_status().connected);
 
         engine->stop();
     }

@@ -61,7 +61,7 @@ namespace regimeflow::live
             if (value == "SUBMITTED" || value == "PRESUBMITTED") {
                 return LiveOrderStatus::New;
             }
-            return LiveOrderStatus::New;
+            return LiveOrderStatus::Error;
         }
 
         bool quote_complete(const data::Quote& quote) {
