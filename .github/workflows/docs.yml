@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
@@ -25,27 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install mkdocs-material mkdocs-mermaid2-plugin
       - name: Build site
-        run: mkdocs build -f mkdocs.yml -d site
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
-        with:
-          path: site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-    steps:
-      - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
-        with:
-          name: github-pages
-          path: site-artifact
-
-      - name: Unpack site artifact
-        run: |
-          mkdir -p site
-          tar -xf site-artifact/artifact.tar -C site
+        run: mkdocs build --strict -f mkdocs.yml -d site
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@329bcc8f12caed2cefe5a5b80781499a6f3b361b
