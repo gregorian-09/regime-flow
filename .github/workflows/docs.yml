@@ -5,6 +5,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 
 concurrency:
@@ -14,8 +16,20 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          path: source
+
+      - name: Checkout existing gh-pages assets
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          ref: gh-pages
+          path: gh-pages-existing
+
       - name: Set up Python
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548
         with:
@@ -25,9 +39,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install mkdocs-material mkdocs-mermaid2-plugin
       - name: Build site
-        run: mkdocs build --strict -f mkdocs.yml -d site
+        working-directory: source
+        run: mkdocs build --strict -f mkdocs.yml -d ../site
 
-      - name: Deploy to gh-pages
+      - name: Preserve package repositories
+        run: |
+          if [ -d gh-pages-existing/packages ]; then
+            cp -a gh-pages-existing/packages site/packages
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+
+      - name: Sync gh-pages branch
         uses: peaceiris/actions-gh-pages@329bcc8f12caed2cefe5a5b80781499a6f3b361b
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
