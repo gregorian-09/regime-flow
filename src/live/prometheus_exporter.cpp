@@ -90,6 +90,8 @@ namespace regimeflow::live
                     ? http_response(200, "OK", body, "text/plain; version=0.0.4")
                     : http_response(404, "Not Found", body, "text/plain");
                 boost::asio::write(socket, boost::asio::buffer(response), ec);
+                socket.shutdown(tcp::socket::shutdown_both, ec);
+                socket.close(ec);
             }
         }
 #endif
@@ -157,7 +159,18 @@ namespace regimeflow::live
         }
 #if defined(REGIMEFLOW_USE_BOOST_BEAST)
         if (impl_->acceptor) {
+            const auto port = impl_->bound_port;
             boost::system::error_code ec;
+            if (port != 0) {
+                using boost::asio::ip::tcp;
+                boost::asio::io_context wake_ioc;
+                tcp::socket wake_socket(wake_ioc);
+                wake_socket.connect(
+                    tcp::endpoint(boost::asio::ip::make_address(impl_->config.host, ec), port),
+                    ec);
+                wake_socket.close(ec);
+            }
+            impl_->acceptor->cancel(ec);
             impl_->acceptor->close(ec);
         }
         if (impl_->thread.joinable()) {
