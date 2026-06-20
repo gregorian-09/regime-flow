@@ -438,6 +438,14 @@ if(ENABLE_WEBSOCKET)
     if(REGIMEFLOW_BOOST_HEADER_DIR)
         list(APPEND REGIMEFLOW_BOOST_INCLUDE_DIRS "${REGIMEFLOW_BOOST_HEADER_DIR}")
     endif()
+    set(REGIMEFLOW_BOOST_BUILD_INCLUDE_DIRS)
+    foreach(_boost_include IN LISTS REGIMEFLOW_BOOST_INCLUDE_DIRS)
+        if(IS_ABSOLUTE "${_boost_include}"
+           AND NOT _boost_include MATCHES "^${CMAKE_SOURCE_DIR}(/|$)"
+           AND NOT _boost_include MATCHES "^${CMAKE_BINARY_DIR}(/|$)")
+            list(APPEND REGIMEFLOW_BOOST_BUILD_INCLUDE_DIRS "$<BUILD_INTERFACE:${_boost_include}>")
+        endif()
+    endforeach()
 
     set(REGIMEFLOW_BOOST_SYSTEM_LIBRARIES ${Boost_LIBRARIES})
     find_library(REGIMEFLOW_BOOST_SYSTEM_LIBRARY
@@ -467,7 +475,7 @@ if(ENABLE_WEBSOCKET)
         else()
             target_include_directories(regimeflow_data
                 PUBLIC
-                    $<BUILD_INTERFACE:${REGIMEFLOW_BOOST_INCLUDE_DIRS}>
+                    ${REGIMEFLOW_BOOST_BUILD_INCLUDE_DIRS}
             )
             target_link_libraries(regimeflow_data PUBLIC ${REGIMEFLOW_BOOST_SYSTEM_LIBRARIES})
             if(NOT REGIMEFLOW_BOOST_SYSTEM_LIBRARIES)
