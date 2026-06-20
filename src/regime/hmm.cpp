@@ -488,15 +488,14 @@ namespace regimeflow::regime
     }
 
     RegimeState HMMRegimeDetector::detect(const FeatureVector& features, const Timestamp timestamp) {
+        constexpr double kMinPriorProbability = 1e-12;
         std::vector<double> logp(states_, 0.0);
         for (int i = 0; i < states_; ++i) {
             double prior = 0.0;
             for (int j = 0; j < states_; ++j) {
                 prior += probabilities_[j] * transition_[j][i];
             }
-            if (prior <= 0) {
-                prior = 1e-12;
-            }
+            prior = std::max(prior, kMinPriorProbability);
             const double emission = log_gaussian(features, emissions_[i]);
             logp[i] = std::log(prior) + emission;
         }

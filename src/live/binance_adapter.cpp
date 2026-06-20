@@ -172,7 +172,7 @@ namespace regimeflow::live
                  digest, &len);
             std::ostringstream out;
             out.setf(std::ios::hex, std::ios::basefield);
-            out.fill('0');
+            static_cast<void>(out.fill('0'));
             for (unsigned int i = 0; i < len; ++i) {
                 out.width(2);
                 out << static_cast<int>(digest[i]);

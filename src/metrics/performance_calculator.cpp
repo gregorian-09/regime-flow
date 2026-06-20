@@ -313,11 +313,13 @@ namespace regimeflow::metrics
         }
 
         std::vector<double> drawdowns;
-        double peak = equity_curve.front().equity;
-        for (const auto& snap : equity_curve) {
-            peak = std::max(peak, snap.equity);
-            double dd = peak > 0.0 ? (peak - snap.equity) / peak : 0.0;
-            drawdowns.push_back(dd * dd);
+        if (!equity_curve.empty()) {
+            double peak = equity_curve.front().equity;
+            for (const auto& snap : equity_curve) {
+                peak = std::max(peak, snap.equity);
+                double dd = peak > 0.0 ? (peak - snap.equity) / peak : 0.0;
+                drawdowns.push_back(dd * dd);
+            }
         }
         summary.ulcer_index = drawdowns.empty() ? 0.0 : std::sqrt(mean(drawdowns));
 

@@ -314,7 +314,7 @@ namespace regimeflow::walkforward
 
         struct LabeledBar {
             Timestamp ts;
-            regime::RegimeType regime;
+            regime::RegimeType regime = regime::RegimeType::Neutral;
         };
         std::vector<LabeledBar> labeled;
         labeled.reserve(bars.size());
