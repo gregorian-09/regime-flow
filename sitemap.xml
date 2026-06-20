@@ -2,342 +2,342 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/common/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/coverage-audit/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/data/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/engine/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/events/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/execution/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/file-index/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/live/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/metrics/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/plugins/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/public-symbol-index/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/python-metrics-validation/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/python/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/regime/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/risk/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/strategy/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/api/walkforward/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/diagrams/component-diagram/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/diagrams/sequence-backtest/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/diagrams/sequence-live/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/diagrams/structural-flow/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/diagrams/uml-class-diagram/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/architecture/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/backtest-methodology/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/broker-streaming/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/data-flow/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/event-model/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/execution-costs/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/execution-flow/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/execution-models/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/hmm-math/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/live-order-reconciliation/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/live-resiliency/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/message-bus/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/order-state-machine/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/overview/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/performance-metrics/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/portfolio-model/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/regime-detection/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/regime-features/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/regime-transitions/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/risk-controls/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/risk-limits-deep/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/slippage-math/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/strategy-selection/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/explanation/walk-forward/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/getting-started/installation/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/getting-started/overview/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/getting-started/project-layout/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/getting-started/quick-install/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/getting-started/quickstart/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/getting-started/troubleshooting/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/guide/backtesting/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/guide/data-sources/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/guide/execution-models/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/guide/regime-detection/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/guide/risk-management/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/guide/strategies/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/guide/walkforward/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/live/brokers/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/live/config/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/live/overview/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/live/production-readiness/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/live/resilience/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/python/cli/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/python/overview/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/python/workflow/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/broker-message-types/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/config-cheatsheet/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/configuration/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/data-validation/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/developer-quality-gates/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/environment-and-flags/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/plugin-api/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/plugins/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reference/transformer_regime_plugin/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reports/intraday_strategy_tradecheck/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reports/multi_intraday_report/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/reports/transformer_regime_report/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/tutorials/examples/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/tutorials/python-usage/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/tutorials/quant-custom-regime-workflow/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
     <url>
          <loc>https://gregorian-09.github.io/regime-flow/tutorials/quant-workflow/</loc>
-         <lastmod>2026-06-14</lastmod>
+         <lastmod>2026-06-20</lastmod>
     </url>
 </urlset>
