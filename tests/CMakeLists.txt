@@ -142,6 +142,7 @@ target_compile_definitions(regimeflow_tests PRIVATE
     REGIMEFLOW_TEST_ROOT="${CMAKE_SOURCE_DIR}"
 )
 if(TARGET ibapi)
+    target_include_directories(regimeflow_tests BEFORE PRIVATE ${Protobuf_INCLUDE_DIRS})
     target_compile_definitions(regimeflow_tests PRIVATE REGIMEFLOW_ENABLE_IBAPI)
 endif()
 
