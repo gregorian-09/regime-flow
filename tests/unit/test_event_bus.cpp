@@ -15,12 +15,12 @@ namespace regimeflow::test
 
         std::mutex mutex;
         std::condition_variable cv;
-        std::atomic<int> received{0};
+        int received = 0;
 
         const auto sub = bus.subscribe(regimeflow::live::LiveTopic::MarketData, [&](const regimeflow::live::LiveMessage& msg) {
             if (std::get_if<regimeflow::live::MarketDataUpdate>(&msg.payload)) {
-                received.fetch_add(1);
                 std::lock_guard<std::mutex> lock(mutex);
+                ++received;
                 cv.notify_one();
             }
         });
@@ -40,9 +40,9 @@ namespace regimeflow::test
         bus.publish(std::move(msg));
 
         std::unique_lock<std::mutex> lock(mutex);
-        cv.wait_for(lock, std::chrono::milliseconds(500), [&] { return received.load() > 0; });
+        ASSERT_TRUE(cv.wait_for(lock, std::chrono::seconds(5), [&] { return received > 0; }));
 
-        EXPECT_EQ(received.load(), 1);
+        EXPECT_EQ(received, 1);
 
         bus.unsubscribe(sub);
         bus.stop();
