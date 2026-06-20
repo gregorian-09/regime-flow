@@ -422,10 +422,35 @@ endif()
 endif()
 
 if(ENABLE_WEBSOCKET)
-    find_package(Boost QUIET COMPONENTS system)
+    find_package(Boost CONFIG QUIET COMPONENTS system)
+    if(NOT Boost_FOUND AND CMAKE_VERSION VERSION_LESS 4.0)
+        find_package(Boost QUIET COMPONENTS system)
+    endif()
+
+    set(REGIMEFLOW_BOOST_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
+    if(NOT REGIMEFLOW_BOOST_INCLUDE_DIRS AND DEFINED Boost_INCLUDE_DIR)
+        list(APPEND REGIMEFLOW_BOOST_INCLUDE_DIRS "${Boost_INCLUDE_DIR}")
+    endif()
+    find_path(REGIMEFLOW_BOOST_HEADER_DIR
+        NAMES boost/asio/io_context.hpp boost/beast/core.hpp
+        HINTS ${REGIMEFLOW_BOOST_INCLUDE_DIRS}
+    )
+    if(REGIMEFLOW_BOOST_HEADER_DIR)
+        list(APPEND REGIMEFLOW_BOOST_INCLUDE_DIRS "${REGIMEFLOW_BOOST_HEADER_DIR}")
+    endif()
+
+    set(REGIMEFLOW_BOOST_SYSTEM_LIBRARIES ${Boost_LIBRARIES})
+    find_library(REGIMEFLOW_BOOST_SYSTEM_LIBRARY
+        NAMES boost_system boost_system-mt
+        HINTS ${Boost_LIBRARY_DIRS}
+    )
+    if(REGIMEFLOW_BOOST_SYSTEM_LIBRARY)
+        list(APPEND REGIMEFLOW_BOOST_SYSTEM_LIBRARIES "${REGIMEFLOW_BOOST_SYSTEM_LIBRARY}")
+    endif()
+
     set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND OFF)
-    if(Boost_FOUND)
-        foreach(_boost_include IN LISTS Boost_INCLUDE_DIRS)
+    if(Boost_FOUND OR REGIMEFLOW_BOOST_INCLUDE_DIRS)
+        foreach(_boost_include IN LISTS REGIMEFLOW_BOOST_INCLUDE_DIRS)
             if(EXISTS "${_boost_include}/boost/asio/io_context.hpp"
                AND EXISTS "${_boost_include}/boost/beast/core.hpp")
                 set(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND ON)
@@ -433,18 +458,18 @@ if(ENABLE_WEBSOCKET)
             endif()
         endforeach()
     endif()
-    if(Boost_FOUND AND REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND)
+    if(REGIMEFLOW_BOOST_WEBSOCKET_HEADERS_FOUND AND (TARGET Boost::system OR REGIMEFLOW_BOOST_SYSTEM_LIBRARIES))
         target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_BOOST_BEAST)
-        if(TARGET Boost::headers)
+        if(TARGET Boost::headers AND TARGET Boost::system)
             target_link_libraries(regimeflow_data PUBLIC Boost::headers Boost::system)
-        elseif(TARGET Boost::boost)
+        elseif(TARGET Boost::boost AND TARGET Boost::system)
             target_link_libraries(regimeflow_data PUBLIC Boost::boost Boost::system)
         else()
             target_include_directories(regimeflow_data
                 PUBLIC
-                    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+                    $<BUILD_INTERFACE:${REGIMEFLOW_BOOST_INCLUDE_DIRS}>
             )
-            target_link_libraries(regimeflow_data PUBLIC Boost::system)
+            target_link_libraries(regimeflow_data PUBLIC ${REGIMEFLOW_BOOST_SYSTEM_LIBRARIES})
         endif()
         set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
     elseif(REGIMEFLOW_FETCH_DEPS)
