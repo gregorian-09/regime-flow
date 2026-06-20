@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
+#include <exception>
 #include <iostream>
 #include <optional>
 #include <sstream>
@@ -184,7 +185,7 @@ namespace
     }
 }  // namespace
 
-int main(int argc, char** argv) {
+int alpaca_fetch_main_impl(int argc, char** argv) {
     load_dotenv(".env");
 
     std::string symbols_value = "AAPL";
@@ -379,4 +380,16 @@ int main(int argc, char** argv) {
     }
 
     return 0;
+}
+
+int main(int argc, char** argv) {
+    try {
+        return alpaca_fetch_main_impl(argc, argv);
+    } catch (const std::exception& ex) {
+        std::cerr << "regimeflow_alpaca_fetch error: " << ex.what() << '\n';
+        return 1;
+    } catch (...) {
+        std::cerr << "regimeflow_alpaca_fetch error: unknown exception" << '\n';
+        return 1;
+    }
 }

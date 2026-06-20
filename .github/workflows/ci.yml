@@ -133,6 +133,9 @@ jobs:
           --suppress=unmatchedSuppression \
           --suppress=invalidPointerCast \
           --suppress=preprocessorErrorDirective \
+          -ibuild/_deps \
+          -ithird_party \
+          -ivcpkg_installed \
           -j2 \
           --error-exitcode=2 \
           --file-filter='include/*' \
@@ -246,6 +249,9 @@ jobs:
           --suppress=unmatchedSuppression \
           --suppress=invalidPointerCast \
           --suppress=preprocessorErrorDirective \
+          -ibuild/_deps \
+          -ithird_party \
+          -ivcpkg_installed \
           -j2 \
           --error-exitcode=2 \
           --file-filter='include/*' \
@@ -356,6 +362,9 @@ jobs:
           --suppress=unmatchedSuppression `
           --suppress=invalidPointerCast `
           --suppress=preprocessorErrorDirective `
+          -ibuild/_deps `
+          -ithird_party `
+          -ivcpkg_installed `
           -j2 `
           --error-exitcode=2 `
           "--file-filter=include/*" `

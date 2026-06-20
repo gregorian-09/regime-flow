@@ -3,6 +3,7 @@
 #include "regimeflow/events/event.h"
 
 #include <cstdint>
+#include <exception>
 #include <iostream>
 #include <string>
 #include <variant>
@@ -52,7 +53,7 @@ namespace {
     }
 }  // namespace
 
-int main(int argc, char** argv) {
+int replay_journal_main_impl(int argc, char** argv) {
     std::string input;
     std::string currency = "USD";
     double initial_capital = 100000.0;
@@ -108,4 +109,16 @@ int main(int argc, char** argv) {
 
     print_summary(summary);
     return 0;
+}
+
+int main(int argc, char** argv) {
+    try {
+        return replay_journal_main_impl(argc, argv);
+    } catch (const std::exception& ex) {
+        std::cerr << "regimeflow_replay_journal error: " << ex.what() << '\n';
+        return 1;
+    } catch (...) {
+        std::cerr << "regimeflow_replay_journal error: unknown exception" << '\n';
+        return 1;
+    }
 }

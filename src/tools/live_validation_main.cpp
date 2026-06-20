@@ -14,6 +14,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <fstream>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -590,7 +591,7 @@ namespace
     }
 }  // namespace
 
-int main(int argc, char** argv) {
+int live_validation_main_impl(int argc, char** argv) {
     ValidationOptions options;
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg(argv[i]);
@@ -617,4 +618,16 @@ int main(int argc, char** argv) {
         return 1;
     }
     return run_validation(options);
+}
+
+int main(int argc, char** argv) {
+    try {
+        return live_validation_main_impl(argc, argv);
+    } catch (const std::exception& ex) {
+        std::cerr << "regimeflow_live_validate error: " << ex.what() << '\n';
+        return 1;
+    } catch (...) {
+        std::cerr << "regimeflow_live_validate error: unknown exception" << '\n';
+        return 1;
+    }
 }

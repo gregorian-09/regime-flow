@@ -9,6 +9,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <fstream>
+#include <exception>
 #include <iostream>
 #include <ctime>
 #include <map>
@@ -322,7 +323,7 @@ namespace
     }
 }  // namespace
 
-int main(int argc, char** argv) {
+int live_main_impl(int argc, char** argv) {
     load_dotenv(".env");
     if (argc < 3 || std::string(argv[1]) != "--config") {
         std::cerr << "Usage: regimeflow_live --config <path>\n";
@@ -389,4 +390,16 @@ int main(int argc, char** argv) {
     engine.stop();
     log_line("Live engine stopped (disconnected)");
     return 0;
+}
+
+int main(int argc, char** argv) {
+    try {
+        return live_main_impl(argc, argv);
+    } catch (const std::exception& ex) {
+        std::cerr << "regimeflow_live error: " << ex.what() << '\n';
+        return 1;
+    } catch (...) {
+        std::cerr << "regimeflow_live error: unknown exception" << '\n';
+        return 1;
+    }
 }
