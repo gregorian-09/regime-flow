@@ -476,7 +476,7 @@ if(ENABLE_WEBSOCKET)
             target_link_libraries(regimeflow_data PUBLIC Boost::boost Boost::system)
         else()
             target_include_directories(regimeflow_data
-                PUBLIC
+                SYSTEM PUBLIC
                     ${REGIMEFLOW_BOOST_BUILD_INCLUDE_DIRS}
             )
             target_link_libraries(regimeflow_data PUBLIC ${REGIMEFLOW_BOOST_SYSTEM_LIBRARIES})
