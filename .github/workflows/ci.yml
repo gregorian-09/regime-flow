@@ -354,7 +354,14 @@ jobs:
     - name: Static analysis (cppcheck)
       shell: pwsh
       run: |
-        cppcheck --project=build/compile_commands.json `
+        $cppcheck = (Get-Command cppcheck -ErrorAction SilentlyContinue).Source
+        if (-not $cppcheck) {
+          $cppcheck = Join-Path $env:ProgramFiles "Cppcheck\cppcheck.exe"
+        }
+        if (-not (Test-Path $cppcheck)) {
+          throw "cppcheck executable not found after Chocolatey install"
+        }
+        & $cppcheck --project=build/compile_commands.json `
           --std=c++20 `
           --enable=warning,portability `
           --inline-suppr `
