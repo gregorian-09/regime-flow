@@ -295,7 +295,9 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
             message(FATAL_ERROR "Protobuf >= ${_regimeflow_required_protobuf_version} is required for the bundled IB API generated sources.")
         endif()
     endif()
-    target_include_directories(ibapi PUBLIC ${Protobuf_INCLUDE_DIRS})
+    # Keep the protobuf headers matched to the vendored IB-generated stubs ahead
+    # of broad package-manager include directories such as /opt/homebrew/include.
+    target_include_directories(ibapi BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
     find_package(Threads REQUIRED)
     target_link_libraries(ibapi PUBLIC Threads::Threads)
     if(_regimeflow_protobuf_target)
@@ -849,6 +851,7 @@ endif()
 
 if(ENABLE_IBAPI AND TARGET ibapi)
     target_link_libraries(regimeflow_live PUBLIC ibapi)
+    target_include_directories(regimeflow_live BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
     target_include_directories(regimeflow_live PRIVATE ${IBAPI_ROOT})
 endif()
 

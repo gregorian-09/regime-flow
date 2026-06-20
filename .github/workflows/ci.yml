@@ -420,6 +420,7 @@ jobs:
       if: runner.os != 'Windows'
       env:
         REGIMEFLOW_VCPKG_SOURCE_PATH: ${{ github.workspace }}
+        VCPKG_KEEP_ENV_VARS: REGIMEFLOW_VCPKG_SOURCE_PATH
       run: |
         cmake -S packaging/vcpkg-consumer -B build-vcpkg-consumer -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
@@ -432,6 +433,7 @@ jobs:
       shell: pwsh
       env:
         REGIMEFLOW_VCPKG_SOURCE_PATH: ${{ github.workspace }}
+        VCPKG_KEEP_ENV_VARS: REGIMEFLOW_VCPKG_SOURCE_PATH
       run: |
         $ninja = (Get-Command ninja).Source
         $crt = "MultiThreadedDLL"
