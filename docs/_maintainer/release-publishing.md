@@ -35,7 +35,8 @@ python3 tools/check_versions.py v1.0.12
 
 ## PyPI Publishing
 
-PyPI publishing should use Trusted Publishing with GitHub OIDC, not a long-lived API token.
+PyPI publishing prefers the repository secret `PYPI_API_TOKEN` when it is configured. If
+that secret is absent, the workflow falls back to Trusted Publishing with GitHub OIDC.
 
 One-time PyPI project configuration:
 
@@ -45,7 +46,9 @@ One-time PyPI project configuration:
 - Environment: `pypi`
 - Package name: `regimeflow`
 
-The GitHub job named `Publish to PyPI` uses the `pypi` environment and has `id-token: write` permission. If Trusted Publishing is not configured on PyPI, the job will fail before upload.
+The GitHub job named `Publish to PyPI` uses the `pypi` environment and has
+`id-token: write` permission. If `PYPI_API_TOKEN` is absent and Trusted Publishing is not
+configured on PyPI, the job will fail before upload with `invalid-publisher`.
 
 ## Wheel Coverage
 

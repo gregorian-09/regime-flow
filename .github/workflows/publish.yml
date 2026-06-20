@@ -117,6 +117,8 @@ jobs:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment: pypi
+    env:
+      HAS_PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN != '' }}
     permissions:
       contents: write
       id-token: write
@@ -170,7 +172,16 @@ jobs:
             publish-dist/*
             artifact-verification/*
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI with API token
+        if: env.HAS_PYPI_API_TOKEN == 'true'
+        uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3
+        with:
+          packages-dir: publish-dist
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish to PyPI with trusted publishing
+        if: env.HAS_PYPI_API_TOKEN != 'true'
         uses: pypa/gh-action-pypi-publish@61da13deb5f5124fb1536194f82ed3d9bbc7e8f3
         with:
           packages-dir: publish-dist
