@@ -72,7 +72,7 @@ namespace regimeflow::events
      * @brief Payload for market events.
      */
     struct MarketEventPayload {
-        MarketEventKind kind;
+        MarketEventKind kind = MarketEventKind::Bar;
         std::variant<data::Bar, data::Tick, data::Quote, data::OrderBook> data;
     };
 
@@ -80,7 +80,7 @@ namespace regimeflow::events
      * @brief Payload for order events.
      */
     struct OrderEventPayload {
-        OrderEventKind kind;
+        OrderEventKind kind = OrderEventKind::NewOrder;
         OrderId order_id = 0;
         OrderId parent_order_id = 0;
         FillId fill_id = 0;
@@ -96,7 +96,7 @@ namespace regimeflow::events
      * @brief Payload for system events.
      */
     struct SystemEventPayload {
-        SystemEventKind kind;
+        SystemEventKind kind = SystemEventKind::DayStart;
         int64_t code = 0;
         std::string id;
     };
