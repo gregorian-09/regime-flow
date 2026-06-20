@@ -64,7 +64,7 @@ jobs:
           libeigen3-dev libboost-all-dev \
           libprotobuf-dev protobuf-compiler \
           libssl-dev libcurl4-openssl-dev \
-          libzmq3-dev libhiredis-dev librdkafka-dev \
+          libzmq3-dev cppzmq-dev libhiredis-dev librdkafka-dev \
           libintelrdfpmath-dev
 
     - name: Configure ccache
@@ -183,7 +183,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake ninja eigen boost protobuf ccache cppcheck hiredis zeromq librdkafka pkg-config
+        brew install cmake ninja eigen boost protobuf ccache cppcheck hiredis zeromq cppzmq librdkafka pkg-config
         python -m venv .venv
         . .venv/bin/activate
         python -m pip install --upgrade pip
@@ -476,7 +476,7 @@ jobs:
           libeigen3-dev libboost-all-dev \
           libprotobuf-dev protobuf-compiler \
           libssl-dev libcurl4-openssl-dev \
-          libzmq3-dev libhiredis-dev librdkafka-dev \
+          libzmq3-dev cppzmq-dev libhiredis-dev librdkafka-dev \
           libintelrdfpmath-dev
 
     - name: Configure clang-tidy build
@@ -510,7 +510,7 @@ jobs:
           libeigen3-dev libboost-all-dev \
           libprotobuf-dev protobuf-compiler \
           libssl-dev libcurl4-openssl-dev \
-          libzmq3-dev libhiredis-dev librdkafka-dev \
+          libzmq3-dev cppzmq-dev libhiredis-dev librdkafka-dev \
           libintelrdfpmath-dev
 
     - name: Configure sanitizer build
