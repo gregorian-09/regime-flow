@@ -1,7 +1,8 @@
 #include "regimeflow/live/live_order_manager.h"
 
 #include <algorithm>
-#include <charconv>
+#include <cerrno>
+#include <cstdlib>
 #include <optional>
 #include <ranges>
 #include <sstream>
@@ -74,11 +75,10 @@ namespace regimeflow::live
             if (it == order.metadata.end() || it->second.empty()) {
                 return std::nullopt;
             }
-            double value = 0.0;
-            const auto* begin = it->second.data();
-            const auto* end = begin + it->second.size();
-            const auto [ptr, ec] = std::from_chars(begin, end, value);
-            if (ec != std::errc{} || ptr != end) {
+            errno = 0;
+            char* end = nullptr;
+            const double value = std::strtod(it->second.c_str(), &end);
+            if (errno == ERANGE || end == it->second.c_str() || *end != '\0') {
                 return std::nullopt;
             }
             return value;
