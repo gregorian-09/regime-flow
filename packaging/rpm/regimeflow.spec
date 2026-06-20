@@ -32,7 +32,8 @@ cmake -S . -B build \
   -DENABLE_KAFKA=OFF \
   -DENABLE_POSTGRES=OFF \
   -DENABLE_CURL=OFF \
-  -DENABLE_OPENSSL=OFF
+  -DENABLE_OPENSSL=OFF \
+  -DENABLE_WEBSOCKET=OFF
 cmake --build build --parallel %{?_smp_build_ncpus}
 
 %install
