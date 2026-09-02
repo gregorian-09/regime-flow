@@ -114,8 +114,18 @@ _configure_windows_dll_search()
 
 _core = _import_core()
 
+
+# Re-export the extension's public surface explicitly. This preserves normal
+# module introspection and ``from regimeflow._bootstrap import Name`` without
+# copying private import metadata from the native module into this wrapper.
+__all__ = [name for name in dir(_core) if not name.startswith("_")]
+for _export_name in __all__:
+    globals()[_export_name] = getattr(_core, _export_name)
+del _export_name
+
+
 def __getattr__(name: str):
-    """Forward public extension attributes without polluting this module's namespace."""
+    """Forward extension attributes that are not part of the stable public surface."""
     try:
         return getattr(_core, name)
     except AttributeError as exc:
@@ -124,6 +134,3 @@ def __getattr__(name: str):
 
 def __dir__() -> list[str]:
     return sorted(set(globals()) | set(dir(_core)))
-
-
-__all__ = [name for name in dir(_core) if not name.startswith("_")]

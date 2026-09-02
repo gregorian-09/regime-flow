@@ -60,6 +60,21 @@ def test_regime_type_exposes_custom_value():
     assert rf.RegimeType.CUSTOM is not None
 
 
+def test_bootstrap_reexports_native_surface_without_private_namespace_leakage():
+    from regimeflow import _bootstrap
+
+    assert _bootstrap.Config is rf.Config
+    assert _bootstrap.engine is rf.engine
+    assert "Config" in vars(_bootstrap)
+    assert "__builtins__" in vars(_bootstrap)
+    assert "__spec__" in vars(_bootstrap)
+
+    namespace: dict[str, object] = {}
+    exec("from regimeflow._bootstrap import *", namespace)
+    assert namespace["Config"] is rf.Config
+    assert namespace["engine"] is rf.engine
+
+
 def test_config_rejects_integers_outside_int64_range():
     with pytest.raises(OverflowError):
         rf.Config({"too_large": 2**63})
