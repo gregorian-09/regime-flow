@@ -1,5 +1,17 @@
 # Backtesting
 
+## Deterministic Time
+
+`BacktestEngine` is the authoritative clock for simulated execution. It supplies the event-loop
+timestamp to its `OrderManager` and `ExecutionPipeline`, so orders created without an explicit
+timestamp, status changes, fills, and latency activation use simulated time rather than wall-clock
+time. Supplying `Order::created_at` explicitly is still recommended when injecting orders outside
+strategy callbacks.
+
+The engine also guarantees that event-system post hooks run once even when a payload-specific hook
+cancels normal processing. This makes audit and cleanup hooks reliable for skipped market, order,
+and system events.
+
 This guide covers how backtests are constructed, how the engine consumes data, and how results are produced.
 
 ## Backtest Pipeline

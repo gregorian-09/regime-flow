@@ -1,10 +1,18 @@
 import os
 import sys
+from pathlib import Path
 import pytest
 
-TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
-if not TEST_ROOT:
-    pytest.skip("REGIMEFLOW_TEST_ROOT not set", allow_module_level=True)
+TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT", str(Path(__file__).resolve().parents[2]))
+
+if not any(
+    candidate.glob("_core*.*")
+    for candidate in [
+        Path(TEST_ROOT) / "python" / "regimeflow",
+        *sorted(Path(TEST_ROOT).glob("build*/python")),
+    ]
+):
+    pytest.skip("native RegimeFlow bindings are not built", allow_module_level=True)
 
 build_python = os.path.join(TEST_ROOT, "build", "python")
 source_python = os.path.join(TEST_ROOT, "python")
@@ -46,6 +54,21 @@ def test_timestamp_roundtrip():
     dt = ts.to_datetime()
     ts2 = rf.Timestamp.from_datetime(dt)
     assert abs(ts2.value - ts.value) < 1_000_000
+
+
+def test_regime_type_exposes_custom_value():
+    assert rf.RegimeType.CUSTOM is not None
+
+
+def test_config_rejects_integers_outside_int64_range():
+    with pytest.raises(OverflowError):
+        rf.Config({"too_large": 2**63})
+
+
+def test_backtest_config_from_yaml_reports_missing_file():
+    missing = Path(TEST_ROOT) / "tests" / "fixtures" / "does-not-exist.yaml"
+    with pytest.raises(FileNotFoundError, match="does not exist"):
+        rf.BacktestConfig.from_yaml(str(missing))
 
 
 def test_order_symbol_mapping():

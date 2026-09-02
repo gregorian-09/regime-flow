@@ -982,7 +982,9 @@ namespace regimeflow::data
 #ifdef REGIMEFLOW_USE_BOOST_BEAST
         if (!connected_) {
             if (config_.auto_reconnect) {
-                auto now = std::chrono::steady_clock::now();
+                const auto now = config_.reconnect_clock
+                    ? config_.reconnect_clock()
+                    : std::chrono::steady_clock::now();
                 if (now >= next_reconnect_) {
                     auto result = connect();
                     if (result.is_err()) {

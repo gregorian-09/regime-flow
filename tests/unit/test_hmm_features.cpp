@@ -86,6 +86,23 @@ namespace
         EXPECT_GT(v[1], 0.0);
     }
 
+    TEST(FeatureExtractorTest, InvalidBookDoesNotAlterFeatureHistory) {
+        regimeflow::regime::FeatureExtractor extractor(3);
+        extractor.set_features({regimeflow::regime::FeatureType::BidAskSpread});
+
+        regimeflow::data::OrderBook invalid{};
+        const auto invalid_features = extractor.on_book(invalid);
+        ASSERT_EQ(invalid_features.size(), 1u);
+        EXPECT_EQ(invalid_features[0], 0.0);
+
+        regimeflow::data::OrderBook valid{};
+        valid.bids[0] = {99.0, 10.0};
+        valid.asks[0] = {101.0, 10.0};
+        const auto valid_features = extractor.on_book(valid);
+        ASSERT_EQ(valid_features.size(), 1u);
+        EXPECT_GT(valid_features[0], 0.0);
+    }
+
     TEST(FeatureExtractorTest, EmitsCrossAssetFeatures) {
         regimeflow::regime::FeatureExtractor extractor(3);
         extractor.set_features({regimeflow::regime::FeatureType::MarketBreadth,

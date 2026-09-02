@@ -286,18 +286,18 @@ private:
 
 template<typename T>
 /**
- * @brief Helper to construct a successful Result<T>.
+ * @brief Construct a successful Result<T>.
  * @tparam T Value type.
  * @param value Value to wrap.
  * @return Result containing the value.
  */
-[[nodiscard]] Result<T> Ok(T value) { return Result<T>(std::move(value)); }
+[[nodiscard]] Result<T> ok(T value) { return Result<T>(std::move(value)); }
 
 /**
- * @brief Helper to construct a successful Result<void>.
+ * @brief Construct a successful Result<void>.
  * @return Success result.
  */
-[[nodiscard]] inline Result<void> Ok() { return {}; }
+[[nodiscard]] inline Result<void> ok() { return {}; }
 
 #if defined(__cpp_lib_format)
 
@@ -310,7 +310,7 @@ template<typename... Args>
  * @param args Format arguments.
  * @return Error with formatted message.
  */
-[[nodiscard]] Error Err(Error::Code code, std::string_view fmt, Args&&... args) {
+[[nodiscard]] Error err(Error::Code code, std::string_view fmt, Args&&... args) {
     return Error(code, std::vformat(fmt, std::make_format_args(args...)));
 }
 
@@ -324,10 +324,29 @@ template<typename... Args>
  * @param fmt String to use as the message.
  * @return Error with the provided message.
  */
-[[nodiscard]] Error Err(const Error::Code code, const std::string_view fmt, Args&&...) {
+[[nodiscard]] Error err(const Error::Code code, const std::string_view fmt, Args&&...) {
     return {code, std::string(fmt)};
 }
 
+#endif
+
+// Compatibility spellings retained for existing consumers. New public and
+// internal code should use the project's snake_case helpers above.
+template<typename T>
+[[nodiscard]] Result<T> Ok(T value) { return ok(std::move(value)); }
+
+[[nodiscard]] inline Result<void> Ok() { return ok(); }
+
+#if defined(__cpp_lib_format)
+template<typename... Args>
+[[nodiscard]] Error Err(Error::Code code, std::string_view fmt, Args&&... args) {
+    return err(code, fmt, std::forward<Args>(args)...);
+}
+#else
+template<typename... Args>
+[[nodiscard]] Error Err(const Error::Code code, const std::string_view fmt, Args&&... args) {
+    return err(code, fmt, std::forward<Args>(args)...);
+}
 #endif
 
 /**

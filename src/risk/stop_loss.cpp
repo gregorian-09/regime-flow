@@ -28,7 +28,7 @@ namespace regimeflow::risk
             state.exit_requested = false;
             state.prev_close = position.current_price;
             state.true_ranges.clear();
-            } else {
+        } else {
                 state.entry_price = position.avg_cost;
                 state.highest = std::max(state.highest, position.current_price);
                 state.lowest = std::min(state.lowest, position.current_price);
@@ -129,7 +129,7 @@ namespace regimeflow::risk
             if (ts.microseconds() - state.entry_time.microseconds()
                 >= config_.max_holding_seconds * 1'000'000LL) {
                 trigger = true;
-                }
+            }
         }
 
         if (!trigger) {

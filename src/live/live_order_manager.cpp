@@ -10,22 +10,7 @@
 namespace regimeflow::live
 {
     namespace {
-
-        const char* status_name(const LiveOrderStatus status) {
-            switch (status) {
-            case LiveOrderStatus::PendingNew: return "PendingNew";
-            case LiveOrderStatus::New: return "New";
-            case LiveOrderStatus::PartiallyFilled: return "PartiallyFilled";
-            case LiveOrderStatus::Filled: return "Filled";
-            case LiveOrderStatus::PendingCancel: return "PendingCancel";
-            case LiveOrderStatus::Cancelled: return "Cancelled";
-            case LiveOrderStatus::Rejected: return "Rejected";
-            case LiveOrderStatus::Expired: return "Expired";
-            case LiveOrderStatus::Inactive: return "Inactive";
-            case LiveOrderStatus::Error: return "Error";
-            default: return "Unknown";
-            }
-        }
+        constexpr size_t kMaxPendingReportsPerBrokerOrder = 64;
 
         bool is_valid_transition(const LiveOrderStatus from, const LiveOrderStatus to) {
             if (from == to) {
@@ -96,29 +81,48 @@ namespace regimeflow::live
             return Result<engine::OrderId>(Error(Error::Code::InvalidArgument, "Order validation failed"));
         }
         const Timestamp now = Timestamp::now();
-        if (order.id != 0) {
-            const auto existing = orders_.find(order.id);
-            if (existing != orders_.end() && !is_terminal_status(existing->second.status)) {
+        const std::string order_key = duplicate_key(order);
+        engine::OrderId id = 0;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (order.id != 0) {
+                const auto existing = orders_.find(order.id);
+                if ((existing != orders_.end() && !is_terminal_status(existing->second.status)) ||
+                    pending_submission_keys_.contains(order.id)) {
+                    execution_quality_.record_submit_rejected(now);
+                    Error error(Error::Code::AlreadyExists, "Duplicate live order id rejected");
+                    error.details = "order_id=" + std::to_string(order.id);
+                    return Result<engine::OrderId>(std::move(error));
+                }
+            }
+            if (is_duplicate_order(order, now)) {
                 execution_quality_.record_submit_rejected(now);
-                Error error(Error::Code::AlreadyExists, "Duplicate live order id rejected");
-                error.details = "order_id=" + std::to_string(order.id);
+                Error error(Error::Code::AlreadyExists, "Duplicate live order rejected");
+                error.details = order_key;
                 return Result<engine::OrderId>(std::move(error));
             }
-        }
-        if (is_duplicate_order(order, now)) {
-            execution_quality_.record_submit_rejected(now);
-            Error error(Error::Code::AlreadyExists, "Duplicate live order rejected");
-            error.details = duplicate_key(order);
-            return Result<engine::OrderId>(std::move(error));
+
+            id = order.id != 0 ? order.id : next_order_id_++;
+            if (id >= next_order_id_) {
+                next_order_id_ = id + 1;
+            }
+            // Reserve the ID while the broker call executes outside the mutex.
+            pending_submission_keys_.emplace(id, order_key);
+            if (duplicate_order_window_us_ > 0) {
+                recent_order_keys_[order_key] = now;
+            }
         }
 
-        engine::OrderId id = order.id != 0 ? order.id : next_order_id_++;
-        if (id >= next_order_id_) {
-            next_order_id_ = id + 1;
-        }
         auto broker_id = broker_->submit_order(order);
         if (broker_id.is_err()) {
-            execution_quality_.record_submit_rejected(Timestamp::now());
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                pending_submission_keys_.erase(id);
+                if (duplicate_order_window_us_ > 0) {
+                    recent_order_keys_.erase(order_key);
+                }
+                execution_quality_.record_submit_rejected(Timestamp::now());
+            }
             const auto& err = broker_id.error();
             Error copy(err.code, err.message, err.location);
             copy.details = err.details;
@@ -142,21 +146,45 @@ namespace regimeflow::live
         live.created_at = order.created_at.microseconds() ? order.created_at : Timestamp::now();
         live.submitted_at = Timestamp::now();
         live.status = LiveOrderStatus::PendingNew;
-        orders_[id] = live;
-        execution_quality_.record_submitted(live);
-
-        for (const auto& cb : order_callbacks_) {
-            cb(live);
+        std::vector<ExecutionReport> pending_reports;
+        std::vector<std::function<void(const ExecutionReport&)>> exec_callbacks;
+        std::vector<std::function<void(const LiveOrder&)>> order_callbacks;
+        std::vector<LiveOrder> order_updates;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            pending_submission_keys_.erase(id);
+            orders_[id] = live;
+            execution_quality_.record_submitted(live);
+            order_updates.push_back(live);
+            if (auto reports = pending_reports_.find(live.broker_order_id);
+                reports != pending_reports_.end()) {
+                pending_reports = std::move(reports->second);
+                pending_reports_.erase(reports);
+                for (const auto& report : pending_reports) {
+                    update_order_state(orders_.at(id), report);
+                    execution_quality_.record_execution_report(orders_.at(id), report);
+                    order_updates.push_back(orders_.at(id));
+                }
+            }
+            exec_callbacks = exec_callbacks_;
+            order_callbacks = order_callbacks_;
         }
-
-        if (duplicate_order_window_us_ > 0) {
-            recent_order_keys_[duplicate_key(order)] = now;
+        for (const auto& updated : order_updates) {
+            for (const auto& cb : order_callbacks) {
+                cb(updated);
+            }
+        }
+        for (const auto& report : pending_reports) {
+            for (const auto& cb : exec_callbacks) {
+                cb(report);
+            }
         }
 
         return Result<engine::OrderId>(id);
     }
 
     void LiveOrderManager::set_duplicate_order_window(const Duration window) {
+        std::lock_guard<std::mutex> lock(mutex_);
         duplicate_order_window_us_ = std::max<int64_t>(0, window.total_microseconds());
         if (duplicate_order_window_us_ == 0) {
             recent_order_keys_.clear();
@@ -167,39 +195,70 @@ namespace regimeflow::live
         if (!broker_) {
             return Result<void>(Error(Error::Code::InvalidState, "Broker adapter not configured"));
         }
-        const auto it = orders_.find(id);
-        if (it == orders_.end()) {
-            return Result<void>(Error(Error::Code::NotFound, "Order not found"));
+        std::string broker_order_id;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            const auto it = orders_.find(id);
+            if (it == orders_.end()) {
+                return Result<void>(Error(Error::Code::NotFound, "Order not found"));
+            }
+            broker_order_id = it->second.broker_order_id;
         }
-        if (auto res = broker_->cancel_order(it->second.broker_order_id); res.is_err()) {
+        if (auto res = broker_->cancel_order(broker_order_id); res.is_err()) {
             return res;
         }
-        it->second.status = LiveOrderStatus::PendingCancel;
-        for (const auto& cb : order_callbacks_) {
-            cb(it->second);
+        LiveOrder updated;
+        std::vector<std::function<void(const LiveOrder&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            const auto it = orders_.find(id);
+            if (it == orders_.end()) {
+                return Result<void>(Error(Error::Code::NotFound, "Order disappeared during cancellation"));
+            }
+            if (is_terminal_status(it->second.status)) {
+                return Ok();
+            }
+            it->second.status = LiveOrderStatus::PendingCancel;
+            updated = it->second;
+            callbacks = order_callbacks_;
+        }
+        for (const auto& cb : callbacks) {
+            cb(updated);
         }
         return Ok();
     }
 
     Result<void> LiveOrderManager::cancel_all_orders() {
-        for (const auto& order : orders_ | std::views::values) {
-            if (order.status == LiveOrderStatus::New || order.status == LiveOrderStatus::PendingNew ||
-                order.status == LiveOrderStatus::PartiallyFilled) {
-                if (auto res = broker_->cancel_order(order.broker_order_id); res.is_err()) {
-                    return res;
+        std::vector<engine::OrderId> ids;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            for (const auto& [id, order] : orders_) {
+                if (order.status == LiveOrderStatus::New || order.status == LiveOrderStatus::PendingNew ||
+                    order.status == LiveOrderStatus::PartiallyFilled) {
+                    ids.push_back(id);
                 }
-                }
+            }
+        }
+        for (const auto id : ids) {
+            if (auto res = cancel_order(id); res.is_err()) {
+                return res;
+            }
         }
         return Ok();
     }
 
     Result<void> LiveOrderManager::cancel_orders(const std::string& symbol) {
-        for (const auto& order : orders_ | std::views::values) {
-            if (order.symbol != symbol) {
-                continue;
+        std::vector<engine::OrderId> ids;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            for (const auto& [id, order] : orders_) {
+                if (order.symbol == symbol && !is_terminal_status(order.status)) {
+                    ids.push_back(id);
+                }
             }
-            auto res = broker_->cancel_order(order.broker_order_id);
-            if (res.is_err()) {
+        }
+        for (const auto id : ids) {
+            if (auto res = cancel_order(id); res.is_err()) {
                 return res;
             }
         }
@@ -211,17 +270,23 @@ namespace regimeflow::live
         if (!broker_) {
             return Result<void>(Error(Error::Code::InvalidState, "Broker adapter not configured"));
         }
-        const auto it = orders_.find(id);
-        if (it == orders_.end()) {
-            return Result<void>(Error(Error::Code::NotFound, "Order not found"));
+        std::string broker_order_id;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            const auto it = orders_.find(id);
+            if (it == orders_.end()) {
+                return Result<void>(Error(Error::Code::NotFound, "Order not found"));
+            }
+            broker_order_id = it->second.broker_order_id;
         }
-        if (auto res = broker_->modify_order(it->second.broker_order_id, mod); res.is_err()) {
+        if (auto res = broker_->modify_order(broker_order_id, mod); res.is_err()) {
             return res;
         }
         return Ok();
     }
 
     std::optional<LiveOrder> LiveOrderManager::get_order(engine::OrderId id) const {
+        std::lock_guard<std::mutex> lock(mutex_);
         auto it = orders_.find(id);
         if (it == orders_.end()) {
             return std::nullopt;
@@ -230,6 +295,7 @@ namespace regimeflow::live
     }
 
     std::vector<LiveOrder> LiveOrderManager::get_open_orders() const {
+        std::lock_guard<std::mutex> lock(mutex_);
         std::vector<LiveOrder> out;
         for (const auto& order : orders_ | std::views::values) {
             if (order.status == LiveOrderStatus::PendingNew || order.status == LiveOrderStatus::New ||
@@ -242,6 +308,7 @@ namespace regimeflow::live
     }
 
     std::vector<LiveOrder> LiveOrderManager::get_orders_by_status(LiveOrderStatus status) const {
+        std::lock_guard<std::mutex> lock(mutex_);
         std::vector<LiveOrder> out;
         for (const auto& order : orders_ | std::views::values) {
             if (order.status == status) {
@@ -252,26 +319,41 @@ namespace regimeflow::live
     }
 
     void LiveOrderManager::on_execution_report(std::function<void(const ExecutionReport&)> cb) {
+        std::lock_guard<std::mutex> lock(mutex_);
         exec_callbacks_.push_back(std::move(cb));
     }
 
     void LiveOrderManager::on_order_update(std::function<void(const LiveOrder&)> cb) {
+        std::lock_guard<std::mutex> lock(mutex_);
         order_callbacks_.push_back(std::move(cb));
     }
 
     void LiveOrderManager::handle_execution_report(const ExecutionReport& report) {
-        for (auto& order : orders_ | std::views::values) {
-            if (order.broker_order_id == report.broker_order_id) {
-                update_order_state(order, report);
-                execution_quality_.record_execution_report(order, report);
-                for (const auto& cb : exec_callbacks_) {
-                    cb(report);
+        std::vector<std::function<void(const ExecutionReport&)>> exec_callbacks;
+        std::vector<std::function<void(const LiveOrder&)>> order_callbacks;
+        std::optional<LiveOrder> updated;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            const auto order_it = std::ranges::find_if(
+                orders_, [&report](const auto& entry) { return entry.second.broker_order_id == report.broker_order_id; });
+            if (order_it == orders_.end()) {
+                auto& pending = pending_reports_[report.broker_order_id];
+                if (pending.size() < kMaxPendingReportsPerBrokerOrder) {
+                    pending.push_back(report);
                 }
-                for (const auto& cb : order_callbacks_) {
-                    cb(order);
-                }
-                break;
+                return;
             }
+            update_order_state(order_it->second, report);
+            execution_quality_.record_execution_report(order_it->second, report);
+            updated = order_it->second;
+            exec_callbacks = exec_callbacks_;
+            order_callbacks = order_callbacks_;
+        }
+        for (const auto& cb : exec_callbacks) {
+            cb(report);
+        }
+        for (const auto& cb : order_callbacks) {
+            cb(*updated);
         }
     }
 
@@ -279,22 +361,22 @@ namespace regimeflow::live
         if (!broker_) {
             return Result<void>(Error(Error::Code::InvalidState, "Broker adapter not configured"));
         }
-        for (const auto reports = broker_->get_open_orders(); const auto& report : reports) {
-            bool found = false;
-            for (auto& order : orders_ | std::views::values) {
-                if (order.broker_order_id == report.broker_order_id) {
-                    update_order_state(order, report);
-                    for (const auto& cb : exec_callbacks_) {
-                        cb(report);
-                    }
-                    for (const auto& cb : order_callbacks_) {
-                        cb(order);
-                    }
-                    found = true;
-                    break;
+        const auto reports = broker_->get_open_orders();
+        std::vector<std::pair<ExecutionReport, LiveOrder>> updated;
+        std::vector<LiveOrder> added;
+        std::vector<std::function<void(const ExecutionReport&)>> exec_callbacks;
+        std::vector<std::function<void(const LiveOrder&)>> order_callbacks;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            for (const auto& report : reports) {
+                const auto order_it = std::ranges::find_if(
+                    orders_, [&report](const auto& entry) { return entry.second.broker_order_id == report.broker_order_id; });
+                if (order_it != orders_.end()) {
+                    update_order_state(order_it->second, report);
+                    execution_quality_.record_execution_report(order_it->second, report);
+                    updated.emplace_back(report, order_it->second);
+                    continue;
                 }
-            }
-            if (!found) {
                 LiveOrder live;
                 live.internal_id = next_order_id_++;
                 live.broker_order_id = report.broker_order_id;
@@ -307,9 +389,22 @@ namespace regimeflow::live
                 live.status_message = report.text;
                 live.acked_at = report.timestamp;
                 orders_[live.internal_id] = live;
-                for (const auto& cb : order_callbacks_) {
-                    cb(live);
-                }
+                added.push_back(std::move(live));
+            }
+            exec_callbacks = exec_callbacks_;
+            order_callbacks = order_callbacks_;
+        }
+        for (const auto& [report, order] : updated) {
+            for (const auto& cb : exec_callbacks) {
+                cb(report);
+            }
+            for (const auto& cb : order_callbacks) {
+                cb(order);
+            }
+        }
+        for (const auto& order : added) {
+            for (const auto& cb : order_callbacks) {
+                cb(order);
             }
         }
         return Ok();
@@ -338,6 +433,7 @@ namespace regimeflow::live
 
     std::optional<engine::OrderId> LiveOrderManager::find_order_id_by_broker_id(
         const std::string& broker_order_id) const {
+        std::lock_guard<std::mutex> lock(mutex_);
         for (const auto& [id, order] : orders_) {
             if (order.broker_order_id == broker_order_id) {
                 return id;
@@ -353,6 +449,7 @@ namespace regimeflow::live
         if (broker_order_id.empty()) {
             return;
         }
+        std::lock_guard<std::mutex> lock(mutex_);
         LiveOrder live;
         if (const auto it = orders_.find(internal_id); it != orders_.end()) {
             live = it->second;
@@ -371,14 +468,29 @@ namespace regimeflow::live
 
 
     const ExecutionQualitySnapshot& LiveOrderManager::execution_quality() const noexcept {
+        thread_local ExecutionQualitySnapshot snapshot;
+        snapshot = execution_quality_snapshot();
+        return snapshot;
+    }
+
+    ExecutionQualitySnapshot LiveOrderManager::execution_quality_snapshot() const {
+        std::lock_guard<std::mutex> lock(mutex_);
         return execution_quality_.snapshot();
     }
 
     const std::vector<ExecutionQualitySample>& LiveOrderManager::execution_quality_samples() const noexcept {
+        thread_local std::vector<ExecutionQualitySample> samples;
+        samples = execution_quality_samples_snapshot();
+        return samples;
+    }
+
+    std::vector<ExecutionQualitySample> LiveOrderManager::execution_quality_samples_snapshot() const {
+        std::lock_guard<std::mutex> lock(mutex_);
         return execution_quality_.samples();
     }
 
     void LiveOrderManager::record_reference_quote(const engine::OrderId id, const data::Quote& quote) {
+        std::lock_guard<std::mutex> lock(mutex_);
         if (!orders_.contains(id)) {
             return;
         }
@@ -431,7 +543,8 @@ namespace regimeflow::live
             const auto from = order.status;
             order.status = LiveOrderStatus::Error;
             order.status_message = std::string("Invalid transition from ")
-                + status_name(from) + " to " + status_name(report.status);
+                + std::string(live_order_status_name(from)) + " to "
+                + std::string(live_order_status_name(report.status));
             return;
         }
         order.broker_exec_id = report.broker_exec_id;

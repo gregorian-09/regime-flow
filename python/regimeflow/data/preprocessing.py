@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import pandas as pd
 
 
-def normalize_timezone(df: pd.DataFrame, timestamp_col: str = "timestamp", tz: Optional[str] = None) -> pd.DataFrame:
+def normalize_timezone(df: pd.DataFrame, timestamp_col: str = "timestamp", tz: str | None = None) -> pd.DataFrame:
     if timestamp_col not in df.columns:
         raise ValueError(f"DataFrame must include '{timestamp_col}' column")
     out = df.copy()
@@ -20,7 +18,7 @@ def fill_missing_time_bars(
     df: pd.DataFrame,
     freq: str,
     timestamp_col: str = "timestamp",
-    price_cols: Optional[list[str]] = None,
+    price_cols: list[str] | None = None,
 ) -> pd.DataFrame:
     if timestamp_col not in df.columns:
         raise ValueError(f"DataFrame must include '{timestamp_col}' column")

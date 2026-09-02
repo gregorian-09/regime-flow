@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -152,14 +153,34 @@ namespace regimeflow::live
                            LiveOrderStatus status);
 
         /**
-         * @brief Access aggregated live execution-quality metrics.
+         * @brief Access a thread-local snapshot of aggregated execution-quality metrics.
+         *
+         * This legacy reference-returning API remains for source compatibility. The reference
+         * is valid until the next call on the same thread. New concurrent code should prefer
+         * execution_quality_snapshot().
          */
         [[nodiscard]] const ExecutionQualitySnapshot& execution_quality() const noexcept;
 
         /**
-         * @brief Access retained execution-quality observations.
+         * @brief Return a thread-safe copy of aggregate execution-quality metrics.
+         *
+         * Prefer this method from code that can run concurrently with broker callbacks.
+         */
+        [[nodiscard]] ExecutionQualitySnapshot execution_quality_snapshot() const;
+
+        /**
+         * @brief Access a thread-local snapshot of retained execution-quality observations.
+         *
+         * This legacy reference-returning API remains for source compatibility. The reference
+         * is valid until the next call on the same thread. New concurrent code should prefer
+         * execution_quality_samples_snapshot().
          */
         [[nodiscard]] const std::vector<ExecutionQualitySample>& execution_quality_samples() const noexcept;
+
+        /**
+         * @brief Return a thread-safe copy of retained execution-quality observations.
+         */
+        [[nodiscard]] std::vector<ExecutionQualitySample> execution_quality_samples_snapshot() const;
 
         /**
          * @brief Attach the quote visible at broker submission time for spread attribution.
@@ -173,11 +194,16 @@ namespace regimeflow::live
         [[nodiscard]] bool is_duplicate_order(const engine::Order& order, Timestamp now);
 
 
+        // All mutable order, duplicate-detection, quality, and callback state is serialized
+        // here. Broker calls and user callbacks are deliberately made after releasing it.
+        mutable std::mutex mutex_;
         std::unordered_map<engine::OrderId, LiveOrder> orders_;
         BrokerAdapter* broker_ = nullptr;
         engine::OrderId next_order_id_ = 1;
         int64_t duplicate_order_window_us_ = 0;
         std::unordered_map<std::string, Timestamp> recent_order_keys_;
+        std::unordered_map<std::string, std::vector<ExecutionReport>> pending_reports_;
+        std::unordered_map<engine::OrderId, std::string> pending_submission_keys_;
 
         ExecutionQualityTracker execution_quality_;
 

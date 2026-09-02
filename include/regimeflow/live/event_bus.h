@@ -7,8 +7,6 @@
 
 #include "regimeflow/live/broker_adapter.h"
 #include "regimeflow/live/types.h"
-#include "regimeflow/common/memory.h"
-
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -89,26 +87,26 @@ namespace regimeflow::live
          * @param message Message to publish.
          */
         void publish(LiveMessage message);
+        /**
+         * @brief Publish only while the bus accepts messages.
+         * @return False after stop() has begun or when the bus is not started.
+         */
+        [[nodiscard]] bool try_publish(LiveMessage message);
 
     private:
         void dispatch_loop();
 
-        /**
-         * @brief Internal node used for the pending list.
-         */
-        struct Node {
-            LiveMessage message;
-            Node* next = nullptr;
-        };
-
-        void drain_pending();
-
         std::atomic<bool> running_{false};
+        // Serializes lifecycle transitions so start() cannot reopen admission
+        // while stop() is waiting for publishers and joining the dispatcher.
+        std::mutex lifecycle_mutex_;
+        std::mutex publisher_mutex_;
+        std::condition_variable publisher_cv_;
+        bool accepting_ = false;
+        size_t active_publishers_ = 0;
         std::mutex queue_mutex_;
         std::condition_variable queue_cv_;
         std::queue<LiveMessage> queue_;
-        std::atomic<Node*> pending_{nullptr};
-        common::PoolAllocator<Node> pool_{1024};
 
         std::mutex sub_mutex_;
         SubscriptionId next_id_ = 1;

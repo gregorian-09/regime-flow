@@ -1345,11 +1345,8 @@ Callables:
 - `bool operator()(const Event& a, const Event& b) const`
 - `void push(Event event)`
 - `event.sequence = next_sequence_.fetch_add(1, std::memory_order_relaxed);`
-- `Node* node = pool_.allocate();`
-- `new (node) Node{std::move(event), nullptr};`
-- `Node* prev = pending_.exchange(node, std::memory_order_acq_rel);`
+- `queue_.push(std::move(event));`
 - `std::optional<Event> pop()`
-- `drain_pending();`
 - `Event event = queue_.top();`
 - `queue_.pop();`
 - `std::optional<Event> peek()`
@@ -1639,6 +1636,7 @@ Callables:
 - `SubscriptionId subscribe(LiveTopic topic, Callback callback);`
 - `void unsubscribe(SubscriptionId id);`
 - `void publish(LiveMessage message);`
+- `[[nodiscard]] bool try_publish(LiveMessage message);`
 
 ### `regimeflow/live/ib_adapter.h`
 
@@ -2462,4 +2460,3 @@ Callables:
 - `void on_regime_train(RegimeTrainingHook callback);`
 - `void on_regime_trained(RegimeTrainingCallback callback);`
 - `void cancel();`
-

@@ -254,7 +254,9 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
     endif()
     set(_regimeflow_required_protobuf_version ${_regimeflow_ibapi_protobuf_version})
     set(_regimeflow_protobuf_target "")
-    find_package(Protobuf ${_regimeflow_required_protobuf_version} QUIET)
+    # Protobuf's C++ runtime has no ABI compatibility guarantee across releases,
+    # so the vendor gencode and runtime must be the exact same release.
+    find_package(Protobuf ${_regimeflow_required_protobuf_version} EXACT QUIET)
     set(_protobuf_has_required_headers OFF)
     if(Protobuf_FOUND)
         foreach(_proto_inc IN LISTS Protobuf_INCLUDE_DIRS)
@@ -277,7 +279,10 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
             include(FetchContent)
             FetchContent_Declare(
                 protobuf
-                URL https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.21.12.zip
+                GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+                # v3.21.12: immutable commit for the bundled IB generated stubs.
+                GIT_TAG 5bc92c917a0714d0b37cbb9dcbbf434d132edc00
+                GIT_SHALLOW TRUE
             )
             set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
             set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -292,7 +297,7 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
                 set(_regimeflow_protobuf_target protobuf::libprotobuf)
             endif()
         else()
-            message(FATAL_ERROR "Protobuf >= ${_regimeflow_required_protobuf_version} is required for the bundled IB API generated sources.")
+            message(FATAL_ERROR "Protobuf exactly ${_regimeflow_required_protobuf_version} is required for the bundled IB API generated sources.")
         endif()
     endif()
     # Keep the protobuf headers matched to the vendored IB-generated stubs ahead
@@ -406,6 +411,8 @@ if(PostgreSQL_FOUND)
         target_link_libraries(regimeflow_data PRIVATE ${PostgreSQL_LIBRARIES})
     endif()
     set(REGIMEFLOW_PACKAGE_NEEDS_POSTGRES ON PARENT_SCOPE)
+else()
+    message(WARNING "ENABLE_POSTGRES=ON but PostgreSQL was not found; database source support is not built.")
 endif()
 endif()
 
@@ -420,6 +427,8 @@ if(CURL_FOUND)
         target_link_libraries(regimeflow_data PRIVATE ${CURL_LIBRARIES})
     endif()
     set(REGIMEFLOW_PACKAGE_NEEDS_CURL ON PARENT_SCOPE)
+else()
+    message(WARNING "ENABLE_CURL=ON but libcurl was not found; HTTP data-source support is not built.")
 endif()
 endif()
 
@@ -485,8 +494,8 @@ if(ENABLE_WEBSOCKET)
             endif()
         endif()
         set(REGIMEFLOW_PACKAGE_NEEDS_BOOST_SYSTEM ON PARENT_SCOPE)
-    elseif(REGIMEFLOW_FETCH_DEPS)
-        message(FATAL_ERROR "ENABLE_WEBSOCKET=ON requires Boost.Asio, Boost.Beast, and Boost.System; install Boost or configure with -DENABLE_WEBSOCKET=OFF.")
+    else()
+        message(WARNING "ENABLE_WEBSOCKET=ON but Boost.Asio, Boost.Beast, and Boost.System were not found; WebSocket support is not built. REGIMEFLOW_FETCH_DEPS does not fetch Boost; provide it through your package manager or dependency provider.")
     endif()
 endif()
 
@@ -496,6 +505,8 @@ if(OpenSSL_FOUND)
     target_compile_definitions(regimeflow_data PUBLIC REGIMEFLOW_USE_OPENSSL)
     target_link_libraries(regimeflow_data PRIVATE OpenSSL::SSL OpenSSL::Crypto)
     set(REGIMEFLOW_PACKAGE_NEEDS_OPENSSL ON PARENT_SCOPE)
+else()
+    message(WARNING "ENABLE_OPENSSL=ON but OpenSSL was not found; TLS WebSocket support is not built.")
 endif()
 endif()
 
@@ -714,6 +725,8 @@ find_package(OpenSSL QUIET)
 if(OpenSSL_FOUND)
     target_compile_definitions(regimeflow_live PRIVATE REGIMEFLOW_USE_OPENSSL)
     target_link_libraries(regimeflow_live PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+else()
+    message(WARNING "ENABLE_OPENSSL=ON but OpenSSL was not found; TLS-dependent live adapters are not built.")
 endif()
 endif()
 
@@ -805,11 +818,9 @@ if(ENABLE_ZMQ OR ENABLE_REDIS OR ENABLE_KAFKA)
                     # so <hiredis/hiredis.h> resolves when building from source.
                     set(HIREDIS_SHIM_DIR "${hiredis_BINARY_DIR}/include")
                     file(MAKE_DIRECTORY "${HIREDIS_SHIM_DIR}/hiredis")
-                    file(GLOB HIREDIS_HEADERS "${hiredis_SOURCE_DIR}/*.h")
-                    file(COPY ${HIREDIS_HEADERS} DESTINATION "${HIREDIS_SHIM_DIR}/hiredis")
-                    if(EXISTS "${hiredis_SOURCE_DIR}/adapters")
-                        file(COPY "${hiredis_SOURCE_DIR}/adapters" DESTINATION "${HIREDIS_SHIM_DIR}/hiredis")
-                    endif()
+                    file(COPY "${hiredis_SOURCE_DIR}/"
+                        DESTINATION "${HIREDIS_SHIM_DIR}/hiredis"
+                        FILES_MATCHING PATTERN "*.h")
                     target_compile_definitions(regimeflow_live PRIVATE REGIMEFLOW_USE_REDIS)
                     target_link_libraries(regimeflow_live PRIVATE hiredis)
                     target_include_directories(regimeflow_live SYSTEM PRIVATE "${HIREDIS_SHIM_DIR}")

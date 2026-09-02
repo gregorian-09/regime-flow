@@ -23,11 +23,15 @@ namespace regimeflow::data
             return std::isfinite(value);
         }
 
-        void write_bytes(std::ofstream& out, const void* data, size_t len, Sha256* sha) {
+        bool write_bytes(std::ofstream& out, const void* data, size_t len, Sha256* sha) {
             out.write(static_cast<const char*>(data), static_cast<std::streamsize>(len));
+            if (!out) {
+                return false;
+            }
             if (sha) {
                 sha->update(data, len);
             }
+            return true;
         }
 
         int32_t yyyymmdd_from_timestamp(const Timestamp& ts) {
@@ -35,7 +39,7 @@ namespace regimeflow::data
             return static_cast<int32_t>(std::stoi(text));
         }
 
-        void write_date_index(std::ofstream& out, const std::vector<DateIndex>& index) {
+        bool write_date_index(std::ofstream& out, const std::vector<DateIndex>& index) {
             for (const auto& entry : index) {
                 std::array<unsigned char, sizeof(DateIndex)> raw{};
                 std::memcpy(raw.data() + offsetof(DateIndex, date_yyyymmdd),
@@ -44,8 +48,11 @@ namespace regimeflow::data
                 std::memcpy(raw.data() + offsetof(DateIndex, offset),
                             &entry.offset,
                             sizeof(entry.offset));
-                write_bytes(out, raw.data(), raw.size(), nullptr);
+                if (!write_bytes(out, raw.data(), raw.size(), nullptr)) {
+                    return false;
+                }
             }
+            return true;
         }
 
     }  // namespace
@@ -99,7 +106,11 @@ namespace regimeflow::data
         header.bar_count = static_cast<uint64_t>(count);
         header.data_offset = sizeof(FileHeader);
 
-        size_t data_bytes = count * (sizeof(int64_t) + 4 * sizeof(double) + sizeof(uint64_t));
+        constexpr size_t bytes_per_bar = sizeof(int64_t) + 4 * sizeof(double) + sizeof(uint64_t);
+        if (count > std::numeric_limits<size_t>::max() / bytes_per_bar) {
+            return Result<void>(Error(Error::Code::OutOfRange, "Mmap output is too large"));
+        }
+        const size_t data_bytes = count * bytes_per_bar;
         header.index_offset = header.data_offset + static_cast<uint64_t>(data_bytes);
 
         std::ofstream out(path, std::ios::binary | std::ios::trunc);
@@ -107,25 +118,35 @@ namespace regimeflow::data
             return Result<void>(Error(Error::Code::IoError, "Unable to open mmap output file"));
         }
 
-        write_bytes(out, &header, sizeof(header), nullptr);
+        if (!write_bytes(out, &header, sizeof(header), nullptr)) {
+            return Result<void>(Error(Error::Code::IoError, "Unable to write mmap header"));
+        }
 
         Sha256 sha;
-        write_bytes(out, timestamps.data(), timestamps.size() * sizeof(int64_t), &sha);
-        write_bytes(out, opens.data(), opens.size() * sizeof(double), &sha);
-        write_bytes(out, highs.data(), highs.size() * sizeof(double), &sha);
-        write_bytes(out, lows.data(), lows.size() * sizeof(double), &sha);
-        write_bytes(out, closes.data(), closes.size() * sizeof(double), &sha);
-        write_bytes(out, volumes.data(), volumes.size() * sizeof(uint64_t), &sha);
+        if (!write_bytes(out, timestamps.data(), timestamps.size() * sizeof(int64_t), &sha)
+            || !write_bytes(out, opens.data(), opens.size() * sizeof(double), &sha)
+            || !write_bytes(out, highs.data(), highs.size() * sizeof(double), &sha)
+            || !write_bytes(out, lows.data(), lows.size() * sizeof(double), &sha)
+            || !write_bytes(out, closes.data(), closes.size() * sizeof(double), &sha)
+            || !write_bytes(out, volumes.data(), volumes.size() * sizeof(uint64_t), &sha)) {
+            return Result<void>(Error(Error::Code::IoError, "Unable to write mmap bar data"));
+        }
 
-        if (!index.empty()) {
-            write_date_index(out, index);
+        if (!index.empty() && !write_date_index(out, index)) {
+            return Result<void>(Error(Error::Code::IoError, "Unable to write mmap date index"));
         }
 
         auto checksum = sha.digest();
         std::memcpy(header.checksum, checksum.data(), checksum.size());
 
         out.seekp(0);
-        write_bytes(out, &header, sizeof(header), nullptr);
+        if (!out || !write_bytes(out, &header, sizeof(header), nullptr)) {
+            return Result<void>(Error(Error::Code::IoError, "Unable to persist mmap checksum"));
+        }
+        out.flush();
+        if (!out) {
+            return Result<void>(Error(Error::Code::IoError, "Unable to flush mmap output"));
+        }
         return Ok();
     }
 

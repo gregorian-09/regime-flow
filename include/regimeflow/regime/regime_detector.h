@@ -55,12 +55,17 @@ namespace regimeflow::regime
          * @return Current regime state.
          */
         virtual RegimeState on_book(const data::OrderBook& book) {
+            if (!book.has_usable_top_of_book()) {
+                RegimeState state;
+                state.timestamp = book.timestamp;
+                return state;
+            }
             data::Bar bar{};
             bar.timestamp = book.timestamp;
             bar.symbol = book.symbol;
-            double bid = book.bids[0].price;
-            double ask = book.asks[0].price;
-            double mid = (bid + ask) / 2.0;
+            const auto bid = book.best_bid();
+            const auto ask = book.best_ask();
+            const double mid = (bid->price + ask->price) / 2.0;
             bar.open = mid;
             bar.high = mid;
             bar.low = mid;

@@ -113,6 +113,10 @@ live:
 Notes:
 
 - `contracts.EURUSD` automatically maps `EURUSD` to IB `CASH` fields `symbol=EUR` and `currency=USD` unless you override `symbol_override` or `currency`.
+- TWS/Gateway's native socket protocol is plaintext. RegimeFlow accepts loopback hosts by default
+  and rejects a non-loopback `host` unless `allow_plaintext_remote: true` is set. Set that escape
+  hatch only behind a private transport boundary such as an SSH tunnel, VPN, or stunnel; it does
+  not add TLS to IB's protocol.
 - Use `primary_exchange` for smart-routed non-US equities when the contract would otherwise be ambiguous.
 - Use `local_symbol`, `trading_class`, `multiplier`, or `con_id` for futures and options that need extra disambiguation.
 

@@ -21,7 +21,7 @@ option(BUILD_DOCS "Build documentation" OFF)
 option(ENABLE_SANITIZERS "Enable address/undefined sanitizers" OFF)
 option(ENABLE_CLANG_TIDY "Run clang-tidy during compilation" OFF)
 option(ENABLE_WERROR "Treat warnings as errors" OFF)
-option(REGIMEFLOW_FETCH_DEPS "Fetch lightweight deps via FetchContent when missing" OFF)
+option(REGIMEFLOW_FETCH_DEPS "Fetch supported source dependencies when missing (explicit opt-in)" OFF)
 option(ENABLE_OPENSSL "Enable OpenSSL/WSS support" ON)
 option(ENABLE_WEBSOCKET "Enable Boost.Beast WebSocket support" ON)
 option(ENABLE_CURL "Enable libcurl HTTP support" ON)
@@ -46,25 +46,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_compile_options(
-    $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall>
-    $<$<CXX_COMPILER_ID:GNU,Clang>:-Wextra>
-    $<$<CXX_COMPILER_ID:GNU,Clang>:-Wpedantic>
-    $<$<CXX_COMPILER_ID:MSVC>:/W4>
-)
-
 if(WIN32)
-    add_compile_definitions(_WIN32_WINNT=0x0601 _WIN32_WINDOWS=0x0601)
     if(BUILD_SHARED_LIBS)
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif()
-endif()
-
-if(ENABLE_WERROR)
-    add_compile_options(
-        $<$<CXX_COMPILER_ID:GNU,Clang>:-Werror>
-        $<$<CXX_COMPILER_ID:MSVC>:/WX>
-    )
 endif()
 
 if(ENABLE_SANITIZERS AND NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -90,6 +75,35 @@ function(regimeflow_apply_sanitizers_to_directory directory)
     foreach(_regimeflow_target IN LISTS _regimeflow_targets)
         if(_regimeflow_target MATCHES "^(regimeflow_|_core)")
             regimeflow_apply_sanitizers(${_regimeflow_target})
+        endif()
+    endforeach()
+endfunction()
+
+# Keep project warning policy out of vendored and fetched dependencies.  Applying
+# this after targets are declared is intentional: CMake permits target usage
+# requirements to be added after target creation.
+function(regimeflow_apply_project_options_to_directory directory)
+    get_property(_regimeflow_targets DIRECTORY "${directory}" PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_regimeflow_target IN LISTS _regimeflow_targets)
+        if(_regimeflow_target MATCHES "^(regimeflow_|_core)")
+            target_compile_options(${_regimeflow_target} PRIVATE
+                $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall>
+                $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wextra>
+                $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wpedantic>
+                $<$<CXX_COMPILER_ID:MSVC>:/W4>
+            )
+            if(WIN32)
+                target_compile_definitions(${_regimeflow_target} PRIVATE
+                    _WIN32_WINNT=0x0601
+                    _WIN32_WINDOWS=0x0601
+                )
+            endif()
+            if(ENABLE_WERROR)
+                target_compile_options(${_regimeflow_target} PRIVATE
+                    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Werror>
+                    $<$<CXX_COMPILER_ID:MSVC>:/WX>
+                )
+            endif()
         endif()
     endforeach()
 endfunction()
@@ -124,6 +138,17 @@ endif()
 
 if(BUILD_BENCHMARKS AND EXISTS "${CMAKE_SOURCE_DIR}/benchmarks")
     add_subdirectory(benchmarks)
+endif()
+
+regimeflow_apply_project_options_to_directory(${CMAKE_SOURCE_DIR}/src)
+if(BUILD_TESTS AND EXISTS "${CMAKE_SOURCE_DIR}/tests")
+    regimeflow_apply_project_options_to_directory(${CMAKE_SOURCE_DIR}/tests)
+endif()
+if(BUILD_PYTHON_BINDINGS AND EXISTS "${CMAKE_SOURCE_DIR}/python")
+    regimeflow_apply_project_options_to_directory(${CMAKE_SOURCE_DIR}/python)
+endif()
+if(BUILD_BENCHMARKS AND EXISTS "${CMAKE_SOURCE_DIR}/benchmarks")
+    regimeflow_apply_project_options_to_directory(${CMAKE_SOURCE_DIR}/benchmarks)
 endif()
 
 regimeflow_apply_sanitizers_to_directory(${CMAKE_SOURCE_DIR}/src)

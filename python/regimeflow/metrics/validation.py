@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Protocol
+
+
+class RegimeAttributionResults(Protocol):
+    def equity_curve(self): ...
+    def regime_history(self): ...
+    def regime_metrics(self): ...
 
 
 def _regime_name(value: object) -> str:
@@ -11,7 +17,10 @@ def _regime_name(value: object) -> str:
     return str(value)
 
 
-def validate_regime_attribution(results, tolerance: float = 1.0e-6) -> Tuple[bool, str]:
+def validate_regime_attribution(
+    results: RegimeAttributionResults | None,
+    tolerance: float = 1.0e-6,
+) -> tuple[bool, str]:
     """Cross-check regime attribution against an independent recomputation.
 
     This computes returns by regime from the equity curve and the engine's regime history,
@@ -22,7 +31,7 @@ def validate_regime_attribution(results, tolerance: float = 1.0e-6) -> Tuple[boo
 
     try:
         equity = results.equity_curve()
-    except Exception as exc:  # pragma: no cover - defensive
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:  # pragma: no cover - native boundary
         return False, f"Unable to load equity curve: {exc}"
 
     if equity is None or equity.empty:
@@ -30,7 +39,7 @@ def validate_regime_attribution(results, tolerance: float = 1.0e-6) -> Tuple[boo
 
     try:
         regime_history = results.regime_history()
-    except Exception as exc:  # pragma: no cover - defensive
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:  # pragma: no cover - native boundary
         return False, f"Unable to load regime history: {exc}"
 
     if not regime_history:
@@ -38,13 +47,13 @@ def validate_regime_attribution(results, tolerance: float = 1.0e-6) -> Tuple[boo
 
     try:
         attribution = results.regime_metrics()
-    except Exception as exc:  # pragma: no cover - defensive
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:  # pragma: no cover - native boundary
         return False, f"Unable to load regime attribution: {exc}"
 
     if not attribution:
         return False, "Missing regime attribution"
 
-    timestamps: List = list(equity.index)
+    timestamps: list[object] = list(equity.index)
     equities = equity["equity"].to_list()
     if len(timestamps) != len(equities):
         return False, "Equity curve index mismatch"
@@ -53,7 +62,7 @@ def validate_regime_attribution(results, tolerance: float = 1.0e-6) -> Tuple[boo
     if not states:
         return False, "Regime history too short"
 
-    recomputed: Dict[str, Dict[str, float]] = {}
+    recomputed: dict[str, dict[str, float]] = {}
 
     if len(states) == len(equities):
         first_regime = _regime_name(states[0].regime)

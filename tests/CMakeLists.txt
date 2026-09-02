@@ -71,6 +71,7 @@ add_executable(regimeflow_tests
     unit/test_performance_metrics.cpp
     unit/test_performance_calculator.cpp
     unit/test_memory.cpp
+    unit/test_result.cpp
     unit/test_mmap_writer.cpp
     unit/test_live_order_reconcile.cpp
     unit/test_live_engine_integration.cpp
@@ -114,29 +115,6 @@ target_link_libraries(regimeflow_tests
         regimeflow_walkforward
         regimeflow_live
 )
-
-if(EXISTS "/usr/local/lib/libbid.a")
-    if(TARGET ibapi)
-        target_link_libraries(regimeflow_tests PRIVATE ibapi /usr/local/lib/libbid.a)
-    else()
-        target_link_libraries(regimeflow_tests PRIVATE /usr/local/lib/libbid.a)
-    endif()
-else()
-    find_library(BID_LIBRARY NAMES
-        bid
-        bidgcc000
-        bidgcc001
-        bidgcc010
-        bidgcc011
-        bidgcc100
-        bidgcc101
-        bidgcc110
-        bidgcc111
-    )
-    if(BID_LIBRARY)
-        target_link_libraries(regimeflow_tests PRIVATE ${BID_LIBRARY})
-    endif()
-endif()
 
 target_compile_definitions(regimeflow_tests PRIVATE
     REGIMEFLOW_TEST_ROOT="${CMAKE_SOURCE_DIR}"

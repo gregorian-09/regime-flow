@@ -2,8 +2,6 @@
 
 #include "regimeflow/data/websocket_feed.h"
 
-#include <thread>
-
 namespace regimeflow::test
 {
 #if defined(REGIMEFLOW_USE_BOOST_BEAST)
@@ -13,6 +11,8 @@ namespace regimeflow::test
         cfg.auto_reconnect = true;
         cfg.reconnect_initial_ms = 1;
         cfg.reconnect_max_ms = 2;
+        auto now = std::chrono::steady_clock::time_point{};
+        cfg.reconnect_clock = [&] { return now; };
 
         int connect_calls = 0;
         cfg.connect_override = [&]() -> Result<void> {
@@ -30,9 +30,9 @@ namespace regimeflow::test
         });
 
         feed.poll();
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        now += std::chrono::milliseconds(1);
         feed.poll();
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        now += std::chrono::milliseconds(2);
         feed.poll();
 
         ASSERT_GE(states.size(), 3u);

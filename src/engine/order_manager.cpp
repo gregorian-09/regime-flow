@@ -6,6 +6,11 @@
 
 namespace regimeflow::engine
 {
+    void OrderManager::set_time_provider(TimeProvider provider) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        time_provider_ = std::move(provider);
+    }
+
     Result<OrderId> OrderManager::submit_order(Order order) {
         return submit_order_internal(std::move(order), true);
     }
@@ -24,7 +29,7 @@ namespace regimeflow::engine
                 return Result<void>(Error(Error::Code::InvalidState, "Order not open"));
             }
             it->second.status = OrderStatus::Cancelled;
-            it->second.updated_at = Timestamp::now();
+            it->second.updated_at = now_locked();
             updated = it->second;
             callbacks = order_callbacks_;
             if (const auto route_it = routing_states_.find(id);
@@ -76,7 +81,7 @@ namespace regimeflow::engine
             copy.details = err.details;
             return Result<void>(copy);
             }
-            it->second.updated_at = Timestamp::now();
+            it->second.updated_at = now_locked();
             updated = it->second;
             callbacks = order_callbacks_;
         }
@@ -262,7 +267,7 @@ namespace regimeflow::engine
                 fill.id = next_fill_id_++;
             }
             if (fill.timestamp.microseconds() == 0) {
-                fill.timestamp = Timestamp::now();
+                fill.timestamp = now_locked();
             }
             auto& order = it->second;
             const double filled_abs = std::abs(fill.quantity);
@@ -327,7 +332,7 @@ namespace regimeflow::engine
                 return Result<void>(Error(Error::Code::NotFound, "Order not found"));
             }
             it->second.status = status;
-            it->second.updated_at = Timestamp::now();
+            it->second.updated_at = now_locked();
             updated = it->second;
             callbacks = order_callbacks_;
 
@@ -410,7 +415,7 @@ namespace regimeflow::engine
                     order.id = next_order_id_++;
                 }
                 if (order.created_at.microseconds() == 0) {
-                    order.created_at = Timestamp::now();
+                    order.created_at = now_locked();
                 }
                 order.updated_at = order.created_at;
                 order.status = OrderStatus::Created;
@@ -440,7 +445,7 @@ namespace regimeflow::engine
                 order.id = next_order_id_++;
             }
             if (order.created_at.microseconds() == 0) {
-                order.created_at = Timestamp::now();
+                order.created_at = now_locked();
             }
             order.updated_at = order.created_at;
             order.status = OrderStatus::Created;
@@ -606,6 +611,10 @@ namespace regimeflow::engine
             return Result<void>(Error(Error::Code::InvalidArgument, "GTD requires expire_at timestamp"));
         }
         return Ok();
+    }
+
+    Timestamp OrderManager::now_locked() const {
+        return time_provider_ ? time_provider_() : Timestamp::now();
     }
 
     bool OrderManager::is_open_status(const OrderStatus status) const {

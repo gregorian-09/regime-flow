@@ -397,6 +397,8 @@ namespace regimeflow::live
 
         std::atomic<bool> running_{false};
         std::atomic<bool> trading_enabled_{false};
+        // Serializes inference and retraining of the stateful regime model.
+        mutable std::mutex regime_mutex_;
         regime::RegimeState current_regime_;
         std::unique_ptr<engine::Portfolio> portfolio_;
         mutable std::mutex portfolio_mutex_;

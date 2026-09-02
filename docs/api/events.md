@@ -24,7 +24,7 @@ Related diagrams:
 | Type | Description |
 | --- | --- |
 | `Event` | Base event interface (timestamp, source, type). |
-| `EventQueue` | Multi-producer queue with serialized consumer-side draining and priority ordering. |
+| `EventQueue` | Thread-safe priority queue with deterministic ordering. |
 | `MarketEvent` | Tick/bar/order book events. |
 | `OrderEvent` | Submit, fill, cancel, reject events. |
 | `SystemEvent` | Start/stop/heartbeat and control events. |
@@ -32,7 +32,7 @@ Related diagrams:
 ## Lifecycle & Usage Notes
 
 - `EventQueue` is the backbone for `EventLoop` and must respect producer/consumer constraints.
-- Producers may enqueue concurrently, but draining and priority-queue rebuilds are serialized by the queue internals; do not add alternate drain paths that bypass that ownership model.
+- Producers and consumers may operate concurrently. All priority-queue access is serialized internally, avoiding unsafe lock-free node reclamation while preserving deterministic timestamp, priority, and sequence ordering.
 - `Dispatcher` implementations should avoid blocking; long tasks should be delegated.
 
 ## Type Details
@@ -152,7 +152,7 @@ Alias:
 
 ### `EventQueue`
 
-Multi-producer event queue for `Event` objects. Producers append to a pending list and consumer-side operations drain into the priority queue under internal synchronization. This preserves deterministic priority ordering without racing producer appends.
+Thread-safe priority queue for `Event` objects. Producers and consumers synchronize directly on the priority queue. This preserves deterministic priority ordering without relying on unsafe lock-free linked-list reclamation.
 
 Methods:
 
@@ -164,7 +164,7 @@ Methods:
 | `empty()` | Check if queue is empty. |
 | `size()` | Number of queued events. |
 | `clear()` | Clear all queued events. |
-| `~EventQueue()` | Destructor, clears and releases pool. |
+| `~EventQueue()` | Destructor, clears queued events. |
 
 Method Details:
 

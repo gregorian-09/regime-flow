@@ -3,6 +3,8 @@
 #include "regimeflow/live/audit_log.h"
 #include "regimeflow/live/secret_hygiene.h"
 
+#include "temp_path_guard.h"
+
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
@@ -84,6 +86,7 @@ namespace regimeflow::test
         const auto temp_path = std::filesystem::temp_directory_path()
             / ("regimeflow_secret_test_"
                + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+        TempPathGuard temp_file(temp_path);
         {
             std::ofstream out(temp_path);
             out << "top-secret-value\n";
@@ -101,7 +104,6 @@ namespace regimeflow::test
         ASSERT_TRUE(value.has_value());
         EXPECT_EQ(*value, "top-secret-value");
 
-        std::filesystem::remove(temp_path);
     }
 
     TEST(SecretHygiene, RedactsRegisteredSecretsInMessages) {
@@ -122,6 +124,7 @@ namespace regimeflow::test
         const auto temp_path = std::filesystem::temp_directory_path()
             / ("regimeflow_audit_secret_test_"
                + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".log");
+        TempPathGuard temp_file(temp_path);
 
         {
             live::AuditLogger logger(temp_path.string());
@@ -137,7 +140,6 @@ namespace regimeflow::test
             EXPECT_NE(content.find("***"), std::string::npos);
         }
 
-        std::filesystem::remove(temp_path);
     }
 
     TEST(SecretHygiene, AuditLoggerPreservesStructuredErrorMetadata) {
@@ -146,6 +148,7 @@ namespace regimeflow::test
         const auto temp_path = std::filesystem::temp_directory_path()
             / ("regimeflow_audit_structured_error_test_"
                + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".log");
+        TempPathGuard temp_file(temp_path);
 
         {
             live::AuditLogger logger(temp_path.string());
@@ -165,7 +168,6 @@ namespace regimeflow::test
                       std::string::npos);
         }
 
-        std::filesystem::remove(temp_path);
     }
 
     TEST(SecretHygiene, AuditLoggerWritesJsonlWhenConfigured) {
@@ -175,6 +177,7 @@ namespace regimeflow::test
         const auto temp_path = std::filesystem::temp_directory_path()
             / ("regimeflow_audit_jsonl_test_"
                + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".jsonl");
+        TempPathGuard temp_file(temp_path);
 
         {
             live::AuditLogger logger(temp_path.string(), live::AuditLogFormat::Jsonl);
@@ -197,7 +200,6 @@ namespace regimeflow::test
             EXPECT_EQ(content.find("json-secret"), std::string::npos);
         }
 
-        std::filesystem::remove(temp_path);
     }
 
 
@@ -207,6 +209,7 @@ namespace regimeflow::test
         const auto temp_path = std::filesystem::temp_directory_path()
             / ("regimeflow_audit_regime_metadata_test_"
                + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".log");
+        TempPathGuard temp_file(temp_path);
 
         {
             live::AuditLogger logger(temp_path.string());
@@ -232,7 +235,6 @@ namespace regimeflow::test
             EXPECT_NE(content.find("confidence=0.750000"), std::string::npos);
         }
 
-        std::filesystem::remove(temp_path);
     }
 
     TEST(SecretHygiene, ResolvesVaultReferenceThroughHelperCommand) {
@@ -240,6 +242,7 @@ namespace regimeflow::test
         live::reset_sensitive_values_for_tests();
 
         const auto helper = write_helper_script("regimeflow_vault_helper_", "resolved-from-vault");
+        TempPathGuard helper_file(helper, false);
 #if defined(_WIN32)
         _putenv_s("REGIMEFLOW_VAULT_BIN", helper.string().c_str());
 #else
@@ -250,7 +253,6 @@ namespace regimeflow::test
         ASSERT_TRUE(result.is_ok());
         EXPECT_EQ(result.value(), "resolved-from-vault");
 
-        std::filesystem::remove(helper);
     }
 
     TEST(SecretHygiene, ResolvesJsonFieldsFromCloudSecretManagers) {
@@ -265,6 +267,9 @@ namespace regimeflow::test
                                                        "{\"token\":\"gcp-token\"}");
         const auto az_helper = write_helper_script("regimeflow_az_helper_",
                                                    "{\"password\":\"azure-password\"}");
+        TempPathGuard aws_helper_file(aws_helper, false);
+        TempPathGuard gcloud_helper_file(gcloud_helper, false);
+        TempPathGuard az_helper_file(az_helper, false);
 #if defined(_WIN32)
         _putenv_s("REGIMEFLOW_AWS_BIN", aws_helper.string().c_str());
         _putenv_s("REGIMEFLOW_GCLOUD_BIN", gcloud_helper.string().c_str());
@@ -286,9 +291,6 @@ namespace regimeflow::test
         EXPECT_EQ(gcp.value(), "gcp-token");
         EXPECT_EQ(azure.value(), "azure-password");
 
-        std::filesystem::remove(aws_helper);
-        std::filesystem::remove(gcloud_helper);
-        std::filesystem::remove(az_helper);
     }
 
     TEST(SecretHygiene, ResolvesSecretReferencesInsideConfigMap) {
@@ -297,6 +299,7 @@ namespace regimeflow::test
 
         const auto aws_helper = write_helper_script("regimeflow_aws_config_helper_",
                                                     "{\"api_key\":\"resolved-api-key\"}");
+        TempPathGuard aws_helper_file(aws_helper, false);
 #if defined(_WIN32)
         _putenv_s("REGIMEFLOW_AWS_BIN", aws_helper.string().c_str());
 #else
@@ -313,6 +316,5 @@ namespace regimeflow::test
         EXPECT_EQ(values["api_key"], "resolved-api-key");
         EXPECT_EQ(values["base_url"], "https://paper-api.alpaca.markets");
 
-        std::filesystem::remove(aws_helper);
     }
 }  // namespace regimeflow::test

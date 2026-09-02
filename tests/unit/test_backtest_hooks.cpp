@@ -106,6 +106,55 @@ namespace regimeflow::test
         EXPECT_EQ(strategy_ptr->bar_count(), 0);
     }
 
+    TEST(BacktestHooks, PostEventHookRunsWhenBarHookCancelsProcessing) {
+        engine::BacktestEngine engine(100000.0);
+
+        int post_event_count = 0;
+        engine.hooks().add_post_event_hook([&](const events::Event& event) {
+            if (event.type == events::EventType::Market) {
+                ++post_event_count;
+            }
+        });
+        engine.register_hook(plugins::HookType::Bar,
+                             [](plugins::HookContext&) {
+                                 return plugins::HookResult::Cancel;
+                             });
+
+        data::Bar bar;
+        bar.symbol = SymbolRegistry::instance().intern("POST_EVENT");
+        bar.open = 100.0;
+        bar.high = 101.0;
+        bar.low = 99.0;
+        bar.close = 100.0;
+        bar.volume = 1;
+        bar.timestamp = Timestamp(42);
+        engine.enqueue(events::make_market_event(bar));
+
+        ASSERT_TRUE(engine.step());
+        EXPECT_EQ(post_event_count, 1);
+    }
+
+    TEST(BacktestHooks, OrdersWithoutTimestampUseSimulatedClock) {
+        engine::BacktestEngine engine(100000.0);
+
+        engine.enqueue(events::make_system_event(events::SystemEventKind::Timer,
+                                                 Timestamp(4242),
+                                                 0,
+                                                 "advance-clock"));
+        ASSERT_TRUE(engine.step());
+
+        auto order = engine::Order::market(SymbolRegistry::instance().intern("SIM_TIME"),
+                                           engine::OrderSide::Buy,
+                                           1.0);
+        const auto result = engine.order_manager().submit_order(order);
+        ASSERT_TRUE(result.is_ok());
+
+        const auto submitted = engine.order_manager().get_order(result.value());
+        ASSERT_TRUE(submitted.has_value());
+        EXPECT_EQ(submitted->created_at, Timestamp(4242));
+        EXPECT_EQ(submitted->updated_at, Timestamp(4242));
+    }
+
     TEST(BacktestHooks, ProgressCallbackReportsCompletion) {
         engine::BacktestEngine engine(100000.0);
 

@@ -6,6 +6,8 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <thread>
+#include <vector>
 
 namespace regimeflow::test
 {
@@ -65,5 +67,46 @@ namespace regimeflow::test
 
         bus.stop();
         EXPECT_EQ(received.load(), 0);
+    }
+
+    TEST(EventBus, RejectsPublicationAfterStopBegins) {
+        regimeflow::live::EventBus bus;
+        bus.start();
+        bus.stop();
+
+        regimeflow::live::LiveMessage message;
+        message.topic = regimeflow::live::LiveTopic::System;
+        message.payload = std::string("after-stop");
+
+        EXPECT_FALSE(bus.try_publish(std::move(message)));
+    }
+
+    TEST(EventBus, SerializesConcurrentPublishersDuringShutdown) {
+        regimeflow::live::EventBus bus;
+        bus.start();
+
+        std::atomic<bool> keep_publishing{true};
+        std::vector<std::thread> publishers;
+        for (size_t index = 0; index < 4; ++index) {
+            publishers.emplace_back([&] {
+                while (keep_publishing.load(std::memory_order_relaxed)) {
+                    regimeflow::live::LiveMessage message;
+                    message.topic = regimeflow::live::LiveTopic::System;
+                    message.payload = std::string("concurrent");
+                    static_cast<void>(bus.try_publish(std::move(message)));
+                }
+            });
+        }
+
+        bus.stop();
+        keep_publishing.store(false, std::memory_order_relaxed);
+        for (auto& publisher : publishers) {
+            publisher.join();
+        }
+
+        regimeflow::live::LiveMessage message;
+        message.topic = regimeflow::live::LiveTopic::System;
+        message.payload = std::string("after-stop");
+        EXPECT_FALSE(bus.try_publish(std::move(message)));
     }
 }  // namespace regimeflow::test

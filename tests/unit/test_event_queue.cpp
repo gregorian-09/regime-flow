@@ -4,6 +4,9 @@
 #include "regimeflow/events/event.h"
 #include "regimeflow/data/bar.h"
 
+#include <array>
+#include <thread>
+
 namespace regimeflow::test
 {
     TEST(EventQueueOrdering, OrdersByTimestampThenPriority) {
@@ -70,5 +73,31 @@ namespace regimeflow::test
 
         EXPECT_EQ(first->symbol, bar_a.symbol);
         EXPECT_EQ(second->symbol, bar_b.symbol);
+    }
+
+    TEST(EventQueueConcurrency, AcceptsConcurrentProducersWithoutLosingEvents) {
+        events::EventQueue queue;
+        constexpr size_t producer_count = 4;
+        constexpr size_t events_per_producer = 250;
+        std::array<std::thread, producer_count> producers;
+
+        for (size_t producer = 0; producer < producer_count; ++producer) {
+            producers[producer] = std::thread([&queue, producer] {
+                for (size_t index = 0; index < events_per_producer; ++index) {
+                    queue.push(events::make_system_event(
+                        events::SystemEventKind::Timer,
+                        Timestamp(static_cast<int64_t>(producer * events_per_producer + index))));
+                }
+            });
+        }
+        for (auto& producer : producers) {
+            producer.join();
+        }
+
+        size_t received = 0;
+        while (queue.pop().has_value()) {
+            ++received;
+        }
+        EXPECT_EQ(received, producer_count * events_per_producer);
     }
 }  // namespace regimeflow::test

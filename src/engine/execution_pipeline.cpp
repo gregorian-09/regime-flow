@@ -158,6 +158,10 @@ namespace regimeflow::engine
         session_policy_.dynamic_halt_all = halted;
     }
 
+    void ExecutionPipeline::set_time_provider(TimeProvider provider) {
+        time_provider_ = std::move(provider);
+    }
+
     TimeInForce ExecutionPipeline::effective_tif_for(const Order& order) const {
         if (order.tif == TimeInForce::IOC || order.tif == TimeInForce::FOK || order.tif == TimeInForce::GTD) {
             return order.tif;
@@ -438,8 +442,9 @@ namespace regimeflow::engine
             state.requested_price = submit_price;
             state.has_requested_price = true;
         }
-        const Timestamp submitted_at =
-            order.created_at.microseconds() == 0 ? Timestamp::now() : order.created_at;
+        const Timestamp submitted_at = order.created_at.microseconds() == 0
+            ? (time_provider_ ? time_provider_() : Timestamp::now())
+            : order.created_at;
         Timestamp ts = submitted_at;
         if (const auto override_ms = metadata_int64(order, "venue_latency_ms")) {
             ts = ts + Duration::milliseconds(std::max<int64_t>(0, *override_ms));

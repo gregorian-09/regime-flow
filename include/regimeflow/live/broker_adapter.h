@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace regimeflow::live
@@ -72,6 +73,46 @@ namespace regimeflow::live
         Inactive,
         Error
     };
+
+    /**
+     * @brief Return the stable display name for a broker order state.
+     */
+    [[nodiscard]] constexpr std::string_view live_order_status_name(
+        const LiveOrderStatus status) noexcept {
+        switch (status) {
+        case LiveOrderStatus::PendingNew: return "PendingNew";
+        case LiveOrderStatus::New: return "New";
+        case LiveOrderStatus::PartiallyFilled: return "PartiallyFilled";
+        case LiveOrderStatus::Filled: return "Filled";
+        case LiveOrderStatus::PendingCancel: return "PendingCancel";
+        case LiveOrderStatus::Cancelled: return "Cancelled";
+        case LiveOrderStatus::Rejected: return "Rejected";
+        case LiveOrderStatus::Expired: return "Expired";
+        case LiveOrderStatus::Inactive: return "Inactive";
+        case LiveOrderStatus::Error: return "Error";
+        }
+        return "Unknown";
+    }
+
+    /**
+     * @brief Return the stable wire representation used by the message-queue codec.
+     */
+    [[nodiscard]] constexpr std::string_view live_order_status_wire_name(
+        const LiveOrderStatus status) noexcept {
+        switch (status) {
+        case LiveOrderStatus::PendingNew: return "PENDING_NEW";
+        case LiveOrderStatus::New: return "NEW";
+        case LiveOrderStatus::PartiallyFilled: return "PARTIAL";
+        case LiveOrderStatus::Filled: return "FILLED";
+        case LiveOrderStatus::PendingCancel: return "PENDING_CANCEL";
+        case LiveOrderStatus::Cancelled: return "CANCELLED";
+        case LiveOrderStatus::Rejected: return "REJECTED";
+        case LiveOrderStatus::Expired: return "EXPIRED";
+        case LiveOrderStatus::Inactive: return "INACTIVE";
+        case LiveOrderStatus::Error: return "ERROR";
+        }
+        return "UNKNOWN";
+    }
 
     /**
      * @brief Execution report from broker callbacks.

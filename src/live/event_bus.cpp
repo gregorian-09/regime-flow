@@ -11,23 +11,31 @@ namespace regimeflow::live
     }
 
     void EventBus::start() {
-        if (running_.exchange(true)) {
+        std::lock_guard<std::mutex> lifecycle_lock(lifecycle_mutex_);
+        if (running_.load()) {
             return;
         }
+        {
+            std::lock_guard<std::mutex> lock(publisher_mutex_);
+            accepting_ = true;
+        }
+        running_ = true;
         dispatcher_ = std::thread(&EventBus::dispatch_loop, this);
     }
 
     void EventBus::stop() {
+        std::lock_guard<std::mutex> lifecycle_lock(lifecycle_mutex_);
+        {
+            std::unique_lock<std::mutex> lock(publisher_mutex_);
+            accepting_ = false;
+            publisher_cv_.wait(lock, [this] { return active_publishers_ == 0; });
+        }
         if (!running_.exchange(false)) {
             return;
         }
         queue_cv_.notify_all();
         if (dispatcher_.joinable()) {
             dispatcher_.join();
-        }
-        {
-            std::lock_guard<std::mutex> lock(queue_mutex_);
-            drain_pending();
         }
     }
 
@@ -44,38 +52,46 @@ namespace regimeflow::live
     }
 
     void EventBus::publish(LiveMessage message) {
-        Node* node = pool_.allocate();
-        new (node) Node{std::move(message), nullptr};
-        Node* head = pending_.load(std::memory_order_acquire);
-        do {
-            node->next = head;
-        } while (!pending_.compare_exchange_weak(head, node,
-                                                 std::memory_order_release,
-                                                 std::memory_order_acquire));
-        queue_cv_.notify_one();
+        static_cast<void>(try_publish(std::move(message)));
     }
 
-    void EventBus::drain_pending() {
-        Node* list = pending_.exchange(nullptr, std::memory_order_acq_rel);
-        while (list) {
-            Node* next = list->next;
-            queue_.push(std::move(list->message));
-            list->~Node();
-            pool_.deallocate(list);
-            list = next;
+    bool EventBus::try_publish(LiveMessage message) {
+        {
+            std::lock_guard<std::mutex> lock(publisher_mutex_);
+            if (!accepting_) {
+                return false;
+            }
+            ++active_publishers_;
+        }
+        const auto finish_publish = [this] {
+            std::lock_guard<std::mutex> lock(publisher_mutex_);
+            --active_publishers_;
+            if (active_publishers_ == 0) {
+                publisher_cv_.notify_all();
+            }
+        };
+        try {
+            {
+                std::lock_guard<std::mutex> lock(queue_mutex_);
+                queue_.push(std::move(message));
+            }
+            finish_publish();
+            queue_cv_.notify_one();
+            return true;
+        } catch (...) {
+            finish_publish();
+            throw;
         }
     }
 
     void EventBus::dispatch_loop() {
-        while (running_) {
+        while (true) {
             LiveMessage message;
             {
                 std::unique_lock<std::mutex> lock(queue_mutex_);
                 queue_cv_.wait(lock, [this] {
-                    return pending_.load(std::memory_order_acquire) != nullptr || !queue_.empty()
-                        || !running_;
+                    return !queue_.empty() || !running_;
                 });
-                drain_pending();
                 if (!running_ && queue_.empty()) {
                     break;
                 }

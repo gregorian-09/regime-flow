@@ -6,8 +6,6 @@
 #pragma once
 
 #include "regimeflow/events/event.h"
-#include "regimeflow/common/memory.h"
-
 #include <atomic>
 #include <mutex>
 #include <optional>
@@ -35,7 +33,10 @@ namespace regimeflow::events
      * @brief Concurrent event queue with deterministic ordering.
      *
      * @details Events are prioritized by timestamp, then priority, then sequence.
-     * Producers push into a lock-free pending list, which is drained on pop/peek.
+     * Producers and consumers synchronize directly on the priority queue.  This
+     * deliberately favors safe memory reclamation over a lock-free linked list:
+     * an MPSC list requires a reclamation scheme before detached nodes can be
+     * returned to an allocator.
      */
     class EventQueue {
     public:
@@ -45,14 +46,8 @@ namespace regimeflow::events
          */
         void push(Event event) {
             event.sequence = next_sequence_.fetch_add(1, std::memory_order_relaxed);
-            Node* node = pool_.allocate();
-            new (node) Node{std::move(event), nullptr};
-            Node* head = pending_.load(std::memory_order_acquire);
-            do {
-                node->next = head;
-            } while (!pending_.compare_exchange_weak(head, node,
-                                                     std::memory_order_release,
-                                                     std::memory_order_acquire));
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            queue_.push(std::move(event));
         }
 
         /**
@@ -61,7 +56,6 @@ namespace regimeflow::events
          */
         std::optional<Event> pop() {
             std::lock_guard<std::mutex> lock(queue_mutex_);
-            drain_pending_locked();
             if (queue_.empty()) {
                 return std::nullopt;
             }
@@ -76,7 +70,6 @@ namespace regimeflow::events
          */
         std::optional<Event> peek() {
             std::lock_guard<std::mutex> lock(queue_mutex_);
-            drain_pending_locked();
             if (queue_.empty()) {
                 return std::nullopt;
             }
@@ -89,7 +82,6 @@ namespace regimeflow::events
          */
         bool empty() {
             std::lock_guard<std::mutex> lock(queue_mutex_);
-            drain_pending_locked();
             return queue_.empty();
         }
 
@@ -99,7 +91,6 @@ namespace regimeflow::events
          */
         size_t size() {
             std::lock_guard<std::mutex> lock(queue_mutex_);
-            drain_pending_locked();
             return queue_.size();
         }
 
@@ -108,39 +99,17 @@ namespace regimeflow::events
          */
         void clear() {
             std::lock_guard<std::mutex> lock(queue_mutex_);
-            drain_pending_locked();
             queue_ = std::priority_queue<Event, std::vector<Event>, EventComparator>();
         }
 
         /**
-         * @brief Destroy the queue and free pooled nodes.
+         * @brief Destroy the queue and release queued events.
          */
         ~EventQueue() { clear(); }
 
     private:
-        /**
-         * @brief Internal node used for the pending list.
-         */
-        struct Node {
-            Event event;
-            Node* next = nullptr;
-        };
-
-        void drain_pending_locked() {
-            Node* list = pending_.exchange(nullptr, std::memory_order_acq_rel);
-            while (list) {
-                Node* next = list->next;
-                queue_.push(std::move(list->event));
-                list->~Node();
-                pool_.deallocate(list);
-                list = next;
-            }
-        }
-
         std::mutex queue_mutex_;
         std::priority_queue<Event, std::vector<Event>, EventComparator> queue_;
-        std::atomic<Node*> pending_{nullptr};
         std::atomic<uint64_t> next_sequence_{0};
-        common::PoolAllocator<Node> pool_{1024};
     };
 }  // namespace regimeflow::events

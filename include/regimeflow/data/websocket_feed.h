@@ -80,6 +80,14 @@ namespace regimeflow::data
              */
             int64_t reconnect_max_ms = 10'000;
             /**
+             * @brief Clock used to schedule reconnect attempts.
+             *
+             * Defaults to std::chrono::steady_clock::now. Supplying a deterministic clock is
+             * useful for embedding and tests that must advance reconnect backoff without
+             * sleeping.
+             */
+            std::function<std::chrono::steady_clock::time_point()> reconnect_clock;
+            /**
              * @brief Verify TLS certificates if using wss.
              */
             bool verify_tls = true;

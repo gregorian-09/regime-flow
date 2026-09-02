@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import pandas as pd
 
@@ -13,7 +13,7 @@ def _compute_drawdown(equity: pd.Series) -> pd.Series:
     return equity / peak - 1.0
 
 
-def _plot_with_plotly(results: "BacktestResults") -> Dict[str, Any]:
+def _plot_with_plotly(results: "BacktestResults") -> dict[str, object]:
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
 
@@ -30,7 +30,7 @@ def _plot_with_plotly(results: "BacktestResults") -> Dict[str, Any]:
     return {"figure": fig, "equity": equity, "drawdown": drawdown}
 
 
-def _plot_with_matplotlib(results: "BacktestResults") -> Dict[str, Any]:
+def _plot_with_matplotlib(results: "BacktestResults") -> dict[str, object]:
     import matplotlib.pyplot as plt
 
     equity = results.equity_curve()
@@ -49,33 +49,34 @@ def _plot_with_matplotlib(results: "BacktestResults") -> Dict[str, Any]:
     return {"figure": fig, "equity": equity, "drawdown": drawdown}
 
 
-def plot_results(results: "BacktestResults") -> Dict[str, Any]:
+def plot_results(results: "BacktestResults") -> dict[str, object]:
     try:
-        return _plot_with_plotly(results)
-    except Exception:
-        pass
-    try:
+        import plotly  # noqa: F401 - availability probe for the optional backend
+    except ImportError:
+        try:
+            import matplotlib  # noqa: F401 - availability probe for the fallback backend
+        except ImportError as exc:
+            raise ImportError(
+                "Plotting requires plotly or matplotlib. Install with `regimeflow[viz]`."
+            ) from exc
         return _plot_with_matplotlib(results)
-    except Exception as exc:
-        raise ImportError(
-            "Plotting requires plotly or matplotlib. Install with `regimeflow[viz]`."
-        ) from exc
+    return _plot_with_plotly(results)
 
 
-def create_dashboard(results: "BacktestResults", interactive: bool = True) -> Dict[str, Any]:
+def create_dashboard(results: "BacktestResults", interactive: bool = True) -> dict[str, object]:
     if interactive:
         try:
+            import dash  # noqa: F401 - availability probe for the optional frontend
+        except ImportError:
+            pass
+        else:
             from .dashboard_app import create_dash_app
 
             return create_dash_app(results)
-        except Exception:
-            pass
-    try:
-        from .dashboard import create_strategy_tester_dashboard
 
-        return create_strategy_tester_dashboard(results)
-    except Exception:
-        return plot_results(results)
+    from .dashboard import create_strategy_tester_dashboard
+
+    return create_strategy_tester_dashboard(results)
 
 
 __all__ = ["plot_results", "create_dashboard"]

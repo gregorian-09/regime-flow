@@ -98,6 +98,22 @@ namespace regimeflow::regime
     }
 
     RegimeState HMMRegimeDetector::on_book(const data::OrderBook& book) {
+        if (!book.has_usable_top_of_book()) {
+            RegimeState state;
+            state.timestamp = book.timestamp;
+            state.probabilities_all = probabilities_;
+            state.state_count = probabilities_.size();
+            if (!probabilities_.empty()) {
+                const auto max_it = std::ranges::max_element(probabilities_);
+                const int idx = static_cast<int>(std::distance(probabilities_.begin(), max_it));
+                state.regime = idx < 4 ? static_cast<RegimeType>(idx) : RegimeType::Custom;
+                state.confidence = *max_it;
+                for (int i = 0; i < std::min(4, states_); ++i) {
+                    state.probabilities[i] = probabilities_[i];
+                }
+            }
+            return state;
+        }
         return detect(extractor_.on_book(book), book.timestamp);
     }
 

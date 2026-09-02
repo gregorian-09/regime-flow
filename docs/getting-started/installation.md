@@ -39,7 +39,14 @@ Enable these only if your workflow needs them:
 - `ENABLE_REDIS=ON` for Redis adapters
 - `ENABLE_KAFKA=ON` for Kafka adapters
 - `ENABLE_IBAPI=ON` for Interactive Brokers support
-- `REGIMEFLOW_FETCH_DEPS=ON` to let RegimeFlow fetch lightweight missing dependencies in supported builds
+- `REGIMEFLOW_FETCH_DEPS=ON` to opt into fetching the explicitly supported source fallbacks
+  (currently Protobuf for the vendored IB stubs, pybind11, GoogleTest, and hiredis). It does not
+  fetch system/network stacks such as Boost, OpenSSL, ZeroMQ, Kafka, curl, or PostgreSQL.
+
+When `ENABLE_IBAPI=ON`, RegimeFlow requires **exactly** Protobuf `3.21.12`: protobuf C++ does not
+guarantee ABI compatibility between generated code and a different runtime release. Use the vcpkg
+manifest or `REGIMEFLOW_FETCH_DEPS=ON` rather than mixing a package-manager Protobuf version with
+the bundled IB generated files.
 
 ## Recommended Source Build
 

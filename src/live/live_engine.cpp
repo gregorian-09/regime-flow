@@ -138,22 +138,6 @@ namespace regimeflow::live
         }
 #endif
 
-        const char* status_name(LiveOrderStatus status) {
-            switch (status) {
-            case LiveOrderStatus::PendingNew: return "PendingNew";
-            case LiveOrderStatus::New: return "New";
-            case LiveOrderStatus::PartiallyFilled: return "PartiallyFilled";
-            case LiveOrderStatus::Filled: return "Filled";
-            case LiveOrderStatus::PendingCancel: return "PendingCancel";
-            case LiveOrderStatus::Cancelled: return "Cancelled";
-            case LiveOrderStatus::Rejected: return "Rejected";
-            case LiveOrderStatus::Expired: return "Expired";
-            case LiveOrderStatus::Inactive: return "Inactive";
-            case LiveOrderStatus::Error: return "Error";
-            default: return "Unknown";
-            }
-        }
-
         std::string resolve_live_position_symbol(const LiveConfig& config,
                                                  const std::string& broker_symbol) {
             if (broker_symbol.empty()) {
@@ -687,6 +671,42 @@ namespace regimeflow::live
             return res;
         }
 
+        // Complete recovery and strategy initialization before accepting broker callbacks
+        // or starting worker threads. This gives every callback a fully initialized portfolio.
+        const auto account = broker_->get_account_info();
+        const Timestamp startup_ts = Timestamp::now();
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            portfolio_ = std::make_unique<engine::Portfolio>(account.equity);
+            portfolio_->configure_margin(config_.account_margin);
+            last_account_info_ = account;
+            daily_start_equity_ = 0.0;
+            daily_pnl_ = 0.0;
+            portfolio_->set_cash(account.cash, startup_ts);
+        }
+
+        apply_positions(broker_->get_positions(), startup_ts);
+        reconcile_orders();
+        refresh_derived_account_state(startup_ts);
+        if (live_metrics_) {
+            live_metrics_->start(last_account_info_.equity);
+            live_metrics_->update(startup_ts, last_account_info_.equity, daily_pnl_);
+        }
+
+        if (strategy_) {
+            strategy_ctx_ = std::make_unique<strategy::StrategyContext>(&strategy_order_manager_,
+                                                                        portfolio_.get(),
+                                                                        nullptr,
+                                                                        nullptr,
+                                                                        nullptr,
+                                                                        nullptr,
+                                                                        nullptr,
+                                                                        config_.strategy_config);
+            strategy_->set_context(strategy_ctx_.get());
+            strategy_->initialize(*strategy_ctx_);
+            strategy_->on_start();
+        }
+
         event_bus_.start();
         market_sub_id_ = event_bus_.subscribe(LiveTopic::MarketData, [this](const LiveMessage& msg) {
             auto payload = std::get_if<MarketDataUpdate>(&msg.payload);
@@ -726,6 +746,10 @@ namespace regimeflow::live
         if (config_.enable_message_queue && mq_adapter_) {
             auto mq_res = mq_adapter_->connect();
             if (mq_res.is_err()) {
+                event_bus_.unsubscribe(market_sub_id_);
+                market_sub_id_ = 0;
+                event_bus_.stop();
+                broker_->disconnect();
                 return mq_res;
             }
             mq_adapter_->on_message([this](const LiveMessage& msg) {
@@ -773,41 +797,6 @@ namespace regimeflow::live
             broker_->subscribe_market_data(config_.symbols);
         }
 
-        auto account = broker_->get_account_info();
-        const Timestamp startup_ts = Timestamp::now();
-        {
-            std::lock_guard<std::mutex> lock(portfolio_mutex_);
-            portfolio_ = std::make_unique<engine::Portfolio>(account.equity);
-            portfolio_->configure_margin(config_.account_margin);
-            last_account_info_ = account;
-            daily_start_equity_ = 0.0;
-            daily_pnl_ = 0.0;
-            portfolio_->set_cash(account.cash, startup_ts);
-        }
-
-        auto positions = broker_->get_positions();
-        apply_positions(positions, startup_ts);
-        reconcile_orders();
-        refresh_derived_account_state(startup_ts);
-        if (live_metrics_) {
-            live_metrics_->start(last_account_info_.equity);
-            live_metrics_->update(startup_ts, last_account_info_.equity, daily_pnl_);
-        }
-
-        if (strategy_) {
-            strategy_ctx_ = std::make_unique<strategy::StrategyContext>(&strategy_order_manager_,
-                                                                        portfolio_.get(),
-                                                                        nullptr,
-                                                                        nullptr,
-                                                                        nullptr,
-                                                                        nullptr,
-                                                                        nullptr,
-                                                                        config_.strategy_config);
-            strategy_->set_context(strategy_ctx_.get());
-            strategy_->initialize(*strategy_ctx_);
-            strategy_->on_start();
-        }
-
         update_dashboard_snapshot();
 
         if (config_.enable_prometheus_endpoint) {
@@ -819,6 +808,9 @@ namespace regimeflow::live
                 return live_metrics_to_prometheus(get_dashboard_snapshot(), quality);
             });
             if (metrics_res.is_err()) {
+                // Workers and subscriptions are active at this point; unwind through the
+                // normal lifecycle rather than returning a partially running engine.
+                stop();
                 return metrics_res;
             }
         }
@@ -1039,8 +1031,7 @@ namespace regimeflow::live
         last_retrain_ = Timestamp::now();
         while (running_) {
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            auto* detector = regime_detector_.get();
-            if (!config_.enable_regime_updates || detector == nullptr) {
+            if (!config_.enable_regime_updates || !regime_detector_) {
                 continue;
             }
             Timestamp now = Timestamp::now();
@@ -1060,22 +1051,30 @@ namespace regimeflow::live
                 continue;
             }
             std::vector<regime::FeatureVector> features(snapshot.begin(), snapshot.end());
-            detector->train(features);
+            regime::ModelGovernanceMetadata metadata;
+            {
+                std::lock_guard<std::mutex> lock(regime_mutex_);
+                regime_detector_->train(features);
+                metadata = regime_detector_->model_metadata();
+            }
             last_retrain_ = now;
             if (audit_logger_) {
                 AuditEvent event;
                 event.timestamp = now;
                 event.type = AuditEvent::Type::RegimeChange;
                 event.details = "Regime model retrained";
-                event.metadata = model_metadata_to_audit(detector->model_metadata());
+                event.metadata = model_metadata_to_audit(metadata);
                 audit_logger_->log(event);
             }
         }
     }
 
     void LiveTradingEngine::handle_market_data(const MarketDataUpdate& update) {
-        if (!portfolio_) {
-            return;
+        {
+            std::lock_guard<std::mutex> lock(portfolio_mutex_);
+            if (!portfolio_) {
+                return;
+            }
         }
         append_replay_event(to_engine_event(update));
         last_market_data_ = Timestamp::now();
@@ -1098,7 +1097,13 @@ namespace regimeflow::live
                     }
                 }
                 if (config_.enable_regime_updates && regime_detector_) {
-                    auto state = regime_detector_->on_bar(data);
+                    regime::RegimeState state;
+                    regime::ModelGovernanceMetadata metadata;
+                    {
+                        std::lock_guard<std::mutex> lock(regime_mutex_);
+                        state = regime_detector_->on_bar(data);
+                        metadata = regime_detector_->model_metadata();
+                    }
                     updated_regime = true;
                     std::optional<regime::RegimeTransition> transition;
                     {
@@ -1117,8 +1122,7 @@ namespace regimeflow::live
                             regime_cb_(*transition);
                         }
                         if (audit_logger_) {
-                            audit_logger_->log_regime_change(
-                                *transition, model_metadata_to_audit(regime_detector_->model_metadata()));
+                            audit_logger_->log_regime_change(*transition, model_metadata_to_audit(metadata));
                         }
                         if (strategy_) {
                             strategy_->on_regime_change(*transition);
@@ -1141,7 +1145,13 @@ namespace regimeflow::live
                 price = data.price;
                 snapshot_time = data.timestamp;
                 if (config_.enable_regime_updates && regime_detector_) {
-                    auto state = regime_detector_->on_tick(data);
+                    regime::RegimeState state;
+                    regime::ModelGovernanceMetadata metadata;
+                    {
+                        std::lock_guard<std::mutex> lock(regime_mutex_);
+                        state = regime_detector_->on_tick(data);
+                        metadata = regime_detector_->model_metadata();
+                    }
                     updated_regime = true;
                     std::optional<regime::RegimeTransition> transition;
                     {
@@ -1160,8 +1170,7 @@ namespace regimeflow::live
                             regime_cb_(*transition);
                         }
                         if (audit_logger_) {
-                            audit_logger_->log_regime_change(
-                                *transition, model_metadata_to_audit(regime_detector_->model_metadata()));
+                            audit_logger_->log_regime_change(*transition, model_metadata_to_audit(metadata));
                         }
                         if (strategy_) {
                             strategy_->on_regime_change(*transition);
@@ -1196,10 +1205,14 @@ namespace regimeflow::live
                     std::lock_guard<std::mutex> lock(portfolio_mutex_);
                     last_quotes_[data.symbol] = data;
                 }
+                if (strategy_) {
+                    strategy_->on_quote(data);
+                }
             } else if constexpr (std::is_same_v<T, data::OrderBook>) {
-                price = (data.bids[0].price + data.asks[0].price) / 2.0;
                 snapshot_time = data.timestamp;
-                if (price > 0) {
+                if (const auto bid = data.best_bid(), ask = data.best_ask();
+                    bid.has_value() && ask.has_value() && bid->price < ask->price) {
+                    price = (bid->price + ask->price) / 2.0;
                     std::lock_guard<std::mutex> lock(portfolio_mutex_);
                     last_prices_[data.symbol] = price;
                     if (portfolio_) {
@@ -1207,6 +1220,9 @@ namespace regimeflow::live
                         portfolio_->record_snapshot(data.timestamp);
                     }
                     snapshot_updated = true;
+                }
+                if (strategy_) {
+                    strategy_->on_order_book(data);
                 }
             }
             (void)updated_regime;
@@ -1685,7 +1701,7 @@ namespace regimeflow::live
             << internal_id << '\t'
             << broker_order_id << '\t'
             << symbol << '\t'
-            << status_name(status) << '\t'
+            << live_order_status_name(status) << '\t'
             << note << '\n';
     }
 
@@ -1817,7 +1833,7 @@ namespace regimeflow::live
                 summary.limit_price = order.limit_price;
                 summary.stop_price = order.stop_price;
                 summary.avg_fill_price = order.avg_fill_price;
-                summary.status = status_name(order.status);
+                summary.status = live_order_status_name(order.status);
                 summary.updated_at = best_order_timestamp(order);
                 snapshot.open_orders.push_back(std::move(summary));
             }

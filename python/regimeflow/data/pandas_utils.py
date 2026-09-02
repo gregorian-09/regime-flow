@@ -1,6 +1,6 @@
 import json
+
 import pandas as pd
-from typing import List, Optional
 
 import regimeflow as rf
 
@@ -10,7 +10,7 @@ Tick = rf.Tick
 BacktestResults = rf.BacktestResults
 
 
-def bars_to_dataframe(bars: List[Bar]) -> pd.DataFrame:
+def bars_to_dataframe(bars: list[Bar]) -> pd.DataFrame:
     if not bars:
         return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
     data = {
@@ -25,8 +25,8 @@ def bars_to_dataframe(bars: List[Bar]) -> pd.DataFrame:
     return df.set_index("timestamp")
 
 
-def dataframe_to_bars(df: pd.DataFrame) -> List[Bar]:
-    bars: List[Bar] = []
+def dataframe_to_bars(df: pd.DataFrame) -> list[Bar]:
+    bars: list[Bar] = []
     for timestamp, row in df.iterrows():
         bar = Bar()
         bar.timestamp = Timestamp.from_datetime(timestamp)
@@ -39,7 +39,7 @@ def dataframe_to_bars(df: pd.DataFrame) -> List[Bar]:
     return bars
 
 
-def ticks_to_dataframe(ticks: List[Tick]) -> pd.DataFrame:
+def ticks_to_dataframe(ticks: list[Tick]) -> pd.DataFrame:
     if not ticks:
         return pd.DataFrame(columns=["timestamp", "price", "quantity"])
     data = {
@@ -51,8 +51,8 @@ def ticks_to_dataframe(ticks: List[Tick]) -> pd.DataFrame:
     return df.set_index("timestamp")
 
 
-def dataframe_to_ticks(df: pd.DataFrame) -> List[Tick]:
-    ticks: List[Tick] = []
+def dataframe_to_ticks(df: pd.DataFrame) -> list[Tick]:
+    ticks: list[Tick] = []
     for timestamp, row in df.iterrows():
         tick = Tick()
         tick.timestamp = Timestamp.from_datetime(timestamp)
@@ -97,8 +97,8 @@ class DataFrameDataSource:
             if not isinstance(df.index, pd.DatetimeIndex):
                 raise ValueError(f"Symbol {symbol} must have DatetimeIndex")
 
-    def get_bars(self, symbol: str, start: Optional[str] = None,
-                 end: Optional[str] = None) -> List[Bar]:
+    def get_bars(self, symbol: str, start: str | None = None,
+                 end: str | None = None) -> list[Bar]:
         df = self.data[symbol]
         if start:
             df = df[df.index >= start]

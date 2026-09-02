@@ -21,10 +21,29 @@ namespace regimeflow::engine
           execution_pipeline_(&market_data_, &order_book_cache_, &event_queue_),
           regime_tracker_(nullptr) {
         event_loop_.set_dispatcher(&dispatcher_);
+        order_manager_.set_time_provider([this] { return event_loop_.current_time(); });
+        execution_pipeline_.set_time_provider([this] { return event_loop_.current_time(); });
         install_default_handlers();
     }
 
     namespace {
+        class PostEventHook final {
+        public:
+            PostEventHook(plugins::HookSystem& hooks, const events::Event& event)
+                : hooks_(hooks), event_(event) {}
+
+            ~PostEventHook() noexcept {
+                hooks_.run_post_event(event_);
+            }
+
+            PostEventHook(const PostEventHook&) = delete;
+            PostEventHook& operator=(const PostEventHook&) = delete;
+
+        private:
+            plugins::HookSystem& hooks_;
+            const events::Event& event_;
+        };
+
         std::string bar_type_name(const data::BarType bar_type) {
             switch (bar_type) {
             case data::BarType::Time_1Min:
@@ -328,17 +347,35 @@ namespace regimeflow::engine
             forced_order.metadata["forced_liquidation"] = "true";
             forced_order.metadata["liquidation_reason"] = "stop_out";
 
-            const auto fills = execution_pipeline_.simulate_immediate_fills(forced_order,
+            // Forced liquidation is still an order-manager lifecycle: it is submitted,
+            // journaled, filled, and observed through the same callbacks as every other
+            // order. The explicit marker allows the pending-order handler to bypass the
+            // normal risk gate only because this order reduces an already breached account.
+            const auto submit_result = order_manager_.submit_order(std::move(forced_order));
+            if (submit_result.is_err()) {
+                log_account_event(timestamp,
+                                  "Stop-out liquidation order rejected",
+                                  {
+                                      {"symbol", SymbolRegistry::instance().lookup(position.symbol)},
+                                      {"reason", submit_result.error().to_string()}
+                                  });
+                continue;
+            }
+
+            const auto submitted_order = order_manager_.get_order(submit_result.value());
+            if (!submitted_order.has_value()) {
+                log_account_event(timestamp,
+                                  "Stop-out liquidation order missing after submission",
+                                  {{"order_id", std::to_string(submit_result.value())}});
+                continue;
+            }
+
+            const auto fills = execution_pipeline_.simulate_immediate_fills(*submitted_order,
                                                                             liquidation_price,
                                                                             timestamp,
                                                                             false);
             for (const auto& fill : fills) {
-                portfolio_.update_position(fill);
-                portfolio_.record_snapshot(fill.timestamp);
-                if (strategy_) {
-                    strategy_->on_fill(fill);
-                }
-                strategy_manager_.on_fill(fill);
+                order_manager_.process_fill(fill);
                 log_account_event(fill.timestamp,
                                   "Stop-out liquidation fill",
                                   {
@@ -1316,6 +1353,11 @@ namespace regimeflow::engine
                     }
                     return;
                 }
+                if (order.metadata.contains("forced_liquidation")) {
+                    // liquidate_for_stop_out() performs the immediate execution and feeds
+                    // each resulting fill through OrderManager::process_fill().
+                    return;
+                }
                 if (const auto result = risk_manager_.validate(order, portfolio_); result.is_ok()) {
                     execution_pipeline_.on_order_submitted(order);
                 } else {
@@ -1326,6 +1368,7 @@ namespace regimeflow::engine
 
         dispatcher_.set_market_handler([this](const events::Event& event) {
             hooks_.run_pre_event(event);
+            PostEventHook post_event(hooks_, event);
             const auto* payload = std::get_if<events::MarketEventPayload>(&event.payload);
             if (!payload) {
                 return;
@@ -1357,11 +1400,7 @@ namespace regimeflow::engine
                     portfolio_.record_snapshot(bar.timestamp);
                     evaluate_account_state(bar.timestamp, "bar");
                     stop_loss_manager_.on_bar(bar, order_manager_);
-                    metrics_.update(bar.timestamp, portfolio_, regime_tracker_.current_state());
                     if (auto transition = regime_tracker_.on_bar(bar)) {
-                        events::Event evt = events::make_system_event(
-                            events::SystemEventKind::RegimeChange, transition->timestamp);
-                        event_queue_.push(std::move(evt));
                         plugins::HookContext ctx(&portfolio_, &market_data_,
                                                  &regime_tracker_.current_state(),
                                                  &event_queue_, transition->timestamp);
@@ -1383,6 +1422,7 @@ namespace regimeflow::engine
                         }
                         strategy_manager_.on_regime_change(*transition);
                     }
+                    metrics_.update(bar.timestamp, portfolio_, regime_tracker_.current_state());
                     if (strategy_) {
                         strategy_->on_bar(bar);
                     }
@@ -1408,11 +1448,7 @@ namespace regimeflow::engine
                     portfolio_.record_snapshot(tick.timestamp);
                     evaluate_account_state(tick.timestamp, "tick");
                     stop_loss_manager_.on_tick(tick, order_manager_);
-                    metrics_.update(tick.timestamp, portfolio_, regime_tracker_.current_state());
                     if (auto transition = regime_tracker_.on_tick(tick)) {
-                        events::Event evt = events::make_system_event(
-                            events::SystemEventKind::RegimeChange, transition->timestamp);
-                        event_queue_.push(std::move(evt));
                         plugins::HookContext ctx(&portfolio_, &market_data_,
                                                  &regime_tracker_.current_state(),
                                                  &event_queue_, transition->timestamp);
@@ -1434,6 +1470,7 @@ namespace regimeflow::engine
                         }
                         strategy_manager_.on_regime_change(*transition);
                     }
+                    metrics_.update(tick.timestamp, portfolio_, regime_tracker_.current_state());
                     if (strategy_) {
                         strategy_->on_tick(tick);
                     }
@@ -1487,11 +1524,11 @@ namespace regimeflow::engine
                         break;
                     }
                 }
-                hooks_.run_post_event(event);
             });
 
         dispatcher_.set_order_handler([this](const events::Event& event) {
             hooks_.run_pre_event(event);
+            PostEventHook post_event(hooks_, event);
             const auto* payload = std::get_if<events::OrderEventPayload>(&event.payload);
             if (!payload) {
                 return;
@@ -1552,11 +1589,11 @@ namespace regimeflow::engine
                 order_manager_.update_order_status(payload->order_id, OrderStatus::Pending);
                 break;
         }
-        hooks_.run_post_event(event);
     });
 
         dispatcher_.set_system_handler([this](const events::Event& event) {
             hooks_.run_pre_event(event);
+            PostEventHook post_event(hooks_, event);
             const auto* payload = std::get_if<events::SystemEventPayload>(&event.payload);
             if (!payload) {
                 return;
@@ -1577,7 +1614,6 @@ namespace regimeflow::engine
                 ctx.set_timer_id(payload->id);
                 if (hook_manager_.invoke(plugins::HookType::Timer, ctx)
                     == plugins::HookResult::Cancel) {
-                    hooks_.run_post_event(event);
                     return;
                 }
                 if (strategy_) {
@@ -1596,7 +1632,6 @@ namespace regimeflow::engine
                         halted);
                 }
             }
-            hooks_.run_post_event(event);
         });
     }
 }  // namespace regimeflow::engine

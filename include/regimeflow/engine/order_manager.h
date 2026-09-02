@@ -51,6 +51,15 @@ namespace regimeflow::engine
     class OrderManager {
     public:
         using RoutingContextProvider = std::function<RoutingContext(const Order&)>;
+        using TimeProvider = std::function<Timestamp()>;
+
+        /**
+         * @brief Set the authoritative clock for order lifecycle timestamps.
+         *
+         * BacktestEngine supplies simulated event time; standalone users retain wall-clock
+         * timestamps until a provider is configured.
+         */
+        void set_time_provider(TimeProvider provider);
 
         /**
          * @brief Submit a new order.
@@ -205,6 +214,7 @@ namespace regimeflow::engine
 
         Result<void> validate_order(const Order& order) const;
         bool is_open_status(OrderStatus status) const;
+        [[nodiscard]] Timestamp now_locked() const;
 
         mutable std::mutex mutex_;
         std::unordered_map<OrderId, Order> orders_;
@@ -212,6 +222,7 @@ namespace regimeflow::engine
         std::vector<std::function<void(const Order&)>> order_callbacks_;
         std::vector<std::function<void(const Fill&)>> fill_callbacks_;
         std::vector<std::function<Result<void>(Order&)>> pre_submit_callbacks_;
+        TimeProvider time_provider_;
 
         std::unique_ptr<OrderRouter> router_;
         RoutingContextProvider routing_context_provider_;

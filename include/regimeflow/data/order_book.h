@@ -8,6 +8,7 @@
 #include "regimeflow/common/types.h"
 
 #include <array>
+#include <optional>
 
 namespace regimeflow::data
 {
@@ -28,5 +29,36 @@ namespace regimeflow::data
         SymbolId symbol = 0;
         std::array<BookLevel, 10> bids{};
         std::array<BookLevel, 10> asks{};
+
+        /**
+         * @brief Return the usable best bid, if this snapshot has one.
+         */
+        [[nodiscard]] std::optional<BookLevel> best_bid() const noexcept {
+            const auto& level = bids.front();
+            if (level.price <= 0.0 || level.quantity <= 0.0) {
+                return std::nullopt;
+            }
+            return level;
+        }
+
+        /**
+         * @brief Return the usable best ask, if this snapshot has one.
+         */
+        [[nodiscard]] std::optional<BookLevel> best_ask() const noexcept {
+            const auto& level = asks.front();
+            if (level.price <= 0.0 || level.quantity <= 0.0) {
+                return std::nullopt;
+            }
+            return level;
+        }
+
+        /**
+         * @brief True when the book has a non-crossed, usable top of book.
+         */
+        [[nodiscard]] bool has_usable_top_of_book() const noexcept {
+            const auto bid = best_bid();
+            const auto ask = best_ask();
+            return bid.has_value() && ask.has_value() && bid->price < ask->price;
+        }
     };
 }  // namespace regimeflow::data

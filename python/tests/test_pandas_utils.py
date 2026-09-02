@@ -1,11 +1,19 @@
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
-TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT")
-if not TEST_ROOT:
-    pytest.skip("REGIMEFLOW_TEST_ROOT not set", allow_module_level=True)
+TEST_ROOT = os.environ.get("REGIMEFLOW_TEST_ROOT", str(Path(__file__).resolve().parents[2]))
+
+if not any(
+    candidate.glob("_core*.*")
+    for candidate in [
+        Path(TEST_ROOT) / "python" / "regimeflow",
+        *sorted(Path(TEST_ROOT).glob("build*/python")),
+    ]
+):
+    pytest.skip("native RegimeFlow bindings are not built", allow_module_level=True)
 
 build_python = os.path.join(TEST_ROOT, "build", "python")
 if build_python not in sys.path:

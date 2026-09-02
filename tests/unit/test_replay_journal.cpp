@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#include "temp_path_guard.h"
+
 #include <filesystem>
 
 namespace regimeflow::tests
@@ -47,7 +49,7 @@ namespace regimeflow::tests
 
     TEST(ReplayJournal, WritesAndReadsJsonlJournal) {
         const auto path = temp_journal_path("regimeflow_replay_journal_test.jsonl");
-        std::filesystem::remove(path);
+        test::TempPathGuard temp_file(path);
         {
             engine::ReplayJournalWriter writer(path.string());
             auto system = events::make_system_event(events::SystemEventKind::TradingHalt,
@@ -69,7 +71,6 @@ namespace regimeflow::tests
         EXPECT_EQ(order->kind, events::OrderEventKind::Fill);
         EXPECT_EQ(order->venue, "SIM");
         EXPECT_DOUBLE_EQ(order->transaction_cost, 0.5);
-        std::filesystem::remove(path);
     }
 
     TEST(ReplayJournal, ConvertsLiveMarketDataToEngineEvent) {

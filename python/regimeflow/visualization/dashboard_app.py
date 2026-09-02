@@ -8,7 +8,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Mapping
 
 import pandas as pd
 
@@ -34,14 +34,14 @@ def create_live_dash_app(
     snapshot_provider: Callable[[], Mapping[str, Any]],
     title: str = "RegimeFlow Strategy Tester",
     interval_ms: int = 1000,
-    advance_step: Optional[Callable[[], bool]] = None,
+    advance_step: Callable[[], bool] | None = None,
 ):
     try:
         import dash
         from dash import Patch, dcc, html
         from dash.dash_table import DataTable
         from flask_sock import Sock
-    except Exception as exc:
+    except ImportError as exc:
         raise ImportError("Dash is required for live dashboards. Install with `regimeflow[viz]`.") from exc
 
     theme = BLOOMBERG_THEME
@@ -110,14 +110,14 @@ def create_live_dash_app(
         "overlay_cache_miss": 0,
     }
     telemetry_output_raw = str(os.environ.get("DASHBOARD_TELEMETRY_FILE", "logs/live_dashboard_telemetry.jsonl")).strip()
-    telemetry_output_path: Optional[Path]
+    telemetry_output_path: Path | None
     if telemetry_output_raw.lower() in {"", "off", "none", "0"}:
         telemetry_output_path = None
     else:
         telemetry_output_path = Path(telemetry_output_raw)
     try:
         telemetry_emit_interval_sec = max(0.5, float(os.environ.get("DASHBOARD_TELEMETRY_INTERVAL_SEC", "2.0")))
-    except Exception:
+    except ValueError:
         telemetry_emit_interval_sec = 2.0
     telemetry_emit_state = {"last_emit_monotonic": 0.0, "sequence": 0}
 
@@ -220,7 +220,7 @@ def create_live_dash_app(
             telemetry_output_path.parent.mkdir(parents=True, exist_ok=True)
             with telemetry_output_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, separators=(",", ":")) + "\n")
-        except Exception:
+        except (OSError, TypeError, ValueError):
             return
 
     def _json_safe(value: Any) -> Any:
@@ -237,7 +237,7 @@ def create_live_dash_app(
         if hasattr(value, "name") and hasattr(value, "value"):
             try:
                 return str(value.name)
-            except Exception:
+            except (AttributeError, TypeError, ValueError):
                 pass
         if isinstance(value, pd.Timestamp):
             return value.isoformat()
@@ -246,12 +246,12 @@ def create_live_dash_app(
         if hasattr(value, "isoformat"):
             try:
                 return value.isoformat()
-            except Exception:
+            except (AttributeError, TypeError, ValueError):
                 pass
         if hasattr(value, "item"):
             try:
                 return value.item()
-            except Exception:
+            except (AttributeError, TypeError, ValueError):
                 pass
         return value
 
@@ -349,7 +349,7 @@ def create_live_dash_app(
     def _broadcast_snapshot() -> None:
         try:
             current_json = _snapshot_json_payload()
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             return
         stale_clients: list[Any] = []
         with websocket_lock:
@@ -360,7 +360,7 @@ def create_live_dash_app(
                     message = _build_client_delta_message(current_json, previous_json, profile_name)
                     client.send(message)
                     session["last_json"] = current_json
-                except Exception:
+                except (OSError, RuntimeError):
                     stale_clients.append(client)
             for client in stale_clients:
                 websocket_clients.pop(client, None)
@@ -379,7 +379,7 @@ def create_live_dash_app(
                 with websocket_lock:
                     if ws in websocket_clients:
                         websocket_clients[ws]["last_json"] = full_snapshot
-            except Exception:
+            except (OSError, RuntimeError):
                 return
             while True:
                 message = ws.receive()
@@ -387,7 +387,7 @@ def create_live_dash_app(
                     break
                 try:
                     payload = json.loads(message) if isinstance(message, str) else {}
-                except Exception:
+                except (json.JSONDecodeError, UnicodeDecodeError):
                     continue
                 if not isinstance(payload, Mapping):
                     continue
@@ -404,7 +404,7 @@ def create_live_dash_app(
                     with websocket_lock:
                         if ws in websocket_clients:
                             websocket_clients[ws]["last_json"] = full_snapshot
-                except Exception:
+                except (OSError, RuntimeError):
                     break
         finally:
             with websocket_lock:
@@ -513,11 +513,11 @@ def create_live_dash_app(
             first_quote = quote_df.iloc[0]
             try:
                 bid_value = float(first_quote.get("bid", 0.0) or 0.0)
-            except Exception:
+            except (TypeError, ValueError):
                 bid_value = 0.0
             try:
                 ask_value = float(first_quote.get("ask", 0.0) or 0.0)
-            except Exception:
+            except (TypeError, ValueError):
                 ask_value = 0.0
 
         cache_key = (
@@ -554,7 +554,7 @@ def create_live_dash_app(
             if pd.notna(limit_price):
                 try:
                     limit_value = float(limit_price)
-                except Exception:
+                except (TypeError, ValueError):
                     limit_value = 0.0
                 if limit_value > 0.0:
                     shapes.append(
@@ -589,7 +589,7 @@ def create_live_dash_app(
             if pd.notna(stop_price):
                 try:
                     stop_value = float(stop_price)
-                except Exception:
+                except (TypeError, ValueError):
                     stop_value = 0.0
                 if stop_value > 0.0:
                     shapes.append(
@@ -758,7 +758,7 @@ def create_live_dash_app(
             ],
         )
 
-    def _pill(text: str, pill_id: Optional[str] = None) -> Any:
+    def _pill(text: str, pill_id: str | None = None) -> Any:
         kwargs = {"id": pill_id} if pill_id else {}
         return html.Div(
             text,
@@ -842,7 +842,7 @@ def create_live_dash_app(
             if abs(number) >= 1:
                 return f"{number:.4f}".rstrip("0").rstrip(".")
             return f"{number:.6f}".rstrip("0").rstrip(".")
-        except Exception:
+        except (TypeError, ValueError):
             return str(value)
 
     app.layout = html.Div(
@@ -1548,7 +1548,7 @@ def create_live_dash_app(
                 patch["layout"]["yaxis"]["range"] = list(next_figure.layout.yaxis.range)
             patch["layout"]["title"] = next_figure.layout.title
             return _done(patch)
-        except Exception:
+        except (AttributeError, KeyError, TypeError, ValueError):
             return _done(next_figure)
 
     @app.callback(
@@ -1703,7 +1703,7 @@ def launch_live_dashboard(snapshot_provider: Callable[[], Mapping[str, Any]],
                           port: int = 8050,
                           debug: bool = False,
                           interval_ms: int = 1000,
-                          advance_step: Optional[Callable[[], bool]] = None) -> None:
+                          advance_step: Callable[[], bool] | None = None) -> None:
     app = create_live_dash_app(snapshot_provider, interval_ms=interval_ms, advance_step=advance_step)
     if hasattr(app, "run"):
         app.run(host=host, port=port, debug=debug, threaded=False)
@@ -1714,7 +1714,7 @@ def launch_live_dashboard(snapshot_provider: Callable[[], Mapping[str, Any]],
 def export_dashboard_html(results: Any, path: str) -> str:
     try:
         import plotly.io as pio
-    except Exception as exc:
+    except ImportError as exc:
         raise ImportError("export_dashboard_html requires plotly. Install with `regimeflow[viz]`.") from exc
 
     payload = create_strategy_tester_dashboard(results)

@@ -100,7 +100,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return run_backtest(args)
-    except Exception as exc:
+    # A CLI boundary must turn every user-facing failure (configuration,
+    # imports, filesystem, or native extension) into a stable exit status.
+    except Exception as exc:  # noqa: BLE001
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

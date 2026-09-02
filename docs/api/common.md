@@ -41,7 +41,9 @@ Related diagrams:
 
 ## Lifecycle & Usage Notes
 
-- `Result<T>` is the preferred error surface for non-throwing paths.
+- `Result<T>` is the preferred error surface for non-throwing paths. Use `ok(...)` and
+  `err(...)` to construct results/errors; the legacy `Ok(...)` and `Err(...)` spellings remain
+  available for source compatibility.
 - `Timestamp` is used consistently across events, bars, and fills to avoid time-domain drift.
 - Queue types are safe for the event loop and live adapters; keep usage aligned with producer/consumer expectations.
 - `Config` and `YamlConfig` are used by both backtest and live engine factories; config validation should happen before engine initialization.
@@ -51,7 +53,8 @@ Related diagrams:
 
 `regimeflow/common/memory.h` provides `MonotonicArena` and `PoolAllocator` for allocation-heavy engine paths. `MonotonicArena::allocate` returns properly aligned pointers both within the current block and after block rollover. Code using the arena must still treat returned memory as arena-owned; individual allocations are not freed separately.
 
-`PoolAllocator` is optimized for reuse, not automatic shrinking. Use it for bounded high-churn object pools and prefer explicit lifecycle boundaries for long-running processes.
+`PoolAllocator` is optimized for reuse. At a quiescent lifecycle boundary, call
+`release_unused()` to free expansion chunks only after every checked-out object has been returned.
 
 ## Type Details
 

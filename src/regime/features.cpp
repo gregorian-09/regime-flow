@@ -87,10 +87,19 @@ namespace regimeflow::regime
     }
 
     FeatureVector FeatureExtractor::on_book(const data::OrderBook& book) {
-        const double bid = book.bids[0].price;
-        const double ask = book.asks[0].price;
-        const double bid_qty = book.bids[0].quantity;
-        const double ask_qty = book.asks[0].quantity;
+        if (!book.has_usable_top_of_book()) {
+            if (features_.empty()) {
+                features_ = {FeatureType::Return, FeatureType::Volatility};
+            }
+            // Invalid snapshots must not contaminate the rolling feature history.
+            return FeatureVector(features_.size(), 0.0);
+        }
+        const auto bid_level = book.best_bid();
+        const auto ask_level = book.best_ask();
+        const double bid = bid_level->price;
+        const double ask = ask_level->price;
+        const double bid_qty = bid_level->quantity;
+        const double ask_qty = ask_level->quantity;
         const double mid = (bid + ask) / 2.0;
         const double spread = mid > 0.0 ? (ask - bid) / mid : 0.0;
         const double imbalance = (bid_qty + ask_qty) > 0.0
@@ -295,25 +304,26 @@ namespace regimeflow::regime
         if (series.size() < 2) {
             return 0.0;
         }
-        std::vector<double> sample(series.begin(), series.end());
         switch (normalization_mode_) {
         case NormalizationMode::ZScore: {
                 double mean = 0.0;
-                for (const double v : sample) mean += v;
-                mean /= static_cast<double>(sample.size());
+                for (const double v : series) mean += v;
+                mean /= static_cast<double>(series.size());
                 double var = 0.0;
-                for (const double v : sample) {
+                for (const double v : series) {
                     const double diff = v - mean;
                     var += diff * diff;
                 }
-                const double stddev = sample.size() > 1 ? std::sqrt(var / (static_cast<double>(sample.size()) - 1)) : 1.0;
+                const double stddev = series.size() > 1
+                    ? std::sqrt(var / (static_cast<double>(series.size()) - 1))
+                    : 1.0;
                 if (stddev == 0.0) {
                     return 0.0;
                 }
                 return (value - mean) / stddev;
         }
         case NormalizationMode::MinMax: {
-                auto [min_it, max_it] = std::minmax_element(sample.begin(), sample.end());
+                const auto [min_it, max_it] = std::minmax_element(series.begin(), series.end());
                 const double range = *max_it - *min_it;
                 if (range == 0.0) {
                     return 0.0;
@@ -321,6 +331,8 @@ namespace regimeflow::regime
                 return (value - *min_it) / range;
         }
         case NormalizationMode::Robust: {
+                // Robust statistics sort their input, so only this mode needs a copy.
+                std::vector<double> sample(series.begin(), series.end());
                 const double median = compute_median(sample);
                 const double q1 = compute_percentile(sample, 25.0);
                 const double q3 = compute_percentile(sample, 75.0);

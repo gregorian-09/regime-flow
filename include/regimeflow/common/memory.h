@@ -125,8 +125,9 @@ namespace regimeflow::common
          * @brief Construct the pool with an initial capacity.
          * @param capacity Number of objects to pre-allocate.
          */
-        explicit PoolAllocator(size_t capacity = 1024) {
-            reserve(capacity);
+        explicit PoolAllocator(size_t capacity = 1024)
+            : initial_capacity_(std::max<size_t>(capacity, 1)) {
+            reserve(initial_capacity_);
         }
 
         /**
@@ -136,7 +137,11 @@ namespace regimeflow::common
         T* allocate() {
             std::lock_guard<std::mutex> lock(mutex_);
             if (free_.empty()) {
-                reserve(chunks_.empty() ? 1024 : chunks_.size() * 2 * chunk_size_);
+                if (!chunks_.empty()
+                    && chunk_size_ > std::numeric_limits<size_t>::max() / 2) {
+                    throw std::bad_alloc();
+                }
+                reserve(chunks_.empty() ? initial_capacity_ : chunk_size_ * 2);
             }
             T* ptr = free_.back();
             free_.pop_back();
@@ -155,20 +160,58 @@ namespace regimeflow::common
             free_.push_back(ptr);
         }
 
+        /**
+         * @brief Release spare chunks when every allocation has been returned.
+         * @return True when memory was released; false if callers still own objects.
+         *
+         * The pool deliberately never relocates live objects.  Call this at a
+         * quiescent lifecycle boundary such as queue clear or shutdown.
+         */
+        [[nodiscard]] bool release_unused() {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (chunks_.size() <= 1 || free_.size() != total_capacity_) {
+                return false;
+            }
+
+            chunks_.resize(1);
+            free_.clear();
+            const size_t retained_capacity = initial_capacity_;
+            for (size_t i = 0; i < retained_capacity; ++i) {
+                free_.push_back(&chunks_.front()[i]);
+            }
+            total_capacity_ = retained_capacity;
+            chunk_size_ = retained_capacity;
+            return true;
+        }
+
+        /**
+         * @brief Return the number of objects currently retained by the pool.
+         */
+        [[nodiscard]] size_t retained_capacity() const {
+            std::lock_guard<std::mutex> lock(mutex_);
+            return total_capacity_;
+        }
+
     private:
         void reserve(size_t capacity) {
             size_t count = capacity;
+            if (count > std::numeric_limits<size_t>::max() - total_capacity_) {
+                throw std::bad_alloc();
+            }
             auto block = std::make_unique<T[]>(count);
             for (size_t i = 0; i < count; ++i) {
                 free_.push_back(&block[i]);
             }
             chunks_.push_back(std::move(block));
             chunk_size_ = count;
+            total_capacity_ += count;
         }
 
-        std::mutex mutex_;
+        mutable std::mutex mutex_;
         std::vector<std::unique_ptr<T[]>> chunks_;
         std::vector<T*> free_;
+        const size_t initial_capacity_ = 1024;
         size_t chunk_size_ = 0;
+        size_t total_capacity_ = 0;
     };
 }  // namespace regimeflow::common

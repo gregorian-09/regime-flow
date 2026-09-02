@@ -15,6 +15,14 @@ library.
 
 If you are installing for the first time, start with [Quick Install](../getting-started/quick-install.md). If you are building from a checkout, use [Installation](../getting-started/installation.md).
 
+## Native Binding Boundary
+
+The package deliberately keeps its Python wrapper namespace separate from the compiled `_core`
+extension. Public symbols are forwarded lazily, rather than copying the extension module's entire
+dictionary into `regimeflow`. This preserves normal Python module metadata and makes extension
+loading failures easier to diagnose. Native tests discover the repository root automatically; set
+`REGIMEFLOW_TEST_ROOT` only when a nonstandard build location is required.
+
 ## Main Use Cases
 
 ### 1. Run Backtests In Python
@@ -204,6 +212,23 @@ That is an intentional boundary:
 
 For Python users, that means reporting and visualization are first-class workflows,
 not separate tooling bolted on after the fact.
+
+## Reliability And Typing
+
+The convenience layer uses capability-based Python protocols rather than depending on a concrete
+extension class. This keeps report, analytics, and dataframe helpers usable with compatible
+result objects while preserving the native binding boundary. Optional notebook and visualization
+features report missing dependencies explicitly; malformed payload, conversion, or rendering
+errors are surfaced instead of silently choosing another backend. The CLI intentionally catches
+at its process boundary so user-facing errors produce a stable nonzero exit status.
+
+## Native Dependency Compatibility
+
+The Python wheel disables live broker integrations by default. Source builds that enable the
+vendored Interactive Brokers API require exactly Protobuf `3.21.12`, because protobuf C++ does not
+provide generated-code/runtime ABI compatibility across releases. Prefer the supplied vcpkg
+manifest or the explicit `REGIMEFLOW_FETCH_DEPS=ON` fallback instead of mixing system Protobuf
+headers with the bundled IB generated files.
 
 ## Where To Go Next
 

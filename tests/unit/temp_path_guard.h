@@ -9,10 +9,12 @@ namespace regimeflow::test
     class TempPathGuard
     {
     public:
-        explicit TempPathGuard(std::filesystem::path path)
+        explicit TempPathGuard(std::filesystem::path path, const bool clean_before_use = true)
             : path_(std::move(path))
         {
-            cleanup();
+            if (clean_before_use) {
+                cleanup();
+            }
         }
 
         TempPathGuard(const TempPathGuard&) = delete;

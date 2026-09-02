@@ -5,6 +5,7 @@
 #include "regimeflow/strategy/strategy_factory.h"
 #include "regimeflow/strategy/strategy.h"
 
+#include "temp_path_guard.h"
 #include "test_time.h"
 
 #include <algorithm>
@@ -13,30 +14,31 @@
 #include <condition_variable>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <mutex>
 #include <string_view>
-#include <thread>
+#include <utility>
+#include <vector>
 
 namespace regimeflow::test
 {
     namespace {
-        template <typename Predicate>
-        bool wait_until(Predicate&& predicate,
-                        const std::chrono::milliseconds timeout = std::chrono::milliseconds(500)) {
-            const auto deadline = std::chrono::steady_clock::now() + timeout;
-            do {
-                if (predicate()) {
-                    return true;
-                }
-                std::this_thread::yield();
-            } while (std::chrono::steady_clock::now() < deadline);
-            return predicate();
-        }
+        class LogDirectoryRegistry final {
+        public:
+            std::string make(const std::string_view name) {
+                const auto path = std::filesystem::temp_directory_path() / name;
+                // Retain the guard until test-process teardown so ASSERT_* paths cannot leak logs.
+                guards_.push_back(std::make_unique<TempPathGuard>(path));
+                return path.string();
+            }
+
+        private:
+            std::vector<std::unique_ptr<TempPathGuard>> guards_;
+        };
 
         std::string fresh_log_dir(const std::string_view name) {
-            const auto path = std::filesystem::temp_directory_path() / name;
-            std::filesystem::remove_all(path);
-            return path.string();
+            static LogDirectoryRegistry registry;
+            return registry.make(name);
         }
     }  // namespace
 
@@ -306,6 +308,14 @@ namespace regimeflow::test
             return cv_.wait_for(lock, timeout, [&] { return polled_exec_count_ >= expected; });
         }
 
+        template <typename Predicate>
+        bool wait_for_condition(
+            Predicate&& predicate,
+            const std::chrono::milliseconds timeout = std::chrono::seconds(2)) const {
+            std::unique_lock<std::mutex> lock(mutex_);
+            return cv_.wait_for(lock, timeout, std::forward<Predicate>(predicate));
+        }
+
     private:
         std::atomic<bool> connected_{false};
         std::atomic<bool> connect_ok_{true};
@@ -445,7 +455,7 @@ namespace regimeflow::test
         const auto symbol = SymbolRegistry::instance().intern("REPLAYLIVE");
         broker_ptr->emit_bar(make_bar(symbol, 101.25));
 
-        ASSERT_TRUE(wait_until([&] {
+        ASSERT_TRUE(broker_ptr->wait_for_condition([&] {
             auto events = engine::read_replay_journal(cfg.replay_journal_path);
             return events.is_ok() && !events.value().empty();
         }));
@@ -482,7 +492,7 @@ namespace regimeflow::test
         const auto symbol = SymbolRegistry::instance().intern("REPLAYORDER");
         broker_ptr->emit_bar(make_bar(symbol, 101.25));
 
-        ASSERT_TRUE(wait_until([&] {
+        ASSERT_TRUE(broker_ptr->wait_for_condition([&] {
             auto events = engine::read_replay_journal(cfg.replay_journal_path);
             return events.is_ok() && events.value().size() >= 2;
         }));
@@ -565,7 +575,7 @@ namespace regimeflow::test
         broker_ptr->emit_bar(make_bar(symbol, 100.0));
 
         const auto log_path = std::filesystem::path(cfg.log_dir) / "audit.log";
-        ASSERT_TRUE(wait_until([&] {
+        ASSERT_TRUE(broker_ptr->wait_for_condition([&] {
             std::ifstream in(log_path);
             if (!in.good()) {
                 return false;
@@ -685,7 +695,7 @@ namespace regimeflow::test
         info.buying_power = 98000.0;
         broker_ptr->set_account_info(info);
 
-        EXPECT_TRUE(wait_until([&] { return !engine->get_status().trading_enabled; }));
+        EXPECT_TRUE(broker_ptr->wait_for_condition([&] { return !engine->get_status().trading_enabled; }));
 
         EXPECT_FALSE(engine->get_status().trading_enabled);
         engine->stop();
@@ -715,7 +725,7 @@ namespace regimeflow::test
         pos.market_value = 100000.0;
         broker_ptr->set_positions({pos});
 
-        EXPECT_TRUE(wait_until([&] { return !engine->get_status().trading_enabled; }));
+        EXPECT_TRUE(broker_ptr->wait_for_condition([&] { return !engine->get_status().trading_enabled; }));
 
         EXPECT_FALSE(engine->get_status().trading_enabled);
         engine->stop();
@@ -753,7 +763,7 @@ namespace regimeflow::test
         pos.market_value = 63000.0;
         broker_ptr->set_positions({pos});
 
-        const bool resolved = wait_until([&] {
+        const bool resolved = broker_ptr->wait_for_condition([&] {
             const auto snapshot = engine->get_dashboard_snapshot();
             if (!snapshot.positions.empty()) {
                 if (snapshot.positions.size() != 1u) {
@@ -822,6 +832,7 @@ namespace regimeflow::test
         strategy::StrategyFactory::instance().register_creator(
             "noop_stale_heartbeat", [](const Config&) { return std::make_unique<LiveNoopStrategy>(); });
         auto broker = std::make_unique<MockBrokerAdapter>();
+        auto* broker_ptr = broker.get();
 
         live::LiveConfig cfg;
         cfg.broker_type = "mock";
@@ -841,13 +852,12 @@ namespace regimeflow::test
         });
 
         ASSERT_TRUE(engine->start().is_ok());
-        ASSERT_TRUE(wait_until([&] { return !engine->get_status().trading_enabled; },
-                               std::chrono::milliseconds(500)));
-        ASSERT_TRUE(wait_until([&] {
+        ASSERT_TRUE(broker_ptr->wait_for_condition([&] { return !engine->get_status().trading_enabled; }));
+        ASSERT_TRUE(broker_ptr->wait_for_condition([&] {
             std::lock_guard<std::mutex> lock(errors_mutex);
             return std::ranges::find(errors, "Heartbeat timeout: no market data") != errors.end()
                    && std::ranges::find(errors, "Trading disabled because market data is stale") != errors.end();
-        }, std::chrono::milliseconds(500)));
+        }));
 
         engine->stop();
     }

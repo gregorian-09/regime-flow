@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional, Sequence
+from typing import Sequence
 
 import pandas as pd
 
@@ -18,9 +18,9 @@ def _normalize_timestamp_column(df: pd.DataFrame, column: str) -> pd.DataFrame:
 
 def load_csv_bars(
     path: str,
-    symbol: Optional[str] = None,
+    symbol: str | None = None,
     timestamp_col: str = "timestamp",
-    tz: Optional[str] = None,
+    tz: str | None = None,
     utc: bool = True,
 ) -> Sequence[object]:
     """Load bars from CSV and return a list of Bar objects.
@@ -43,9 +43,9 @@ def load_csv_bars(
 
 def load_csv_ticks(
     path: str,
-    symbol: Optional[str] = None,
+    symbol: str | None = None,
     timestamp_col: str = "timestamp",
-    tz: Optional[str] = None,
+    tz: str | None = None,
     utc: bool = True,
 ) -> Sequence[object]:
     """Load ticks from CSV and return a list of Tick objects.

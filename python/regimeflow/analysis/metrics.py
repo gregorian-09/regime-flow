@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
 
 import pandas as pd
 
+from .._types import SupportsEquityCurve, SupportsReportJson, SupportsTrades
 
-def report_from_results(results: Any) -> Dict[str, Any]:
+
+def report_from_results(results: SupportsReportJson) -> dict[str, object]:
     """Return the full report payload as a dict.
 
     Uses the C++ report serializer via BacktestResults.report_json().
@@ -22,53 +23,53 @@ def report_from_results(results: Any) -> Dict[str, Any]:
         return {}
 
 
-def performance_summary(results: Any) -> Dict[str, Any]:
+def performance_summary(results: SupportsReportJson) -> dict[str, object]:
     report = report_from_results(results)
     return report.get("performance_summary", {})
 
 
-def performance_stats(results: Any) -> Dict[str, Any]:
+def performance_stats(results: SupportsReportJson) -> dict[str, object]:
     report = report_from_results(results)
     return report.get("performance", {})
 
 
-def regime_performance(results: Any) -> Dict[str, Any]:
+def regime_performance(results: SupportsReportJson) -> dict[str, object]:
     report = report_from_results(results)
     return report.get("regime_performance", {})
 
 
-def transition_metrics(results: Any) -> Dict[str, Any]:
+def transition_metrics(results: SupportsReportJson) -> dict[str, object]:
     report = report_from_results(results)
     return report.get("transitions", {})
 
 
-def equity_curve(results: Any) -> pd.DataFrame:
+def equity_curve(results: SupportsEquityCurve) -> pd.DataFrame:
     if not hasattr(results, "equity_curve"):
         raise AttributeError("results must provide equity_curve()")
     return results.equity_curve()
 
 
-def trades(results: Any) -> pd.DataFrame:
+def trades(results: SupportsTrades) -> pd.DataFrame:
     if not hasattr(results, "trades"):
         raise AttributeError("results must provide trades()")
     return results.trades()
 
 
-def summary_dataframe(results: Any) -> pd.DataFrame:
+def summary_dataframe(results: SupportsReportJson) -> pd.DataFrame:
     summary = performance_summary(results)
     if not summary:
         return pd.DataFrame()
     return pd.DataFrame([summary])
 
 
-def stats_dataframe(results: Any) -> pd.DataFrame:
+def stats_dataframe(results: SupportsReportJson) -> pd.DataFrame:
     stats = performance_stats(results)
     if not stats:
         return pd.DataFrame()
     return pd.DataFrame([stats])
 
 
-def regime_dataframe(results: Any) -> pd.DataFrame:
+def regime_dataframe(results: SupportsReportJson) -> pd.DataFrame:
     regimes = regime_performance(results)
     if not regimes:
         return pd.DataFrame()
@@ -81,7 +82,7 @@ def regime_dataframe(results: Any) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def transitions_dataframe(results: Any) -> pd.DataFrame:
+def transitions_dataframe(results: SupportsReportJson) -> pd.DataFrame:
     transitions = transition_metrics(results)
     if not transitions:
         return pd.DataFrame()

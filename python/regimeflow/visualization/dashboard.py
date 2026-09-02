@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping, Optional, Union
+from typing import Any, Iterable, Mapping
 
 import pandas as pd
 
 
-BLOOMBERG_THEME: Dict[str, str] = {
+BLOOMBERG_THEME: dict[str, str] = {
     "bg": "#0B0F14",
     "panel": "#111821",
     "panel_alt": "#16202B",
@@ -30,7 +31,7 @@ def _compute_drawdown(equity: pd.Series) -> pd.Series:
     return equity / peak - 1.0
 
 
-def _normalize_equity(equity: Union[pd.DataFrame, pd.Series, Any]) -> pd.DataFrame:
+def _normalize_equity(equity: pd.DataFrame | pd.Series | Any) -> pd.DataFrame:
     if hasattr(equity, "equity_curve"):
         equity = equity.equity_curve()
     if isinstance(equity, pd.Series):
@@ -42,7 +43,7 @@ def _normalize_equity(equity: Union[pd.DataFrame, pd.Series, Any]) -> pd.DataFra
     return equity
 
 
-def _normalize_table(value: Optional[Union[pd.DataFrame, Iterable[Mapping[str, Any]]]]) -> pd.DataFrame:
+def _normalize_table(value: pd.DataFrame | Iterable[Mapping[str, Any]] | None) -> pd.DataFrame:
     if value is None:
         return pd.DataFrame()
     if isinstance(value, pd.DataFrame):
@@ -50,7 +51,7 @@ def _normalize_table(value: Optional[Union[pd.DataFrame, Iterable[Mapping[str, A
     return pd.DataFrame(list(value))
 
 
-def _normalize_regime_state(value: Optional[Union[Mapping[str, Any], Any]]) -> Dict[str, Any]:
+def _normalize_regime_state(value: Mapping[str, Any] | Any | None) -> dict[str, Any]:
     if value is None:
         return {}
     if isinstance(value, Mapping):
@@ -68,17 +69,17 @@ def _normalize_timestamp(value: Any) -> Any:
     if hasattr(value, "to_datetime"):
         try:
             return value.to_datetime()
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             pass
     if hasattr(value, "isoformat"):
         try:
             return pd.to_datetime(value)
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             pass
     if hasattr(value, "microseconds"):
         try:
             return pd.to_datetime(value.microseconds(), unit="us")
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             pass
     return value
 
@@ -117,7 +118,7 @@ def _load_market_bars_cached(
 
     try:
         bars = pd.read_csv(path)
-    except Exception:
+    except (OSError, UnicodeDecodeError, pd.errors.EmptyDataError, pd.errors.ParserError):
         return pd.DataFrame()
 
     required = {"timestamp", "open", "high", "low", "close"}
@@ -162,7 +163,7 @@ def _extract_base_results(value: Any) -> Any:
     return value
 
 
-def _load_dashboard_snapshot(results_or_snapshot: Any) -> Dict[str, Any]:
+def _load_dashboard_snapshot(results_or_snapshot: Any) -> dict[str, Any]:
     if results_or_snapshot is None:
         return {}
     if isinstance(results_or_snapshot, Mapping):
@@ -173,17 +174,17 @@ def _load_dashboard_snapshot(results_or_snapshot: Any) -> Dict[str, Any]:
             snapshot = base_results.dashboard_snapshot()
             if isinstance(snapshot, Mapping):
                 return dict(snapshot)
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             return {}
     return {}
 
 
-def _snapshot_section(snapshot: Mapping[str, Any], key: str) -> Dict[str, Any]:
+def _snapshot_section(snapshot: Mapping[str, Any], key: str) -> dict[str, Any]:
     value = snapshot.get(key, {})
     return dict(value) if isinstance(value, Mapping) else {}
 
 
-def _load_report_json(results_or_report: Any) -> Dict[str, Any]:
+def _load_report_json(results_or_report: Any) -> dict[str, Any]:
     if results_or_report is None:
         return {}
     if isinstance(results_or_report, Mapping):
@@ -200,13 +201,11 @@ def _load_report_json(results_or_report: Any) -> Dict[str, Any]:
     if not raw:
         return {}
     try:
-        import json
-
         if isinstance(raw, str):
             return json.loads(raw)
         if isinstance(raw, bytes):
             return json.loads(raw.decode("utf-8"))
-    except Exception:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         return {}
     return {}
 
@@ -221,12 +220,12 @@ def _normalize_trades(results_or_snapshot: Any) -> pd.DataFrame:
         try:
             trades = base_results.trades()
             return trades if isinstance(trades, pd.DataFrame) else _normalize_table(trades)
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             return pd.DataFrame()
     return pd.DataFrame()
 
 
-def _normalize_tester_report(results_or_snapshot: Any) -> Dict[str, Any]:
+def _normalize_tester_report(results_or_snapshot: Any) -> dict[str, Any]:
     if results_or_snapshot is None:
         return {}
     if isinstance(results_or_snapshot, Mapping) and "tester_report" in results_or_snapshot:
@@ -237,7 +236,7 @@ def _normalize_tester_report(results_or_snapshot: Any) -> Dict[str, Any]:
         try:
             value = base_results.tester_report()
             return dict(value) if isinstance(value, Mapping) else {}
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             return {}
     return {}
 
@@ -252,7 +251,7 @@ def _normalize_tester_journal(results_or_snapshot: Any) -> pd.DataFrame:
         try:
             value = base_results.tester_journal()
             return value if isinstance(value, pd.DataFrame) else _normalize_table(value)
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             return pd.DataFrame()
     return pd.DataFrame()
 
@@ -267,7 +266,7 @@ def _normalize_regime_metrics(results_or_snapshot: Any) -> pd.DataFrame:
         if hasattr(base_results, "regime_metrics"):
             try:
                 data = base_results.regime_metrics()
-            except Exception:
+            except (AttributeError, RuntimeError, TypeError, ValueError):
                 return pd.DataFrame()
         else:
             return pd.DataFrame()
@@ -282,7 +281,7 @@ def _normalize_regime_metrics(results_or_snapshot: Any) -> pd.DataFrame:
     return _normalize_table(data)
 
 
-def _normalize_optimization_payload(results_or_snapshot: Any) -> Dict[str, Any]:
+def _normalize_optimization_payload(results_or_snapshot: Any) -> dict[str, Any]:
     if not _is_walkforward_results(results_or_snapshot):
         return {
             "enabled": False,
@@ -359,17 +358,17 @@ def _normalize_equity_input(results_or_snapshot: Any) -> pd.DataFrame:
     if hasattr(results_or_snapshot, "account_curve"):
         try:
             return _normalize_equity(results_or_snapshot.account_curve())
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             pass
     if hasattr(results_or_snapshot, "equity_curve"):
         try:
             return _normalize_equity(results_or_snapshot.equity_curve())
-        except Exception:
+        except (AttributeError, RuntimeError, TypeError, ValueError):
             return pd.DataFrame(columns=["equity"])
     return pd.DataFrame(columns=["equity"])
 
 
-def _report_section(report: Dict[str, Any], key: str) -> pd.DataFrame:
+def _report_section(report: dict[str, Any], key: str) -> pd.DataFrame:
     if not report:
         return pd.DataFrame()
     section = report.get(key, {})
@@ -403,7 +402,7 @@ def _build_report_schema(
     account: Mapping[str, Any],
     execution: Mapping[str, Any],
     report: Mapping[str, Any],
-) -> Dict[str, pd.DataFrame]:
+) -> dict[str, pd.DataFrame]:
     summary_rows = [{"metric": key, "value": _format_dashboard_value(value)} for key, value in headline.items()]
     account_rows = [{"metric": key, "value": _format_dashboard_value(value)} for key, value in account.items()]
     execution_rows = [{"metric": key, "value": _format_dashboard_value(value)} for key, value in execution.items()]
@@ -468,7 +467,7 @@ def _build_journal_entries(
     return pd.DataFrame(rows)
 
 
-def _normalize_strategy_tester_payload(results_or_snapshot: Any) -> Dict[str, Any]:
+def _normalize_strategy_tester_payload(results_or_snapshot: Any) -> dict[str, Any]:
     snapshot = _load_dashboard_snapshot(results_or_snapshot)
     report = _load_report_json(results_or_snapshot)
     tester_report = _normalize_tester_report(results_or_snapshot)
@@ -553,7 +552,7 @@ def _normalize_strategy_tester_payload(results_or_snapshot: Any) -> Dict[str, An
     }
 
 
-def create_live_runtime_payload(results_or_snapshot: Any) -> Dict[str, Any]:
+def create_live_runtime_payload(results_or_snapshot: Any) -> dict[str, Any]:
     snapshot = _load_dashboard_snapshot(results_or_snapshot)
     account_curve = _normalize_equity_curve(snapshot.get("account_curve", snapshot.get("equity_curve")))
     positions = _normalize_table(snapshot.get("positions"))
@@ -592,7 +591,7 @@ def create_live_runtime_payload(results_or_snapshot: Any) -> Dict[str, Any]:
     }
 
 
-def _build_live_equity_figure(payload: Dict[str, Any]) -> tuple[Any, Any]:
+def _build_live_equity_figure(payload: dict[str, Any]) -> tuple[Any, Any]:
     import plotly.graph_objects as go
 
     theme = payload["theme"]
@@ -659,7 +658,7 @@ def _build_live_equity_figure(payload: Dict[str, Any]) -> tuple[Any, Any]:
     return equity_fig, drawdown_fig
 
 
-def _build_plotly_strategy_tester_figures(payload: Dict[str, Any]) -> Dict[str, Any]:
+def _build_plotly_strategy_tester_figures(payload: dict[str, Any]) -> dict[str, Any]:
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
 
@@ -751,8 +750,8 @@ def _build_plotly_strategy_tester_figures(payload: Dict[str, Any]) -> Dict[str, 
 
 
 def _build_execution_replay_figure(
-    payload: Dict[str, Any],
-    end_index: Optional[int] = None,
+    payload: dict[str, Any],
+    end_index: int | None = None,
     include_animation: bool = True,
     window_bars: int = 240,
     max_order_annotations: int = 8,
@@ -1127,7 +1126,7 @@ def _build_execution_replay_figure(
 def create_strategy_tester_dashboard(
     results_or_snapshot: Any,
     title: str = "RegimeFlow Strategy Tester",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     payload = _normalize_strategy_tester_payload(results_or_snapshot)
     equity_df = payload["account_curve"]
     drawdown = _compute_drawdown(equity_df["equity"]) if "equity" in equity_df else pd.Series(dtype=float)
@@ -1135,9 +1134,8 @@ def create_strategy_tester_dashboard(
     payload["title"] = title
 
     try:
-        payload.update(_build_plotly_strategy_tester_figures(payload))
-        payload["replay_figure"] = _build_execution_replay_figure(payload)
-    except Exception:
+        import plotly  # noqa: F401 - optional-backend availability probe
+    except ImportError:
         try:
             import matplotlib.pyplot as plt
 
@@ -1153,21 +1151,24 @@ def create_strategy_tester_dashboard(
             fig.tight_layout()
             payload["figure"] = fig
             payload["replay_figure"] = fig
-        except Exception as exc:
+        except ImportError as exc:
             raise ImportError(
                 "Plotting requires plotly or matplotlib. Install with `regimeflow[viz]`."
             ) from exc
+    else:
+        payload.update(_build_plotly_strategy_tester_figures(payload))
+        payload["replay_figure"] = _build_execution_replay_figure(payload)
 
     return payload
 
 
 def create_live_dashboard(
-    equity: Union[pd.DataFrame, pd.Series, Any],
-    positions: Optional[Union[pd.DataFrame, Iterable[Mapping[str, Any]]]] = None,
-    orders: Optional[Union[pd.DataFrame, Iterable[Mapping[str, Any]]]] = None,
-    regime_state: Optional[Union[Mapping[str, Any], Any]] = None,
-    alerts: Optional[Iterable[str]] = None,
-) -> Dict[str, Any]:
+    equity: pd.DataFrame | pd.Series | Any,
+    positions: pd.DataFrame | Iterable[Mapping[str, Any]] | None = None,
+    orders: pd.DataFrame | Iterable[Mapping[str, Any]] | None = None,
+    regime_state: Mapping[str, Any] | Any | None = None,
+    alerts: Iterable[str] | None = None,
+) -> dict[str, Any]:
     equity_df = _normalize_equity(equity)
     drawdown = _compute_drawdown(equity_df["equity"])
     positions_df = _normalize_table(positions)
@@ -1178,6 +1179,9 @@ def create_live_dashboard(
     try:
         import plotly.graph_objects as go
         from plotly.subplots import make_subplots
+    except ImportError:
+        pass
+    else:
 
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
         fig.add_trace(
@@ -1203,8 +1207,6 @@ def create_live_dashboard(
             "regime_state": regime,
             "alerts": alert_list,
         }
-    except Exception:
-        pass
 
     try:
         import matplotlib.pyplot as plt
@@ -1228,13 +1230,13 @@ def create_live_dashboard(
             "regime_state": regime,
             "alerts": alert_list,
         }
-    except Exception as exc:
+    except ImportError as exc:
         raise ImportError(
             "Plotting requires plotly or matplotlib. Install with `regimeflow[viz]`."
         ) from exc
 
 
-def dashboard_snapshot_to_live_dashboard(snapshot: Mapping[str, Any]) -> Dict[str, Any]:
+def dashboard_snapshot_to_live_dashboard(snapshot: Mapping[str, Any]) -> dict[str, Any]:
     payload = _normalize_strategy_tester_payload(snapshot)
     return create_live_dashboard(
         equity=payload["account_curve"],
@@ -1258,7 +1260,7 @@ def create_interactive_dashboard(
         from dash import dcc, html
         from dash.dash_table import DataTable
         import plotly.graph_objects as go
-    except Exception as exc:
+    except ImportError as exc:
         raise ImportError(
             "Interactive dashboard requires dash and plotly. Install with `regimeflow[viz]`."
         ) from exc
@@ -1309,10 +1311,10 @@ def create_interactive_dashboard(
     }
 
     def _panel(children: Any,
-               title_text: Optional[str] = None,
-               subtitle_text: Optional[str] = None,
+               title_text: str | None = None,
+               subtitle_text: str | None = None,
                padding: str = "14px 16px",
-               min_height: Optional[str] = None) -> Any:
+               min_height: str | None = None) -> Any:
         header_children = []
         if title_text:
             header_children.append(
@@ -1708,7 +1710,7 @@ def create_interactive_dashboard(
             import json
 
             diagnostics_payload = json.dumps(report, indent=2, sort_keys=True)
-        except Exception:
+        except (TypeError, ValueError):
             diagnostics_payload = str(report)
     else:
         diagnostics_payload = "No report data available"

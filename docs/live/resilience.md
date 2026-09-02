@@ -38,6 +38,43 @@ Set `live.duplicate_order_window_ms` to reject identical live orders emitted ins
 
 This guard is disabled by default to avoid surprising research strategies, but production live configs should usually set a small window such as `250` to `1000` milliseconds.
 
+## Callback And Shutdown Safety
+
+Live broker adapters may deliver market data and execution reports on transport-owned threads.
+`LiveTradingEngine` therefore completes account recovery, position reconciliation, and strategy
+initialization before it registers callbacks or starts its worker threads. Portfolio mutation is
+serialized, and regime-model inference and retraining share a dedicated model lock.
+
+`LiveOrderManager` serializes its order maps, duplicate-order guard, execution-quality tracker,
+and callback registration. Broker calls and user callbacks run after that lock is released, so
+application callbacks must not assume they execute under an engine lock.
+
+`EventBus::publish()` remains fire-and-forget for compatibility. New code that needs explicit
+shutdown behavior should use `EventBus::try_publish()`: it returns `false` after `stop()` begins.
+`stop()` closes publisher admission, waits for admitted publishers, then drains the internally
+synchronized FIFO queue before joining the dispatcher. Lifecycle transitions are serialized, so a
+concurrent `start()` cannot reopen admission while shutdown is in progress. RegimeFlow deliberately
+uses mutex-backed queues here: safe reclamation is more important than an unsafe lock-free linked
+list on a live trading control path.
+The owner must still stop broker/adaptor threads before destroying the bus; no member function can
+make calls through an object after its lifetime safe.
+
+## Interactive Brokers Transport
+
+The IB TWS/Gateway API uses a native plaintext socket. `IBAdapter` is therefore loopback-only by
+default and requires an explicit `allow_plaintext_remote: true` opt-in for another host. That flag
+is not encryption; deploy a tunnel, VPN, or TLS-terminating proxy around the network path before
+enabling it. This follows the upstream connection model while preventing accidental exposure of a
+broker control socket on a LAN or public network.
+
+## Market-Data Validation
+
+Order-book consumers must not treat an empty or crossed top of book as a price. Use
+`OrderBook::best_bid()`, `OrderBook::best_ask()`, and `OrderBook::has_usable_top_of_book()`.
+The live engine only marks the portfolio from a usable, non-crossed book. The feature extractor
+returns zero-valued features without changing rolling history for an invalid book snapshot, and
+the HMM preserves its previous probability distribution.
+
 ## Dry-Run Order Mode
 
 Set `live.dry_run: true` to run strategy, routing, risk, broker normalization,

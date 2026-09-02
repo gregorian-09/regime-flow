@@ -47,22 +47,6 @@ namespace regimeflow::live
             return token == "SELL" ? engine::OrderSide::Sell : engine::OrderSide::Buy;
         }
 
-        std::string status_name(const LiveOrderStatus status) {
-            switch (status) {
-            case LiveOrderStatus::PendingNew: return "PENDING_NEW";
-            case LiveOrderStatus::New: return "NEW";
-            case LiveOrderStatus::PartiallyFilled: return "PARTIAL";
-            case LiveOrderStatus::Filled: return "FILLED";
-            case LiveOrderStatus::PendingCancel: return "PENDING_CANCEL";
-            case LiveOrderStatus::Cancelled: return "CANCELLED";
-            case LiveOrderStatus::Rejected: return "REJECTED";
-            case LiveOrderStatus::Expired: return "EXPIRED";
-            case LiveOrderStatus::Inactive: return "INACTIVE";
-            case LiveOrderStatus::Error: return "ERROR";
-            }
-            return "NEW";
-        }
-
         LiveOrderStatus parse_status(const std::string& token) {
             if (token == "PENDING_NEW") return LiveOrderStatus::PendingNew;
             if (token == "NEW") return LiveOrderStatus::New;
@@ -121,7 +105,7 @@ namespace regimeflow::live
                     << "|" << payload.quantity
                     << "|" << payload.price
                     << "|" << payload.commission
-                    << "|" << status_name(payload.status)
+                    << "|" << live_order_status_wire_name(payload.status)
                     << "|" << payload.text
                     << "|" << payload.timestamp.microseconds();
             } else if constexpr (std::is_same_v<T, Position>) {

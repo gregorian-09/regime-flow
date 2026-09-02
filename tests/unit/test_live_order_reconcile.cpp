@@ -3,6 +3,10 @@
 
 #include "regimeflow/live/live_order_manager.h"
 
+#include <atomic>
+#include <barrier>
+#include <thread>
+
 namespace regimeflow::test
 {
     class TestBrokerAdapter final : public regimeflow::live::BrokerAdapter {
@@ -101,6 +105,34 @@ namespace regimeflow::test
         auto second = manager.submit_order(order);
         ASSERT_TRUE(second.is_err());
         EXPECT_EQ(second.error().code, Error::Code::AlreadyExists);
+        EXPECT_EQ(broker.submit_count, 1);
+    }
+
+    TEST(LiveOrderManager, ConcurrentDuplicateSubmissionReservesTheInternalId) {
+        TestBrokerAdapter broker;
+        regimeflow::live::LiveOrderManager manager(&broker);
+
+        regimeflow::engine::Order order;
+        order.id = 77;
+        order.symbol = SymbolRegistry::instance().intern("CONCURRENT-ID");
+        order.quantity = 1;
+        order.side = regimeflow::engine::OrderSide::Buy;
+
+        std::barrier gate(3);
+        std::atomic<int> accepted{0};
+        const auto submit = [&] {
+            gate.arrive_and_wait();
+            if (manager.submit_order(order).is_ok()) {
+                ++accepted;
+            }
+        };
+        std::thread first(submit);
+        std::thread second(submit);
+        gate.arrive_and_wait();
+        first.join();
+        second.join();
+
+        EXPECT_EQ(accepted.load(), 1);
         EXPECT_EQ(broker.submit_count, 1);
     }
 

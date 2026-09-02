@@ -56,6 +56,11 @@ def _is_core_binary(path: Path) -> bool:
 def _find_core_binary() -> Path:
     here = Path(__file__).resolve().parent
     search_roots: list[Path] = [here]
+    project_root = here.parents[1]
+    # A source checkout may use any CMake build directory (for example
+    # ``build-gcc`` or ``build-asan``). Installed packages find the extension
+    # beside this file and do not rely on this developer convenience.
+    search_roots.extend(sorted(project_root.glob("build*/python")))
     test_root = os.environ.get("REGIMEFLOW_TEST_ROOT")
     if test_root:
         root = Path(test_root)
@@ -67,6 +72,7 @@ def _find_core_binary() -> Path:
                 root / "build" / "python" / "Debug",
             )
         )
+        search_roots.extend(sorted(root.glob("build*/python")))
 
     for entry in sys.path:
         try:
@@ -108,6 +114,16 @@ _configure_windows_dll_search()
 
 _core = _import_core()
 
-globals().update(_core.__dict__)
+def __getattr__(name: str):
+    """Forward public extension attributes without polluting this module's namespace."""
+    try:
+        return getattr(_core, name)
+    except AttributeError as exc:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc
 
-__all__ = getattr(_core, "__all__", [])
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(dir(_core)))
+
+
+__all__ = [name for name in dir(_core) if not name.startswith("_")]

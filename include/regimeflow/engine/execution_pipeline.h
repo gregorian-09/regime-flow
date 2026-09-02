@@ -19,6 +19,7 @@
 #include "regimeflow/events/event_queue.h"
 
 #include <memory>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -30,6 +31,7 @@ namespace regimeflow::engine
      */
     class ExecutionPipeline {
     public:
+        using TimeProvider = std::function<Timestamp()>;
         /**
          * @brief Default fill policy applied when the order itself does not request IOC/FOK.
          */
@@ -165,6 +167,10 @@ namespace regimeflow::engine
          * @param halted True to halt, false to resume.
          */
         void set_global_halt(bool halted);
+        /**
+         * @brief Set the authoritative clock used when an order lacks a submission timestamp.
+         */
+        void set_time_provider(TimeProvider provider);
 
         /**
          * @brief Handle order submission and generate fill events.
@@ -279,5 +285,6 @@ namespace regimeflow::engine
         BarSimulationMode bar_simulation_mode_ = BarSimulationMode::CloseOnly;
         SessionPolicy session_policy_;
         std::unordered_map<OrderId, RestingOrderState> resting_orders_;
+        TimeProvider time_provider_;
     };
 }  // namespace regimeflow::engine
