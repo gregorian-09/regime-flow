@@ -6,6 +6,11 @@ add_library(regimeflow_common
     common/yaml_config.cpp
     common/sha256.cpp
 )
+
+# Threading is used by the engine, live runtime, and walk-forward optimizer.
+# Discover the platform-specific flags once so every consumer links correctly.
+find_package(Threads REQUIRED)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(regimeflow_common PRIVATE -Wno-free-nonheap-object)
 endif()
@@ -303,7 +308,6 @@ if(ENABLE_IBAPI AND EXISTS "${IBAPI_ROOT}")
     # Keep the protobuf headers matched to the vendored IB-generated stubs ahead
     # of broad package-manager include directories such as /opt/homebrew/include.
     target_include_directories(ibapi BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
-    find_package(Threads REQUIRED)
     target_link_libraries(ibapi PUBLIC Threads::Threads)
     if(_regimeflow_protobuf_target)
         target_link_libraries(ibapi PUBLIC ${_regimeflow_protobuf_target})
@@ -544,6 +548,7 @@ regimeflow_enable_windows_exports(regimeflow_engine)
 target_link_libraries(regimeflow_engine
     PUBLIC
         regimeflow_common
+        Threads::Threads
         regimeflow_data
         regimeflow_execution
         regimeflow_risk
@@ -672,6 +677,7 @@ regimeflow_enable_windows_exports(regimeflow_walkforward)
 target_link_libraries(regimeflow_walkforward
     PUBLIC
         regimeflow_common
+        Threads::Threads
         regimeflow_metrics
         regimeflow_engine
 )
@@ -703,6 +709,7 @@ regimeflow_enable_windows_exports(regimeflow_live)
 target_link_libraries(regimeflow_live
     PUBLIC
         regimeflow_common
+        Threads::Threads
         regimeflow_engine
         regimeflow_metrics
         regimeflow_strategy

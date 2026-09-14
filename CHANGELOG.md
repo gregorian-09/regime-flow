@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.15] - 2026-09-14
+
+### Fixed
+- Linked the platform thread target to threaded engine and live executables so source and wheel
+  builds resolve `pthread_create` on older Linux toolchains.
+
 ## [1.0.14] - 2026-09-14
 
 ### Fixed
