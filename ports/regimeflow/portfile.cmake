@@ -12,12 +12,12 @@ else()
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO gregorian-09/regime-flow
-        # Release source: v1.0.15
-        # Pin the source commit that contains the 1.0.15 code. The overlay port lives in
+        # Release source: v1.0.16
+        # Pin the source commit that contains the 1.0.16 code. The overlay port lives in
         # this repository, so pinning the preceding source commit avoids a self-referential
         # archive checksum while preserving immutable source provenance.
-        REF 1bc0987008476da17c9f9f9fe64acdc89b4f90cc
-        SHA512 3b9bd10440ed72c026521f9d60c1729a4423c70b006fe55562e9006baee87797a2836fba6623e70391d0ac57684f29c151e516f6b0b760c1fc2dcb26972de3a6
+        REF 5d8c5e3a3fe3a085062808084966ce15c014f288
+        SHA512 27c5a96d95ac1037acb68528027cc78667a817775e350debe55c948aea49e20a5dac1bd38002c1219ad17e7bb417ad7ca9a46b51ba33a1c1376e464a2f981388
     )
 endif()
 
