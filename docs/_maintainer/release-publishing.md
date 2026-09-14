@@ -30,7 +30,7 @@ Before publishing, `publish.yml` runs `tools/check_versions.py` against the tag 
 Run the same check locally before tagging:
 
 ```bash
-python3 tools/check_versions.py v1.0.13
+python3 tools/check_versions.py v1.0.14
 ```
 
 ## PyPI Publishing

@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.14] - 2026-09-14
+
+### Fixed
+- Prevented cibuildwheel's explicit CMake environment from re-enabling repository tests during
+  package builds on older manylinux toolchains.
+
 ## [1.0.13] - 2026-09-14
 
 ### Added
