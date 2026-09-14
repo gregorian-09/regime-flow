@@ -1,0 +1,5 @@
+# Keep manylinux2014 build and test dependencies on binary-compatible releases.
+# NumPy and pandas releases newer than these bounds require newer glibc baselines
+# or fall back to source builds in the legacy manylinux image.
+numpy>=1.24,<2.3
+pandas>=2.0,<3
