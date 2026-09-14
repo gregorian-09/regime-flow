@@ -1,5 +1,5 @@
 Name:           regimeflow
-Version:        1.0.12
+Version:        1.0.13
 Release:        1%{?dist}
 Summary:        Regime-adaptive backtesting framework
 
@@ -48,5 +48,5 @@ DESTDIR=%{buildroot} cmake --install build
 %{_libdir}/cmake/RegimeFlow/
 
 %changelog
-* Sun Jun 14 2026 RegimeFlow Team <team@regimeflow.io> - 1.0.12-1
+* Mon Sep 14 2026 RegimeFlow Team <team@regimeflow.io> - 1.0.13-1
 - Initial package scaffold

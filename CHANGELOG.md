@@ -7,6 +7,32 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.13] - 2026-09-14
+
+### Added
+- Added a public research-to-deployment feature direction covering reproducible experiment
+  manifests, data lineage, run comparison, promotion gates, and paper-to-live workflows in
+  `unique.md`.
+- Added thread-safe snapshot accessors for live execution-quality metrics.
+
+### Changed
+- Replaced unsafe pending linked-list ownership in event queues and live event delivery with
+  synchronized storage and explicit shutdown admission control.
+- Made backtest timing, forced liquidation, callbacks, and live order state more deterministic
+  and auditable.
+- Hardened allocation, order-book validation, mmap checksum persistence, and websocket retry
+  handling.
+- Scoped compiler diagnostics and sanitizer settings to RegimeFlow targets and tightened
+  dependency/source configuration.
+- Improved Python binding discovery, native re-exports, integer validation, and modern typing.
+
+### Fixed
+- Prevented concurrent producers, broker callbacks, and shutdown paths from racing over shared
+  state.
+- Preserved legacy `Ok`/`Err` and execution-quality APIs while adding safer alternatives.
+- Added stronger regression coverage for concurrency, normalization, cleanup, persistence, and
+  binding behavior.
+
 ## [1.0.12] - 2026-06-14
 
 ### Changed
