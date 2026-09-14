@@ -55,15 +55,23 @@ def main() -> int:
         except AssertionError as exc:
             errors.append(str(exc))
 
-    contains = [
-        ("vcpkg port tag", "ports/regimeflow/portfile.cmake", f"REF v{version}"),
-        ("changelog", "CHANGELOG.md", f"## [{version}]"),
-    ]
-    for label, path, needle in contains:
-        try:
-            require_contains(label, path, needle)
-        except AssertionError as exc:
-            errors.append(str(exc))
+    portfile = read("ports/regimeflow/portfile.cmake")
+    release_tag_ref = re.search(rf"^\s*REF v{re.escape(version)}\s*$", portfile, re.MULTILINE)
+    release_source_ref = re.search(
+        rf"^\s*# Release source: v{re.escape(version)}\s*$.*?"
+        rf"^\s*REF [0-9a-f]{{40}}\s*$.*?"
+        rf"^\s*SHA512 [0-9a-f]{{128}}\s*$",
+        portfile,
+        re.MULTILINE | re.DOTALL,
+    )
+    if release_tag_ref is None and release_source_ref is None:
+        errors.append(
+            "vcpkg port source: ports/regimeflow/portfile.cmake does not pin "
+            f"v{version} or a labeled immutable source commit"
+        )
+
+    if f"## [{version}]" not in read("CHANGELOG.md"):
+        errors.append(f"changelog: CHANGELOG.md does not contain '## [{version}]'")
 
     if errors:
         for error in errors:

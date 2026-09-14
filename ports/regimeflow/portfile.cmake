@@ -12,8 +12,12 @@ else()
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO gregorian-09/regime-flow
-        REF v1.0.12
-        SHA512 301992d3551e04b2a014b184a126c30ffd0e36432d0f1c685bc16336fa8264703b46f9d9eaae0efcddd21459f077a3f6931fd17fb4f98ff37488e904bbf7fde1
+        # Release source: v1.0.13
+        # Pin the source commit that contains the 1.0.13 code. The overlay port lives in
+        # this repository, so pinning the preceding source commit avoids a self-referential
+        # archive checksum while preserving immutable source provenance.
+        REF b91a5d60829ff491478d49a3a44d2ce48696aee6
+        SHA512 a169818b4518880b4767e3eff032b83dd2e4d9279a894b44540d38fcba12b5a05c9eb306bbaad0cf62d19f5c5af634c7e493680dd900ac43755764d2f6a73218
     )
 endif()
 

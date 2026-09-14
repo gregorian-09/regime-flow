@@ -22,7 +22,7 @@ Before publishing, `publish.yml` runs `tools/check_versions.py` against the tag 
 - `python/regimeflow/__init__.py`
 - `vcpkg.json`
 - `ports/regimeflow/vcpkg.json`
-- `ports/regimeflow/portfile.cmake`
+- `ports/regimeflow/portfile.cmake` (release tag or labeled immutable source commit plus SHA-512)
 - `packaging/deb/DEBIAN/control`
 - `packaging/rpm/regimeflow.spec`
 - `CHANGELOG.md`
@@ -95,7 +95,7 @@ This repository contains local packaging definitions for vcpkg and Homebrew-styl
 
 For each release:
 
-- update `ports/regimeflow/portfile.cmake` to the new `REF`
+- update `ports/regimeflow/portfile.cmake` to the new release `REF` and verified `SHA512`
 - update `ports/regimeflow/vcpkg.json`
 - update `vcpkg.json`
 - update package checksums if the package manager requires them

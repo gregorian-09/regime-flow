@@ -61,7 +61,9 @@ Optional features:
 
 ## Release Maintenance
 
-1. Update `REF` to the release tag.
+1. Update `REF` to the immutable source commit containing the release code. This repository
+   keeps the port alongside the source, so pinning the preceding source commit avoids a
+   self-referential archive checksum.
 2. Update the `SHA512` source hash.
 3. Update `versions/baseline.json`.
 4. Update `versions/r-/regimeflow.json` with the new port `git-tree`.
