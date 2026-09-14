@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.16] - 2026-09-14
+
+### Fixed
+- Kept Linux manylinux wheel builds on binary-compatible NumPy and pandas dependencies while
+  excluding the unsupported Python 3.14 Linux target.
+
 ## [1.0.15] - 2026-09-14
 
 ### Fixed

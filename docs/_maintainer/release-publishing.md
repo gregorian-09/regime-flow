@@ -30,7 +30,7 @@ Before publishing, `publish.yml` runs `tools/check_versions.py` against the tag 
 Run the same check locally before tagging:
 
 ```bash
-python3 tools/check_versions.py v1.0.15
+python3 tools/check_versions.py v1.0.16
 ```
 
 ## PyPI Publishing
@@ -59,9 +59,11 @@ The publish and manual wheel workflows build CPython wheels for:
 - `cp311`
 - `cp312`
 - `cp313`
-- `cp314`
+- `cp314` on Windows and macOS
 
-The workflow excludes PyPy and musllinux wheels until they are tested explicitly.
+Linux manylinux wheels currently cover `cp39` through `cp313`; the Linux build excludes `cp314`
+because its current NumPy wheels require a newer glibc baseline than manylinux2014. The workflow
+excludes PyPy and musllinux wheels until they are tested explicitly.
 
 ## Release Flow
 

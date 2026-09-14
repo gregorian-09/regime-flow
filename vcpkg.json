@@ -1,6 +1,6 @@
 {
   "name": "regimeflow",
-  "version-string": "1.0.15",
+  "version-string": "1.0.16",
   "license": "MIT",
   "dependencies": [
     "eigen3",
